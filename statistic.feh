@@ -1,0 +1,177 @@
+uses 'console';
+uses 'date';
+uses 'reflection';
+
+/**
+ * @namespace Statistic
+ * @brief Contains classes for working with statistics especially the Cention Reports system
+ */
+namespace Statistic {
+	/**
+	 * @class Timeframe
+	 * @brief A timeframe with a start time and and an end time
+	 */
+	class Timeframe {
+		/**
+		 * @variable start
+		 * @type object
+		 * @brief The Date object representing the start of the time frame
+		 */
+		object start;
+		
+		/**
+		 * @variable end
+		 * @type object
+		 * @brief The Date object representing the end of the timeframe
+		 */
+		object end;
+		
+		/**
+		 * @function constructor
+		 * @declaration function constructor( object start, object end )
+		 * @brief Creates a new Timeframe object with a Date object as start and a Date object as end
+		 * @param object start Date object that should be the start of the timeframe
+		 * @param object end Date object that should be the end of the timeframe
+		 */
+		function constructor( object start, object end ) {
+			.start = start;
+			.end = end;
+		}
+		
+		/**
+		 * @function constructor
+		 * @declaration function constructor( number start, number end )
+		 * @brief Creates a new Timeframe object with a timestamp as start and a timestamp as end
+		 * @param number start unix timestamp that should be the start of the timeframe
+		 * @param number end unix timestamp that should be the end of the timeframe
+		 */
+		function constructor( number start, number end ) {
+			.start = Date.date( start );
+			.end = Date.date( end );
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	abstract class TimeFormat {
+		object previousTimeFormat;
+		
+		function constructor( object previousTimeFormat )
+			.previousTimeFormat = previousTimeFormat;
+		
+		function getValue( number timestamp ) {
+			object date = Date.date( timestamp );
+			string time = date.format( .format );
+			if( .previousTimeFormat )
+				time += " " + .previousTimeFormat.getValue();
+			return time;
+		}
+	}
+	
+	class YearTimeFormat extends Statistic.TimeFormat {
+		string format = "%Y";
+	}
+	
+	class MonthTimeFormat extends Statistic.TimeFormat {
+		string format = "%B";
+	}
+	
+	class WeekTimeFormat extends Statistic.TimeFormat {
+		string format = "%V";
+	}
+	
+	class WeekdayTimeFormat extends TimeFormat {
+		string format = "%A";
+	}
+	
+	class DayTimeFormat extends TimeFormat {
+		string format = "%F";
+	}
+	
+	class HourTimeFormat extends TimeFormat {
+		string format = "%H";
+	}
+	
+	class MinuteTimeFormat extends TimeFormat {
+		string format = "%M";
+	}
+	
+	class SecondTimeFormat extends TimeFormat {
+		string format = "%S";
+	}
+	
+	abstract class View {
+		array timeframes;
+		
+		function addTimeframe( number start, number end )
+			.timeframes[] = new Statistic.Timeframe( start, end );
+	
+		function setTimeframe( object start, object end )
+			.timeframes[] = new Statistic.Timeframe( start, end );
+	}
+	
+	abstract class TimeView extends View {
+		object timeFormat;
+		
+		function constructor() {
+			.timeFormat = new Statistic.HourTimeFormat();
+		}
+		
+		function setTimeFormat( object timeFormat )
+			.timeFormat = timeFormat;
+	}
+	
+	abstract class AtWhatTimeView extends TimeView {
+		
+		function getValues() {
+			array values = .fetchValues();
+			array sortedValues = [];
+			array values3 = [];
+			
+			values.each() using ( value ) {
+				string timeFormatValue = .timeFormat.getValue( value );
+				if( not sortedValues.keyExists( timeFormatValue ) )
+					sortedValues[timeFormatValue] = [];
+			
+				sortedValues[timeFormatValue][] = value;
+			};
+		
+			sortedValues.map() using ( key, value ) {
+				values3[key] = value.size();
+			};
+		
+			return values3;
+		}
+	}
+
+	abstract class HowLongTimeView extends TimeView {
+	}
+
+	class Incoming extends AtWhatTimeView {
+		function fetchValues() {
+			array values = [];
+			values[] = Date.now() - ( 60 * 60 * 1 );
+			values[] = Date.now() - ( 60 * 60 * 3 );
+			values[] = Date.now() - ( 60 * 60 * 5 );
+			values[] = Date.now() - ( 60 * 60 * 7 );
+			values[] = Date.now() - ( 60 * 60 * 9 );
+			values[] = Date.now() - ( 60 * 60 * 12 );
+			values[] = Date.now() - ( 60 * 60 * 15 );
+			return values;
+		}
+	}
+
+	class ProcessTime extends HowLongTimeView {
+		function fetchValues() {
+			array values = [];
+			values[] = Date.now() - ( Date.now() - ( 60 * 60 * 1 ) );
+			values[] = Date.now() - ( Date.now() - ( 60 * 60 * 2 ) );
+			return values;
+		}
+	}
+}
+/**
+ * @end
+ */
+
