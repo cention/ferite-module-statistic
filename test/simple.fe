@@ -1,0 +1,61 @@
+// Console output simulation...
+
+uses 'console';
+uses '../statistic.feh';
+uses 'reports.feh';
+
+function toConsole( array data ) {
+	number tableLength = 0;
+	number column1Length = 0;
+
+	data.map() using ( key, value ) {
+		number keyLength = key.length();
+		if( keyLength > column1Length )
+			column1Length = keyLength;
+	};
+
+	tableLength = 2 + column1Length + 3 + 5 + 2;
+
+	data.map() using ( key, value ) {
+		string valueAsString = "" + value;
+	
+		for( number i = 0; i < tableLength; i++ )
+			Console.print( "-" );	
+	
+		Console.print( "\n| ${key}" );
+	
+		if( key.length() < column1Length ) {
+			number extraSpaces = 0;
+			while( ( key.length() + extraSpaces ) < column1Length ) {
+				Console.print( " " );
+				extraSpaces++;
+			}
+		}
+
+		Console.print( " | ${value}" );
+	
+		if( valueAsString.length() < 5 ) {
+			number extraSpaces = 0;
+			while( ( valueAsString.length() + extraSpaces ) < 5 ) {
+				Console.print( " " );
+				extraSpaces++;
+			}
+		}
+			
+		Console.print( " |\n" );
+	};
+
+	for( number i = 0; i < tableLength; i++ )
+		Console.print( "-" );
+
+	Console.print( "\n" );
+}
+
+object incoming;
+
+incoming = new Reports.Incoming();
+incoming.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
+incoming.setTimeFormat( new Statistic.YearTimeFormat( new Statistic.MonthTimeFormat( new Statistic.WeekdayTimeFormat() ) ) );
+
+toConsole( incoming.getData() );
+

@@ -49,35 +49,49 @@ namespace Statistic {
 			.start = Date.date( start );
 			.end = Date.date( end );
 		}
+		
+		/**
+		 * @function constructor
+		 * @declaration function constructor( string start, string end )
+		 * @brief Creates a new Timeframe object with a string as start and a string as end
+		 * @param string start string looking like YEAR-MONTH-DAY
+		 * @param string end string looking like YEAR-MONTH-DAY
+		 */
+		function constructor( string start, string end ) {
+			.start = Date.parse( start, "%F" );
+			.end = Date.parse( end, "%F" );
+		}
 	}
 	/**
 	 * @end
 	 */
 	
 	abstract class TimeFormat {
-		object previousTimeFormat;
+		object nextTimeFormat;
 		
-		function constructor( object previousTimeFormat )
-			.previousTimeFormat = previousTimeFormat;
+		function constructor( object nextTimeFormat )
+			.nextTimeFormat = nextTimeFormat;
 		
-		function getValue( number timestamp ) {
+		function whenIsThis( number timestamp ) {
 			object date = Date.date( timestamp );
-			string time = date.format( .format );
-			if( .previousTimeFormat )
-				time += " " + .previousTimeFormat.getValue();
-			return time;
+			string text = date.format( .format );
+			
+			if( .nextTimeFormat )
+				text += " " + .nextTimeFormat.whenIsThis( timestamp );
+			
+			return text;
 		}
 	}
 	
-	class YearTimeFormat extends Statistic.TimeFormat {
+	class YearTimeFormat extends TimeFormat {
 		string format = "%Y";
 	}
 	
-	class MonthTimeFormat extends Statistic.TimeFormat {
+	class MonthTimeFormat extends TimeFormat {
 		string format = "%B";
 	}
 	
-	class WeekTimeFormat extends Statistic.TimeFormat {
+	class WeekTimeFormat extends TimeFormat {
 		string format = "%V";
 	}
 	
@@ -101,75 +115,158 @@ namespace Statistic {
 		string format = "%S";
 	}
 	
+	/**
+	 * @class view
+	 * @brief The base class for all statistic views
+	 */
 	abstract class View {
 		array timeframes;
 		
+		/**
+		 * @function addTimeframe
+		 * @declaration function addTimeframe( object timeframe )
+		 * @brief Add a timeframe from a Timeframe object in which values should be fetched
+		 * @param object timeframe a Statistic.Timeframe object
+		 */
+		function addTimeframe( object timeframe )
+			.timeframes[] = timeframe;
+		
+		/**
+		 * @function addTimeframe
+		 * @declaration function addTimeframe( number start, number end )
+		 * @brief Add a timeframe from timestamps in which values should be fetched
+		 * @param number start a unix timestamp
+		 * @param number end a unix timestamp
+		 */
 		function addTimeframe( number start, number end )
 			.timeframes[] = new Statistic.Timeframe( start, end );
-	
-		function setTimeframe( object start, object end )
+		
+		/**
+		 * @function addTimeframe
+		 * @declaration function addTimeframe( object start, object end )
+		 * @brief Add a timeframe from Date objects in which values should be fetched
+		 * @param object start a Date object
+		 * @param object end a Date object
+		 */
+		function addTimeframe( object start, object end )
 			.timeframes[] = new Statistic.Timeframe( start, end );
 	}
+	/**
+	 * @end
+	 */
 	
+	/**
+	 * @class TimeView
+	 * @extends Statistic.View
+	 * @brief Base class for a statistic options dealing with time
+	 */
 	abstract class TimeView extends View {
 		object timeFormat;
 		
-		function constructor() {
+		/**
+		 * @function constructor
+		 * @declaration function constructor()
+		 * @brief Creates a new TimeView with default values
+		 */
+		function constructor()
 			.timeFormat = new Statistic.HourTimeFormat();
-		}
 		
 		function setTimeFormat( object timeFormat )
 			.timeFormat = timeFormat;
 	}
+	/**
+	 * @end
+	 */
 	
+	/**
+	 * @class AtWhatTimeView
+	 * @extends Statistic.TimeView
+	 * @brief Displays values based on at what time a timestamp occurred
+	 */
 	abstract class AtWhatTimeView extends TimeView {
-		
-		function getValues() {
-			array values = .fetchValues();
-			array sortedValues = [];
-			array values3 = [];
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array looking like this [ time => count ]
+		 */
+		function getData() {
+			array rawData = [];
+			array timeList = [];
+			array parsedData = [];
 			
-			values.each() using ( value ) {
-				string timeFormatValue = .timeFormat.getValue( value );
-				if( not sortedValues.keyExists( timeFormatValue ) )
-					sortedValues[timeFormatValue] = [];
+			rawData = .fetchData();
 			
-				sortedValues[timeFormatValue][] = value;
+			rawData.each() using ( value ) {
+				string time = .timeFormat.whenIsThis( value );
+				
+				if( not timeList.keyExists( time ) )
+					timeList[time] = [];
+				
+				timeList[time][] = value;
 			};
-		
-			sortedValues.map() using ( key, value ) {
-				values3[key] = value.size();
+			
+			timeList.map() using ( key, value ) {
+				parsedData[key] = value.size();
 			};
-		
-			return values3;
+			
+			return parsedData;
 		}
 	}
-
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class HowLongTimeView
+	 * @extends Statistic.TimeView
+	 * brief Displays values based on how long time a timestamp represents
+	 */
 	abstract class HowLongTimeView extends TimeView {
-	}
-
-	class Incoming extends AtWhatTimeView {
-		function fetchValues() {
-			array values = [];
-			values[] = Date.now() - ( 60 * 60 * 1 );
-			values[] = Date.now() - ( 60 * 60 * 3 );
-			values[] = Date.now() - ( 60 * 60 * 5 );
-			values[] = Date.now() - ( 60 * 60 * 7 );
-			values[] = Date.now() - ( 60 * 60 * 9 );
-			values[] = Date.now() - ( 60 * 60 * 12 );
-			values[] = Date.now() - ( 60 * 60 * 15 );
-			return values;
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 */
+		function getData() {
+			array rawData = [];
+			
 		}
 	}
-
-	class ProcessTime extends HowLongTimeView {
-		function fetchValues() {
-			array values = [];
-			values[] = Date.now() - ( Date.now() - ( 60 * 60 * 1 ) );
-			values[] = Date.now() - ( Date.now() - ( 60 * 60 * 2 ) );
-			return values;
-		}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ActionView
+	 * @extends View
+	 * @brief Displays how many times a list of actions occurred
+	 */
+	abstract class ActionView extends View {
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 */
+		function getData();
 	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class OperatorView
+	 * @extends View
+	 * @brief Displays values divided by a list of operators
+	 */
+	abstract class OperatorView extends View {
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 */
+		function getData();
+	}
+	/**
+	 * @end
+	 */
 }
 /**
  * @end

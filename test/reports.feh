@@ -1,0 +1,74 @@
+uses "../statistic.feh";
+
+namespace Reports {
+	class Incoming extends Statistic.AtWhatTimeView {
+		function fetchData() {
+			// Do something with timeframes...
+			array values = [];
+			values[] = Date.parse( "2008-01-01 12:33:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-01 12:56:43", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-01 23:45:25", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 13:23:27", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 16:57:36", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 22:54:11", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-03 12:31:54", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-03 04:06:06", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-03 06:07:31", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-03 19:12:03", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-03 22:05:58", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-04 12:33:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-04 12:56:43", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-04 23:45:25", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-05 13:23:27", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-05 16:57:36", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-05 22:54:11", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-06 12:31:54", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-06 04:06:06", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-06 06:07:31", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-06 19:12:03", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-06 22:05:58", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-07 12:33:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-07 12:56:43", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-07 23:45:25", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-08 13:23:27", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-08 16:57:36", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-08 22:54:11", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-09 12:31:54", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-09 04:06:06", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-09 06:07:31", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-09 19:12:03", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-09 22:05:58", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-10 12:33:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-10 12:56:43", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-10 23:45:25", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-11 13:23:27", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-11 16:57:36", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-11 22:54:11", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-12 12:31:54", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-12 04:06:06", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-12 06:07:31", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-12 19:12:03", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-12 22:05:58", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 12:33:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 12:56:43", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 23:45:25", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 13:23:27", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 16:57:36", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-13 22:54:11", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-14 12:31:54", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-14 04:06:06", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-14 06:07:31", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-14 19:12:03", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-14 22:05:58", "%F %T" ).time();
+			return values;
+		}
+	}
+
+	class ProcessTime extends Statistic.HowLongTimeView {
+		function fetchData() {
+			array values = [];
+			return values;
+		}
+	}
+}
+
