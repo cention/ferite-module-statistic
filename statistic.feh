@@ -14,29 +14,17 @@ namespace Statistic {
 	class Timeframe {
 		/**
 		 * @variable start
-		 * @type object
-		 * @brief The Date object representing the start of the time frame
+		 * @type number
+		 * @brief The timestamp representing the start of the timeframe
 		 */
-		object start;
+		number start;
 		
 		/**
 		 * @variable end
-		 * @type object
-		 * @brief The Date object representing the end of the timeframe
+		 * @type number
+		 * @brief The timestamp object representing the end of the timeframe
 		 */
-		object end;
-		
-		/**
-		 * @function constructor
-		 * @declaration function constructor( object start, object end )
-		 * @brief Creates a new Timeframe object with a Date object as start and a Date object as end
-		 * @param object start Date object that should be the start of the timeframe
-		 * @param object end Date object that should be the end of the timeframe
-		 */
-		function constructor( object start, object end ) {
-			.start = start;
-			.end = end;
-		}
+		number end;
 		
 		/**
 		 * @function constructor
@@ -58,74 +46,270 @@ namespace Statistic {
 		 * @param string end string looking like YEAR-MONTH-DAY
 		 */
 		function constructor( string start, string end ) {
-			.start = Date.parse( start, "%F" );
-			.end = Date.parse( end, "%F" );
+			.start = Date.parse( start, "%F" ).time();
+			.end = Date.parse( end, "%F" ).time();
 		}
 	}
 	/**
 	 * @end
 	 */
 	
+	/**
+	 * @class TimeFromat
+	 * @brief Base class for TimeFormat
+	 */
 	abstract class TimeFormat {
-		object nextTimeFormat;
+		object previousTimeFormat;
 		
-		function constructor( object nextTimeFormat )
-			.nextTimeFormat = nextTimeFormat;
+		/**
+		 * @function constructor
+		 * @declaration function constructor( object nextTimeFormat )
+		 * @brief Create a new TimeFormat that decorates another TimeFormat
+		 * @param object previousTimeFormat the TimeFormat to decorate
+		 */
+		function constructor( object previousTimeFormat )
+			.previousTimeFormat = previousTimeFormat;
 		
-		function whenIsThis( number timestamp ) {
+		/**
+		 * @function toString
+		 * @declaration function toString()
+		 * @brief Output TimeFormat as a string based on a timestamp
+		 * @param number timestamp the timestamp to base the output on
+		 */
+		function toString( number timestamp ) {
 			object date = Date.date( timestamp );
 			string text = date.format( .format );
 			
-			if( .nextTimeFormat )
-				text += " " + .nextTimeFormat.whenIsThis( timestamp );
+			if( .previousTimeFormat )
+				text += " " + .previousTimeFormat.toString( timestamp );
 			
 			return text;
 		}
 		
-		function howLongIsThis( number seconds ) {
+		function fromString( string time ) {
+			object timeFormat = .previousTimeFormat;
+			string format = .format;
+			
+			while( timeFormat ) {
+				format += " " + timeFormat.format;
+				timeFormat = timeFormat.previousTimeFormat;
+			}
+			
+			return Date.parse( time, format ).time();
+		}
+		
+		/**
+		 * @function length
+		 * @declaration function length( number seconds )
+		 * @brief Calculate how many TimeFormat happened during seconds
+		 * @param number seconds the number of seconds
+		 */
+		function length( number seconds ) {
 			return seconds / .seconds;
 		}
 	}
+	/**
+	 * @end
+	 */
 	
-	class YearTimeFormat extends TimeFormat {
+	/**
+	 * @class YearFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a year
+	 */
+	class YearFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%Y";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of an year in seconds
+		 */
 		number seconds = 31536000;
 	}
+	/**
+	 * @end
+	 */
 	
-	class MonthTimeFormat extends TimeFormat {
+	/**
+	 * @class MonthFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a month
+	 */
+	class MonthFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%B";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a month in seconds
+		 */
 		number seconds = 2592000;
 	}
+	/**
+	 * @end
+	 */
 	
+	/**
+	 * @class WeekFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a week
+	 */
 	class WeekTimeFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%V";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a week in seconds
+		 */
 		number seconds = 604800;
 	}
+	/**
+	 * @end
+	 */
 	
-	class WeekdayTimeFormat extends TimeFormat {
+	/**
+	 * @class WeekdayFormat
+	 * @extends Statistic.TimeFormat
+	 */
+	class WeekdayFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%A";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a weekday in seconds
+		 */
 		number seconds = 86400;
 	}
+	/**
+	 * @end
+	 */
 	
-	class DayTimeFormat extends TimeFormat {
+	/**
+	 * @class DayFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a day
+	 */
+	class DayFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%F";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a day in seconds
+		 */
 		number seconds = 86400;
 	}
+	/**
+	 * @end
+	 */
 	
-	class HourTimeFormat extends TimeFormat {
+	/**
+	 * @class HourFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing an hour
+	 */
+	class HourFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%H";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of an hour in seconds
+		 */
 		number seconds = 3600;
 	}
+	/**
+	 * @end
+	 */
 	
-	class MinuteTimeFormat extends TimeFormat {
+	/**
+	 * @class MinuteFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a minute
+	 */
+	class MinuteFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%M";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a minute in seconds
+		 */
 		number seconds = 60;
 	}
+	/**
+	 * @end
+	 */
 	
-	class SecondTimeFormat extends TimeFormat {
+	/**
+	 * @class SecondTimeFormat
+	 * @extends Statistic.TimeFormat
+	 * @brief A TimeFormat representing a second
+	 */
+	class SecondFormat extends TimeFormat {
+		/**
+		 * @variable format
+		 * @type string
+		 * @brief The format used when toString() calls format() on the Date object
+		          created from the timestamp provided to toString()
+		 */
 		string format = "%S";
+		
+		/**
+		 * @variable seconds
+		 * @type number
+		 * @brief The length of a second in seconds
+		 */
 		number seconds = 1;
 	}
+	/**
+	 * @end
+	 */
 	
 	/**
 	 * @class view
@@ -181,7 +365,7 @@ namespace Statistic {
 		 * @brief Creates a new TimeView with default values
 		 */
 		function constructor()
-			.timeFormat = new Statistic.HourTimeFormat();
+			.timeFormat = new Statistic.HourFormat();
 		
 		function setTimeFormat( object timeFormat )
 			.timeFormat = timeFormat;
@@ -195,34 +379,44 @@ namespace Statistic {
 	 * @extends Statistic.TimeView
 	 * @brief Displays values based on at what time a timestamp occurred
 	 */
-	abstract class AtWhatTimeView extends TimeView {
+	abstract class AbsoluteTimeView extends TimeView {
 		/**
 		 * @function getData
 		 * @declaration function getData()
 		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array looking like this [ time => count ]
+		 * @return An array looking like this [ [ 'key' => time =>, 'value' => count ]... ]
 		 */
 		function getData() {
 			array rawData = [];
-			array timeList = [];
-			array parsedData = [];
+			array data = [];
 			
 			rawData = .fetchData();
 			
 			rawData.each() using ( value ) {
-				string time = .timeFormat.whenIsThis( value );
+				boolean timeExists = false;
+				string time = .timeFormat.toString( value );
 				
-				if( not timeList.keyExists( time ) )
-					timeList[time] = [];
+				for( number i = 0; i < data.size(); i++ ) {
+					if( data[i]['key'] == time ) {
+						timeExists = true;
+						data[i]['value']++;
+					}
+				}
 				
-				timeList[time][] = value;
+				if( not timeExists ) {
+					data[] = [ 'key' => time, 'value' => 1 ];
+				}
 			};
 			
-			timeList.map() using ( key, value ) {
-				parsedData[key] = value.size();
+			data = data.sort() using ( a, b ) {
+				number aTimestamp = .timeFormat.fromString( a['key'] );
+				number bTimestamp = .timeFormat.fromString( b['key'] );
+				if( aTimestamp < bTimestamp ) return -1;
+				if( aTimestamp == bTimestamp ) return 0;
+				if( aTimestamp > bTimestamp ) return 1;
 			};
 			
-			return parsedData;
+			return data;
 		}
 	}
 	/**
@@ -234,32 +428,44 @@ namespace Statistic {
 	 * @extends Statistic.TimeView
 	 * brief Displays values based on how long time a timestamp represents
 	 */
-	abstract class HowLongTimeView extends TimeView {
+	abstract class RelativeTimeView extends TimeView {
 		/**
 		 * @function getData
 		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array looking like this [ [ 'key' => time =>, 'value' => count ]... ]
 		 */
 		function getData() {
 			array rawData = [];
-			array timeList = [];
-			array parsedData = [];
+			array data = [];
 			
 			rawData = .fetchData();
 			
 			rawData.each() using ( value ) {
-				string time = "" + .timeFormat.howLongIsThis( value );
+				boolean timeExists = false;
+				string time = "" + .timeFormat.length( value );
 				
-				if( not timeList.keyExists( time ) )
-					timeList[time] = [];
+				for( number i = 0; i < data.size(); i++ ) {
+					if( data[i]['key'] == time ) {
+						timeExists = true;
+						data[i]['value']++;
+					}
+				}
 				
-				timeList[time][] = value;
+				if( not timeExists ) {
+					data[] = [ 'key' => time, 'value' => 1 ];
+				}
 			};
 			
-			timeList.map() using ( key, value ) {
-				parsedData[key] = value.size();
+			data = data.sort() using ( a, b ) {
+				number aTime = a['key'].toNumber();
+				number bTime = b['key'].toNumber();
+				if( aTime < bTime ) return -1;
+				if( aTime == bTime ) return 0;
+				if( aTime > bTime ) return 1;
 			};
 			
-			return parsedData;
+			return data;
 		}
 	}
 	/**
@@ -268,7 +474,7 @@ namespace Statistic {
 	
 	/**
 	 * @class ActionView
-	 * @extends View
+	 * @extends Statistic.View
 	 * @brief Displays how many times a list of actions occurred
 	 */
 	abstract class ActionView extends View {
@@ -278,18 +484,26 @@ namespace Statistic {
 		 */
 		function getData() {
 			array rawData = [];
-			array parsedData = [];
+			array data = [];
 			
 			rawData = .fetchData();
 			
 			rawData.each() using ( value ) {
-				if( not parsedData.keyExists( value ) )
-					parsedData[value] = 0;
+				boolean actionExists = false;
 				
-				parsedData[value]++;
+				for( number i = 0; i < data.size(); i++ ) {
+					if( data[i]['key'] == value ) {
+						actionExists = true;
+						data[i]['value']++;
+					}
+				}
+				
+				if( not actionExists ) {
+					data[] = [ 'key' => value, 'value' => 1 ];
+				}
 			};
 			
-			return parsedData;
+			return data;
 		}
 	}
 	/**
@@ -298,8 +512,8 @@ namespace Statistic {
 	
 	/**
 	 * @class OperatorView
-	 * @extends View
-	 * @brief Displays values divided by a list of operators
+	 * @extends Statistic.View
+	 * @brief Displays values divided into list of operators
 	 */
 	abstract class OperatorView extends View {
 		/**

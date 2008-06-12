@@ -8,22 +8,23 @@ function toConsole( array data ) {
 	number tableLength = 0;
 	number column1Length = 0;
 
-	data.map() using ( key, value ) {
-		number keyLength = key.length();
+	data.each() using ( row ) {
+		number keyLength = row['key'].length();
 		if( keyLength > column1Length )
 			column1Length = keyLength;
 	};
-
+	
 	tableLength = 2 + column1Length + 3 + 5 + 2;
-
-	data.map() using ( key, value ) {
-		string valueAsString = "" + value;
 	
+	data.each() using ( row ) {
+		string key = row['key'];
+		string value = "" + row['value'];
+		
 		for( number i = 0; i < tableLength; i++ )
-			Console.print( "-" );	
-	
+			Console.print( "-" );
+		
 		Console.print( "\n| ${key}" );
-	
+		
 		if( key.length() < column1Length ) {
 			number extraSpaces = 0;
 			while( ( key.length() + extraSpaces ) < column1Length ) {
@@ -31,12 +32,12 @@ function toConsole( array data ) {
 				extraSpaces++;
 			}
 		}
-
+		
 		Console.print( " | ${value}" );
-	
-		if( valueAsString.length() < 5 ) {
+		
+		if( value.length() < 5 ) {
 			number extraSpaces = 0;
-			while( ( valueAsString.length() + extraSpaces ) < 5 ) {
+			while( ( value.length() + extraSpaces ) < 5 ) {
 				Console.print( " " );
 				extraSpaces++;
 			}
@@ -48,22 +49,22 @@ function toConsole( array data ) {
 	for( number i = 0; i < tableLength; i++ )
 		Console.print( "-" );
 
-	Console.print( "\n" );
+	Console.print( "\n" ); 
 }
 
 object incoming;
 object processTime;
 object closureStatus;
 
-incoming = new Reports.Incoming();
+incoming = new Reports.IncomingErrands();
 incoming.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
-incoming.setTimeFormat( new Statistic.YearTimeFormat( new Statistic.MonthTimeFormat( new Statistic.WeekdayTimeFormat() ) ) );
+incoming.setTimeFormat( new Statistic.WeekdayFormat() );
 
-processTime = new Reports.ProcessTime();
+processTime = new Reports.ErrandProcessTime();
 processTime.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
-processTime.setTimeFormat( new Statistic.MinuteTimeFormat() );
+processTime.setTimeFormat( new Statistic.MinuteFormat() );
 
-closureStatus = new Reports.ClosureStatus();
+closureStatus = new Reports.ErrandClosureStatus();
 
 Console.print( "\n" );
 
