@@ -246,8 +246,6 @@ namespace Statistic {
 			
 			rawData = .fetchData();
 			
-			rawData = rawData.sort();
-			
 			rawData.each() using ( value ) {
 				string time = "" + .timeFormat.howLongIsThis( value );
 				
