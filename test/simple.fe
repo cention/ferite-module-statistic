@@ -53,6 +53,7 @@ function toConsole( array data ) {
 
 object incoming;
 object processTime;
+object closureStatus;
 
 incoming = new Reports.Incoming();
 incoming.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
@@ -61,6 +62,8 @@ incoming.setTimeFormat( new Statistic.YearTimeFormat( new Statistic.MonthTimeFor
 processTime = new Reports.ProcessTime();
 processTime.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
 processTime.setTimeFormat( new Statistic.MinuteTimeFormat() );
+
+closureStatus = new Reports.ClosureStatus();
 
 Console.print( "\n" );
 
@@ -71,6 +74,11 @@ Console.print( "\n" );
 
 Console.println( "Process time" );
 toConsole( processTime.getData() );
+
+Console.print( "\n" );
+
+Console.println( "Closure status" );
+toConsole( closureStatus.getData() );
 
 Console.print( "\n" );
 

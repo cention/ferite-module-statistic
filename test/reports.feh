@@ -76,5 +76,28 @@ namespace Reports {
 			return values;
 		}
 	}
+	
+	class ClosureStatus extends Statistic.ActionView {
+		function fetchData() {
+			array values = [];
+			values[] = "First place";
+			values[] = "Second place";
+			values[] = "DND";
+			values[] = "Third place";
+			values[] = "Eight place";
+			values[] = "First place";
+			values[] = "Third place";
+			values[] = "Fourth place";
+			values[] = "Second place";
+			values[] = "DSQ";
+			values[] = "Lower then eight place";
+			values[] = "Fifth place";
+			values[] = "DND";
+			values[] = "Sixth place";
+			values[] = "Seventh place";
+			values[] = "First place";
+			return values;
+		}
+	}
 }
 

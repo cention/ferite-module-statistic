@@ -276,7 +276,21 @@ namespace Statistic {
 		 * @function getData
 		 * @declaration function getData()
 		 */
-		function getData();
+		function getData() {
+			array rawData = [];
+			array parsedData = [];
+			
+			rawData = .fetchData();
+			
+			rawData.each() using ( value ) {
+				if( not parsedData.keyExists( value ) )
+					parsedData[value] = 0;
+				
+				parsedData[value]++;
+			};
+			
+			return parsedData;
+		}
 	}
 	/**
 	 * @end
