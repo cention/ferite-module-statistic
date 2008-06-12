@@ -81,38 +81,50 @@ namespace Statistic {
 			
 			return text;
 		}
+		
+		function howLongIsThis( number seconds ) {
+			return seconds / .seconds;
+		}
 	}
 	
 	class YearTimeFormat extends TimeFormat {
 		string format = "%Y";
+		number seconds = 31536000;
 	}
 	
 	class MonthTimeFormat extends TimeFormat {
 		string format = "%B";
+		number seconds = 2592000;
 	}
 	
 	class WeekTimeFormat extends TimeFormat {
 		string format = "%V";
+		number seconds = 604800;
 	}
 	
 	class WeekdayTimeFormat extends TimeFormat {
 		string format = "%A";
+		number seconds = 86400;
 	}
 	
 	class DayTimeFormat extends TimeFormat {
 		string format = "%F";
+		number seconds = 86400;
 	}
 	
 	class HourTimeFormat extends TimeFormat {
 		string format = "%H";
+		number seconds = 3600;
 	}
 	
 	class MinuteTimeFormat extends TimeFormat {
 		string format = "%M";
+		number seconds = 60;
 	}
 	
 	class SecondTimeFormat extends TimeFormat {
 		string format = "%S";
+		number seconds = 1;
 	}
 	
 	/**
@@ -229,7 +241,27 @@ namespace Statistic {
 		 */
 		function getData() {
 			array rawData = [];
+			array timeList = [];
+			array parsedData = [];
 			
+			rawData = .fetchData();
+			
+			rawData = rawData.sort();
+			
+			rawData.each() using ( value ) {
+				string time = "" + .timeFormat.howLongIsThis( value );
+				
+				if( not timeList.keyExists( time ) )
+					timeList[time] = [];
+				
+				timeList[time][] = value;
+			};
+			
+			timeList.map() using ( key, value ) {
+				parsedData[key] = value.size();
+			};
+			
+			return parsedData;
 		}
 	}
 	/**

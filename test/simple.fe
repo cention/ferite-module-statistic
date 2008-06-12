@@ -52,10 +52,25 @@ function toConsole( array data ) {
 }
 
 object incoming;
+object processTime;
 
 incoming = new Reports.Incoming();
 incoming.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
 incoming.setTimeFormat( new Statistic.YearTimeFormat( new Statistic.MonthTimeFormat( new Statistic.WeekdayTimeFormat() ) ) );
 
+processTime = new Reports.ProcessTime();
+processTime.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
+processTime.setTimeFormat( new Statistic.MinuteTimeFormat() );
+
+Console.print( "\n" );
+
+Console.println( "Incoming" );
 toConsole( incoming.getData() );
+
+Console.print( "\n" );
+
+Console.println( "Process time" );
+toConsole( processTime.getData() );
+
+Console.print( "\n" );
 

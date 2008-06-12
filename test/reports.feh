@@ -67,6 +67,12 @@ namespace Reports {
 	class ProcessTime extends Statistic.HowLongTimeView {
 		function fetchData() {
 			array values = [];
+			values[] = Date.parse( "2008-01-01 09:23:42", "%F %T" ).time() - Date.parse( "2008-01-01 09:12:21", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-01 09:55:12", "%F %T" ).time() - Date.parse( "2008-01-01 09:45:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-01 10:12:32", "%F %T" ).time() - Date.parse( "2008-01-01 10:03:21", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 09:23:42", "%F %T" ).time() - Date.parse( "2008-01-02 09:12:21", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 09:55:12", "%F %T" ).time() - Date.parse( "2008-01-02 09:45:34", "%F %T" ).time();
+			values[] = Date.parse( "2008-01-02 10:12:32", "%F %T" ).time() - Date.parse( "2008-01-02 10:03:21", "%F %T" ).time();
 			return values;
 		}
 	}
