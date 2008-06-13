@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<yard name="statistic">
+
+	<phase id="install">
+		<copy file="statistic.feh" target="$(FeriteModuleSourceDir)" />
+		<copy file="statistic.xml" target="$(FeriteModuleDescriptionDir)" />
+		<execute program="feritedoc" arguments="--regenerate" />
+	</phase>
+
+</yard>
+

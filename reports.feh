@@ -1,0 +1,89 @@
+uses 'console';
+uses 'statistic';
+uses 'ObjRunSrv';
+uses 'objrunsrv-workflow';
+
+namespace modifies Statistic {
+	class IncomingErrands extends Statistic.AbsoluteTimeView {
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.arrivedBetween(  timeframe.start, timeframe.end );
+				Console.println( "Fetching Timeframe ${timeframe.start} - ${timeframe.end}..." );
+				
+				errands.each() using ( errand ) {
+					Console.println( "Fetching Workflow.Errand.." );
+					data[] = errand.timestampArrive;
+				};
+			};
+			
+			return data;
+		}
+	}
+	
+	class ClosedErrands extends Statistic.AbsoluteTimeView {
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.closedBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.timestampClosed;
+				};
+			};
+			
+			return data;
+		}
+	}
+	
+	class ErrandResponseTime extends Statistic.RelativeTimeView {
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.respondedBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.timestampClosed - errand.timestampArrive;
+				};
+			};
+			
+			return data;
+		}
+	}
+	
+	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.processedBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.timestampClosed - errand.timestampOpened;
+				};
+			};
+			
+			return data;
+		}
+	}
+	
+	class ClosureStatus extends Statistic.ActionView {
+		function fetchData() {
+			array data = [];
+			
+			.timeframe.each() using ( timeframe ) {
+				array errands = Workflow.Errand.clousureStatusBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.status.name;
+				};
+			};
+			
+			return data;
+		}
+	}
+}
+

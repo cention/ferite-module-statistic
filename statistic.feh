@@ -46,8 +46,8 @@ namespace Statistic {
 		 * @param string end string looking like YEAR-MONTH-DAY
 		 */
 		function constructor( string start, string end ) {
-			.start = Date.parse( start, "%F" ).time();
-			.end = Date.parse( end, "%F" ).time();
+			.start = Date.parse( start, "%F %T" ).time();
+			.end = Date.parse( end, "%F %T" ).time();
 		}
 	}
 	/**
