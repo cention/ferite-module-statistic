@@ -3,17 +3,29 @@ uses 'statistic';
 uses 'ObjRunSrv';
 uses 'objrunsrv-workflow';
 
+/**
+ * @namespace Statistic
+ * @modifies Statistic
+ */
 namespace modifies Statistic {
+	/**
+	 * @class IncomingErrands
+	 * @brief Handles data needed for incoming errands statistic view
+	 */
 	class IncomingErrands extends Statistic.AbsoluteTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
 		function fetchData() {
 			array data = [];
 			
 			.timeframes.each() using ( timeframe ) {
-				array errands = Workflow.Errand.arrivedBetween(  timeframe.start, timeframe.end );
-				Console.println( "Fetching Timeframe ${timeframe.start} - ${timeframe.end}..." );
-				
+				array errands = Workflow.Errand.arrivedListBetween( timeframe.start, timeframe.end );
+
 				errands.each() using ( errand ) {
-					Console.println( "Fetching Workflow.Errand.." );
 					data[] = errand.timestampArrive;
 				};
 			};
@@ -21,13 +33,26 @@ namespace modifies Statistic {
 			return data;
 		}
 	}
+	/**
+	 * @end
+	 */
 	
+	/**
+	 * @class ClosedErrands
+	 * @brief Handles data needed for closed errands statistic view
+	 */
 	class ClosedErrands extends Statistic.AbsoluteTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
 		function fetchData() {
 			array data = [];
 			
 			.timeframes.each() using ( timeframe ) {
-				array errands = Workflow.Errand.closedBetween( timeframe.start, timeframe.end );
+				array errands = Workflow.Errand.closedListBetween( timeframe.start, timeframe.end );
 				
 				errands.each() using ( errand ) {
 					data[] = errand.timestampClosed;
@@ -37,13 +62,85 @@ namespace modifies Statistic {
 			return data;
 		}
 	}
+	/**
+	 * @end
+	 */
 	
-	class ErrandResponseTime extends Statistic.RelativeTimeView {
+	/**
+	 * @class PublishedErrands
+	 * @brief Handles data needed for published errands statistic view
+	 */
+	class PublishedErrands extends Statistic.AbsoluteTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
 		function fetchData() {
 			array data = [];
 			
 			.timeframes.each() using ( timeframe ) {
-				array errands = Workflow.Errand.respondedBetween( timeframe.start, timeframe.end );
+				array errands = Workflow.Errand.publishedListBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.timestampPublished;
+				};
+			};
+			
+			return data;
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ClosedErrandsWithReplies
+	 * @brief Handles data needed for closed errands with replies statistic view
+	 */
+	// Replies
+	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.closedWithRepliesListBetween( timeframe.start, timeframe.end );
+				
+				errands.each() using ( errand ) {
+					data[] = errand.timestampClosed;
+				};
+			};
+			
+			return data;
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ErrandResponseTime
+	 * @brief Handles data needed for response time statistic view
+	 */
+	class ErrandResponseTime extends Statistic.RelativeTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
+		function fetchData() {
+			array data = [];
+			
+			.timeframes.each() using ( timeframe ) {
+				array errands = Workflow.Errand.closedResponesTimeViewListBetween( timeframe.start, timeframe.end );
 				
 				errands.each() using ( errand ) {
 					data[] = errand.timestampClosed - errand.timestampArrive;
@@ -53,29 +150,55 @@ namespace modifies Statistic {
 			return data;
 		}
 	}
+	/**
+	 * @end
+	 */
 	
+	/**
+	 * @class ErrandProcessTime
+	 * @brief Handles data needed for errand process time statistic view
+	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
 		function fetchData() {
 			array data = [];
 			
 			.timeframes.each() using ( timeframe ) {
-				array errands = Workflow.Errand.processedBetween( timeframe.start, timeframe.end );
+				array errands = Workflow.Errand.closedProcessTimeViewBetween( timeframe.start, timeframe.end );
 				
 				errands.each() using ( errand ) {
-					data[] = errand.timestampClosed - errand.timestampOpened;
+					data[] = errand.timestampClosed - errand.timestampOpen;
 				};
 			};
 			
 			return data;
 		}
 	}
+	/**
+	 * @end
+	 */
 	
-	class ClosureStatus extends Statistic.ActionView {
+	/**
+	 * @class ErrandClosureStatus
+	 * @brief Handles data needed for errand closure status statistic view
+	 */
+	class ErrandClosureStatus extends Statistic.ActionView {
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData()
+		 * @brief Fetches data used by the getData() function
+		 * @returns An array with the data
+		 */
 		function fetchData() {
 			array data = [];
 			
 			.timeframe.each() using ( timeframe ) {
-				array errands = Workflow.Errand.clousureStatusBetween( timeframe.start, timeframe.end );
+				array errands = Workflow.Errand.closedStatusViewListBetween( timeframe.start, timeframe.end );
 				
 				errands.each() using ( errand ) {
 					data[] = errand.status.name;
@@ -85,5 +208,8 @@ namespace modifies Statistic {
 			return data;
 		}
 	}
+	/**
+	 * @end
+	 */
 }
 
