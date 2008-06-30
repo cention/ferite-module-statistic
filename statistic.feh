@@ -86,18 +86,6 @@ namespace Statistic {
 			return text;
 		}
 		
-		function fromString( string time ) {
-			object timeFormat = .previousTimeFormat;
-			string format = .format;
-			
-			while( timeFormat ) {
-				format += " " + timeFormat.format;
-				timeFormat = timeFormat.previousTimeFormat;
-			}
-			
-			return Date.parse( time, format ).time();
-		}
-		
 		/**
 		 * @function length
 		 * @declaration function length( number seconds )
@@ -317,7 +305,7 @@ namespace Statistic {
 	 */
 	abstract class View {
 		array timeframes;
-		
+				
 		/**
 		 * @function addTimeframe
 		 * @declaration function addTimeframe( object timeframe )
@@ -335,16 +323,6 @@ namespace Statistic {
 		 * @param number end a unix timestamp
 		 */
 		function addTimeframe( number start, number end )
-			.timeframes[] = new Statistic.Timeframe( start, end );
-		
-		/**
-		 * @function addTimeframe
-		 * @declaration function addTimeframe( object start, object end )
-		 * @brief Add a timeframe from Date objects in which values should be fetched
-		 * @param object start a Date object
-		 * @param object end a Date object
-		 */
-		function addTimeframe( object start, object end )
 			.timeframes[] = new Statistic.Timeframe( start, end );
 	}
 	/**
@@ -392,22 +370,6 @@ namespace Statistic {
 			
 			rawData = .fetchData();
 			
-			rawData.each() using ( value ) {
-				boolean timeExists = false;
-				string time = .timeFormat.toString( value );
-				
-				for( number i = 0; i < data.size(); i++ ) {
-					if( data[i]['key'] == time ) {
-						timeExists = true;
-						data[i]['value']++;
-					}
-				}
-				
-				if( not timeExists ) {
-					data[] = [ 'key' => time, 'value' => 1 ];
-				}
-			};
-			
 			data = data.sort() using ( a, b ) {
 				number aTimestamp = .timeFormat.fromString( a['key'] );
 				number bTimestamp = .timeFormat.fromString( b['key'] );
@@ -441,20 +403,10 @@ namespace Statistic {
 			
 			rawData = .fetchData();
 			
-			rawData.each() using ( value ) {
+			rawData.map() using ( key, value ) {
 				boolean timeExists = false;
-				string time = "" + .timeFormat.length( value );
-				
-				for( number i = 0; i < data.size(); i++ ) {
-					if( data[i]['key'] == time ) {
-						timeExists = true;
-						data[i]['value']++;
-					}
-				}
-				
-				if( not timeExists ) {
-					data[] = [ 'key' => time, 'value' => 1 ];
-				}
+				string time = "" + .timeFormat.length( key.toNumber() );
+				data[] = [ 'key' => time, 'value' => value ];
 			};
 			
 			data = data.sort() using ( a, b ) {
@@ -483,24 +435,13 @@ namespace Statistic {
 		 * @declaration function getData()
 		 */
 		function getData() {
-			array rawData = [];
 			array data = [];
+			array rawData = [];
 			
 			rawData = .fetchData();
 			
-			rawData.each() using ( value ) {
-				boolean actionExists = false;
-				
-				for( number i = 0; i < data.size(); i++ ) {
-					if( data[i]['key'] == value ) {
-						actionExists = true;
-						data[i]['value']++;
-					}
-				}
-				
-				if( not actionExists ) {
-					data[] = [ 'key' => value, 'value' => 1 ];
-				}
+			rawData.map() using ( key, value ) {
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			return data;
@@ -516,11 +457,35 @@ namespace Statistic {
 	 * @brief Displays values divided into list of operators
 	 */
 	abstract class OperatorView extends View {
+		array areas;
+		array users;
+		
+		function setAreas( array areas )
+			.areas = areas;
+		
+		function setUsers( array users )
+			.users = users;
+		
 		/**
 		 * @function getData
 		 * @declaration function getData()
 		 */
-		function getData();
+		function getData() {
+			array data = [];
+			array rawData = [];
+			
+			rawData = .fetchData();
+			
+			rawData.map() using ( key, value ) {
+				data[] = [ 'key' => key, 'value' => value ];
+			};
+			
+			data = data.sort() using ( a, b ) {
+				return a['key'].orderedCompare( b['key'] );
+			};
+			
+			return data;
+		}
 	}
 	/**
 	 * @end
