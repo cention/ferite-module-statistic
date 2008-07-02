@@ -56,41 +56,71 @@ namespace Statistic {
 	
 	/**
 	 * @class TimeFromat
-	 * @brief Base class for TimeFormat
+	 * @brief Base class for Timeformat
 	 */
-	abstract class TimeFormat {
-		object previousTimeFormat;
+	abstract class Timeformat {
+		object previousTimeformat;
 		
 		/**
 		 * @function constructor
-		 * @declaration function constructor( object nextTimeFormat )
-		 * @brief Create a new TimeFormat that decorates another TimeFormat
-		 * @param object previousTimeFormat the TimeFormat to decorate
+		 * @declaration function constructor( object nextTimeformat )
+		 * @brief Create a new Timeformat that decorates another Timeformat
+		 * @param object previousTimeformat the Timeformat to decorate
 		 */
-		function constructor( object previousTimeFormat )
-			.previousTimeFormat = previousTimeFormat;
+		function constructor( object previousTimeformat )
+			.previousTimeformat = previousTimeformat;
+		
+		/**
+		 * @function get
+		 * @declaration function get()
+		 * @brief Get the format
+		 * @return The format as a string
+		 */
+		function get()
+			return .format;
 		
 		/**
 		 * @function toString
 		 * @declaration function toString()
-		 * @brief Output TimeFormat as a string based on a timestamp
+		 * @brief Output Timeformat as a string based on a timestamp
 		 * @param number timestamp the timestamp to base the output on
+		 * @return The timestamp as a string
 		 */
 		function toString( number timestamp ) {
 			object date = Date.date( timestamp );
 			string text = date.format( .format );
 			
-			if( .previousTimeFormat )
-				text += " " + .previousTimeFormat.toString( timestamp );
+			if( .previousTimeformat )
+				text += " " + .previousTimeformat.toString( timestamp );
 			
 			return text;
 		}
 		
 		/**
+		 * @function fromString
+		 * @declaration function fromString( string time )
+		 * @brief Convert a string into a timestamp
+		 * @param string time the time string to convert the timestamp to
+		 * @return The time as a timestamp number
+		 */
+		function fromString( string time ) {
+			object timeformat = .previousTimeformat;
+			string format = .format;
+
+			while( timeformat ) {
+				format += " " + timeformat.format;
+				timeformat = timeformat.previousTimeformat;
+			}
+			
+			return Date.parse( time, format ).time();
+		}
+		
+		/**
 		 * @function length
 		 * @declaration function length( number seconds )
-		 * @brief Calculate how many TimeFormat happened during seconds
+		 * @brief Calculate how many Timeformat happened during seconds
 		 * @param number seconds the number of seconds
+		 * @return The number of Timeformat types that are elapsed during the seconds
 		 */
 		function length( number seconds ) {
 			return seconds / .seconds;
@@ -102,10 +132,10 @@ namespace Statistic {
 	
 	/**
 	 * @class YearFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a year
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a year
 	 */
-	class YearFormat extends TimeFormat {
+	class YearFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -127,10 +157,10 @@ namespace Statistic {
 	
 	/**
 	 * @class MonthFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a month
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a month
 	 */
-	class MonthFormat extends TimeFormat {
+	class MonthFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -152,10 +182,10 @@ namespace Statistic {
 	
 	/**
 	 * @class WeekFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a week
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a week
 	 */
-	class WeekTimeFormat extends TimeFormat {
+	class WeekTimeformat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -177,9 +207,9 @@ namespace Statistic {
 	
 	/**
 	 * @class WeekdayFormat
-	 * @extends Statistic.TimeFormat
+	 * @extends Statistic.Timeformat
 	 */
-	class WeekdayFormat extends TimeFormat {
+	class WeekdayFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -201,10 +231,10 @@ namespace Statistic {
 	
 	/**
 	 * @class DayFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a day
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a day
 	 */
-	class DayFormat extends TimeFormat {
+	class DayFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -226,10 +256,10 @@ namespace Statistic {
 	
 	/**
 	 * @class HourFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing an hour
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing an hour
 	 */
-	class HourFormat extends TimeFormat {
+	class HourFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -251,10 +281,10 @@ namespace Statistic {
 	
 	/**
 	 * @class MinuteFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a minute
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a minute
 	 */
-	class MinuteFormat extends TimeFormat {
+	class MinuteFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -275,11 +305,11 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class SecondTimeFormat
-	 * @extends Statistic.TimeFormat
-	 * @brief A TimeFormat representing a second
+	 * @class SecondTimeformat
+	 * @extends Statistic.Timeformat
+	 * @brief A Timeformat representing a second
 	 */
-	class SecondFormat extends TimeFormat {
+	class SecondFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -304,26 +334,13 @@ namespace Statistic {
 	 * @brief The base class for all statistic views
 	 */
 	abstract class View {
-		array timeframes;
-				
-		/**
-		 * @function addTimeframe
-		 * @declaration function addTimeframe( object timeframe )
-		 * @brief Add a timeframe from a Timeframe object in which values should be fetched
-		 * @param object timeframe a Statistic.Timeframe object
-		 */
-		function addTimeframe( object timeframe )
-			.timeframes[] = timeframe;
+		object timeframe;
 		
-		/**
-		 * @function addTimeframe
-		 * @declaration function addTimeframe( number start, number end )
-		 * @brief Add a timeframe from timestamps in which values should be fetched
-		 * @param number start a unix timestamp
-		 * @param number end a unix timestamp
-		 */
-		function addTimeframe( number start, number end )
-			.timeframes[] = new Statistic.Timeframe( start, end );
+		function setTimeframe( object timeframe )
+			.timeframe = timeframe;
+		
+		function setTimeframe( number start, number end )
+			.timeframe = new Statistic.Timeframe( start, end );
 	}
 	/**
 	 * @end
@@ -335,7 +352,7 @@ namespace Statistic {
 	 * @brief Base class for a statistic options dealing with time
 	 */
 	abstract class TimeView extends View {
-		object timeFormat;
+		object timeformat;
 		
 		/**
 		 * @function constructor
@@ -343,17 +360,17 @@ namespace Statistic {
 		 * @brief Creates a new TimeView with default values
 		 */
 		function constructor()
-			.timeFormat = new Statistic.HourFormat();
+			.timeformat = new Statistic.HourFormat();
 		
-		function setTimeFormat( object timeFormat )
-			.timeFormat = timeFormat;
+		function setTimeformat( object timeformat )
+			.timeformat = timeformat;
 	}
 	/**
 	 * @end
 	 */
 	
 	/**
-	 * @class AtWhatTimeView
+	 * @class AbsoluteTimeView
 	 * @extends Statistic.TimeView
 	 * @brief Displays values based on at what time a timestamp occurred
 	 */
@@ -362,20 +379,31 @@ namespace Statistic {
 		 * @function getData
 		 * @declaration function getData()
 		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array looking like this [ [ 'key' => time =>, 'value' => count ]... ]
+		 * @return An array with the data
 		 */
 		function getData() {
 			array rawData = [];
 			array data = [];
 			
-			rawData = .fetchData();
+			if( .timeframe )
+				rawData = .fetchData( .timeframe );
+			
+			rawData.map() using ( key, value ) {
+				data[] = [ 'key' => key, 'values' => value ];
+			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTimestamp = .timeFormat.fromString( a['key'] );
-				number bTimestamp = .timeFormat.fromString( b['key'] );
-				if( aTimestamp < bTimestamp ) return -1;
-				if( aTimestamp == bTimestamp ) return 0;
-				if( aTimestamp > bTimestamp ) return 1;
+				number aTimestamp = .timeformat.fromString( a['key'] );
+				number bTimestamp = .timeformat.fromString( b['key'] );
+				
+				if( aTimestamp < bTimestamp )
+					return -1;
+				
+				if( aTimestamp == bTimestamp )
+					return 0;
+				
+				if( aTimestamp > bTimestamp )
+					return 1;
 			};
 			
 			return data;
@@ -386,7 +414,7 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class HowLongTimeView
+	 * @class RelativeTimeView
 	 * @extends Statistic.TimeView
 	 * brief Displays values based on how long time a timestamp represents
 	 */
@@ -395,26 +423,41 @@ namespace Statistic {
 		 * @function getData
 		 * @declaration function getData()
 		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array looking like this [ [ 'key' => time =>, 'value' => count ]... ]
+		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
+			array rawData1 = [];
+			array rawData2 = [];
 			array data = [];
 			
-			rawData = .fetchData();
+			if( .timeframe )
+				rawData1 = .fetchData( .timeframe );
 			
-			rawData.map() using ( key, value ) {
-				boolean timeExists = false;
-				string time = "" + .timeFormat.length( key.toNumber() );
-				data[] = [ 'key' => time, 'value' => value ];
+			rawData1.map() using ( key, value ) {
+				string time = "" + .timeformat.length( key.toNumber() );
+				
+				if( not rawData2.keyExists( time ) )
+					rawData2[time] = value;
+				
+				rawData2[time] += value;
+			};
+			
+			rawData2.map() using ( key, value ) {
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			data = data.sort() using ( a, b ) {
 				number aTime = a['key'].toNumber();
 				number bTime = b['key'].toNumber();
-				if( aTime < bTime ) return -1;
-				if( aTime == bTime ) return 0;
-				if( aTime > bTime ) return 1;
+				
+				if( aTime < bTime )
+					return -1;
+				
+				if( aTime == bTime )
+					return 0;
+				
+				if( aTime > bTime )
+					return 1;
 			};
 			
 			return data;
@@ -433,12 +476,15 @@ namespace Statistic {
 		/**
 		 * @function getData
 		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
 		 */
 		function getData() {
-			array data = [];
 			array rawData = [];
+			array data = [];
 			
-			rawData = .fetchData();
+			if( .timeframe )
+				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
 				data[] = [ 'key' => key, 'value' => value ];
@@ -452,29 +498,30 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class OperatorView
+	 * @class AreaView
 	 * @extends Statistic.View
-	 * @brief Displays values divided into list of operators
 	 */
-	abstract class OperatorView extends View {
+	abstract class AreaView extends View {
 		array areas;
-		array users;
+		
+		function addArea( string name )
+			areas[] = name;
 		
 		function setAreas( array areas )
 			.areas = areas;
 		
-		function setUsers( array users )
-			.users = users;
-		
 		/**
 		 * @function getData
 		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
 		 */
 		function getData() {
-			array data = [];
 			array rawData = [];
+			array data = [];
 			
-			rawData = .fetchData();
+			if( .timeframe )
+				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
 				data[] = [ 'key' => key, 'value' => value ];
@@ -486,6 +533,93 @@ namespace Statistic {
 			
 			return data;
 		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AreaTimeView
+	 * @extends Statistic.TimeView
+	 */
+	abstract class AreaTimeView extends TimeView {
+		array areas;
+		
+		function addArea( string name )
+			areas[] = name;
+		
+		function setAreas( array areas )
+			.areas = areas;
+		
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
+		function getData() {
+			array rawData = [];
+			array data = [];
+			
+			if( .timeframe )
+				rawData = .fetchData( .timeframe );
+			
+			rawData.map() using ( key, value ) {
+				data[] = [ 'key' => key, 'value' => .timeformat.length( value ) ];
+			};
+			
+			data = data.sort() using ( a, b ) {
+				return a['key'].orderedCompare( b['key'] );
+			};
+			
+			return data;
+		}
+	}
+	
+	/**
+	 * @class OperatorView
+	 * @extends Statistic.View
+	 * @brief Displays values divided into list of operators
+	 */
+	abstract class OperatorView extends AreaView {
+		array operators;
+		
+		function addOperator( string name )
+			.operators[] = name;
+		
+		function setOperators( array operators )
+			.operators = operators;
+		
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class OperatorTimeView
+	 * @extends Statistic.AreaTimeView
+	 */
+	abstract class OperatorTimeView extends AreaTimeView {
+		array operators;
+		
+		function addOperator( string name )
+			.operators[] = name;
+		
+		function setOperators( array operators )
+			.operators = operators;
+		
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
 	}
 	/**
 	 * @end

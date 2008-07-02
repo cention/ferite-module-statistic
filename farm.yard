@@ -3,6 +3,7 @@
 
 	<phase id="install">
 		<copy file="statistic.feh" target="$(FeriteModuleSourceDir)" />
+		<copy file="reports.feh" target="$(FeriteModuleSourceDir)" />
 		<copy file="statistic.xml" target="$(FeriteModuleDescriptionDir)" />
 		<execute program="feritedoc" arguments="--regenerate" />
 	</phase>
