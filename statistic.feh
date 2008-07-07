@@ -34,8 +34,8 @@ namespace Statistic {
 		 * @param number end unix timestamp that should be the end of the timeframe
 		 */
 		function constructor( number start, number end ) {
-			.start = Date.date( start );
-			.end = Date.date( end );
+			.start = start;
+			.end = end;
 		}
 		
 		/**

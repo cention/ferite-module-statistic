@@ -107,7 +107,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe )
-			return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end );
+			return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end, .areas, .operators );
 	}
 	/**
 	 * @end
@@ -170,7 +170,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe )
-			return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end );
+			return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .areas );
 	}
 	/**
 	 * @end
@@ -191,7 +191,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe )
-			return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end );
+			return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
 	}
 	/**
 	 * @end
