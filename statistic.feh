@@ -389,12 +389,12 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'values' => value ];
+				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTimestamp = .timeformat.fromString( a['key'] );
-				number bTimestamp = .timeformat.fromString( b['key'] );
+				number aTimestamp = .timeformat.fromString( a['key'][0] );
+				number bTimestamp = .timeformat.fromString( b['key'][0] );
 				
 				if( aTimestamp < bTimestamp )
 					return -1;
@@ -443,12 +443,12 @@ namespace Statistic {
 			};
 			
 			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTime = a['key'].toNumber();
-				number bTime = b['key'].toNumber();
+				number aTime = a['key'][0].toNumber();
+				number bTime = b['key'][0].toNumber();
 				
 				if( aTime < bTime )
 					return -1;
@@ -487,7 +487,7 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ 'Action' => key ], 'value' => [ value ] ];
 			};
 			
 			return data;
@@ -524,11 +524,11 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ 'Area' => key ], 'value' => [ value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'].orderedCompare( b['key'] );
+				return a['key'][0].orderedCompare( b['key'][0] );
 			};
 			
 			return data;
@@ -565,11 +565,11 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => .timeformat.length( value ) ];
+				data[] = [ 'key' => [ 'Area' => key ], 'value' => [ 'Time' => .timeformat.length( value ) ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'].orderedCompare( b['key'] );
+				return a['key'][0].orderedCompare( b['key'][0] );
 			};
 			
 			return data;

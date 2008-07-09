@@ -15,6 +15,13 @@ namespace Reports {
 	 */
 	class IncomingErrands extends Statistic.AbsoluteTimeView {
 		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Incoming";
+		
+		/**
 		 * @function fetchData
 		 * @declaration function fetchData( object timeframe )
 		 * @brief Fetches data used by the getData() function
@@ -34,6 +41,13 @@ namespace Reports {
 	 * @brief Handles data needed for closed errands statistic view
 	 */
 	class ClosedErrands extends Statistic.AbsoluteTimeView {
+		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Closed";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -55,6 +69,13 @@ namespace Reports {
 	 * @brief Handles data needed for published errands statistic view
 	 */
 	class PublishedErrands extends Statistic.AbsoluteTimeView {
+		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Published";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -78,6 +99,13 @@ namespace Reports {
 	// Replies
 	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
 		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Replies";
+		
+		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -98,6 +126,13 @@ namespace Reports {
 	 * @brief Handles data needed for errand closure status statistic view
 	 */
 	class ErrandClosureStatus extends Statistic.OperatorView {
+		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Closure status";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -120,6 +155,13 @@ namespace Reports {
 	 */
 	class ErrandResponseTime extends Statistic.RelativeTimeView {
 		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Response time";
+		
+		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -140,6 +182,13 @@ namespace Reports {
 	 * @brief Handles data needed for errand process time statistic view
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Process time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -162,6 +211,13 @@ namespace Reports {
 	 */
 	class AverageErrandResponseTime extends Statistic.AreaTimeView {
 		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Average response time";
+		
+		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -182,6 +238,13 @@ namespace Reports {
 	 * @brief Handles data needed for average errand process time statistic view
 	 */
 	class AverageErrandProcessTime extends Statistic.OperatorTimeView {
+		/**
+		 * @variable name
+		 * @type string
+		 * @brief The name that should be displayed in Cention Reports
+		 */
+		string name = "Average process time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
