@@ -15,13 +15,6 @@ namespace Reports {
 	 */
 	class IncomingErrands extends Statistic.AbsoluteTimeView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Incoming";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( object timeframe )
 		 * @brief Fetches data used by the getData() function
@@ -41,13 +34,6 @@ namespace Reports {
 	 * @brief Handles data needed for closed errands statistic view
 	 */
 	class ClosedErrands extends Statistic.AbsoluteTimeView {
-		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Closed";
-		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -69,13 +55,6 @@ namespace Reports {
 	 * @brief Handles data needed for published errands statistic view
 	 */
 	class PublishedErrands extends Statistic.AbsoluteTimeView {
-		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Published";
-		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -99,13 +78,6 @@ namespace Reports {
 	// Replies
 	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Replies";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -127,13 +99,6 @@ namespace Reports {
 	 */
 	class ErrandClosureStatus extends Statistic.OperatorView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Closure status";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -141,8 +106,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end, .areas, .operators );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.closureStatusesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.closureStatusesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.closureStatusesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else
+				return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end );
+		}
 	}
 	/**
 	 * @end
@@ -154,13 +127,6 @@ namespace Reports {
 	 * @brief Handles data needed for response time statistic view
 	 */
 	class ErrandResponseTime extends Statistic.RelativeTimeView {
-		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Response time";
-		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -183,13 +149,6 @@ namespace Reports {
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Process time";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -211,13 +170,6 @@ namespace Reports {
 	 */
 	class AverageErrandResponseTime extends Statistic.AreaTimeView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Average response time";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -225,8 +177,12 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .areas );
+		function fetchData( object timeframe ) {
+			if( .areas.size() )
+				return Workflow.Errand.averageResponseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
+			else
+				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end );
+		}
 	}
 	/**
 	 * @end
@@ -239,13 +195,6 @@ namespace Reports {
 	 */
 	class AverageErrandProcessTime extends Statistic.OperatorTimeView {
 		/**
-		 * @variable name
-		 * @type string
-		 * @brief The name that should be displayed in Cention Reports
-		 */
-		string name = "Average process time";
-		
-		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
 		 * @brief Fetches data used by the getData() function
@@ -253,8 +202,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.averageProcessTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			else if ( .areas.size() )
+				return Workflow.Errand.averageProcessTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
+			else if ( .operators.size() )
+				return Workflow.Errand.averageProcessTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else
+				return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end );
+		}
 	}
 	/**
 	 * @end

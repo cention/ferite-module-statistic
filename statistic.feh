@@ -70,14 +70,21 @@ namespace Statistic {
 		function constructor( object previousTimeformat )
 			.previousTimeformat = previousTimeformat;
 		
+		function setPreviousTimeformat( object previousTimeformat )
+			.previousTimeformat = previousTimeformat;
+		
 		/**
 		 * @function get
 		 * @declaration function get()
 		 * @brief Get the format
 		 * @return The format as a string
 		 */
-		function get()
-			return .format;
+		function get() {
+			if( .previousTimeformat )
+				return .format + ' ' + .previousTimeformat.get();
+			else
+				return .format;
+		}
 		
 		/**
 		 * @function toString
@@ -123,7 +130,7 @@ namespace Statistic {
 		 * @return The number of Timeformat types that are elapsed during the seconds
 		 */
 		function length( number seconds ) {
-			return seconds / .seconds;
+			return ( seconds / .seconds ).round();
 		}
 	}
 	/**
@@ -185,7 +192,7 @@ namespace Statistic {
 	 * @extends Statistic.Timeformat
 	 * @brief A Timeformat representing a week
 	 */
-	class WeekTimeformat extends Timeformat {
+	class WeekFormat extends Timeformat {
 		/**
 		 * @variable format
 		 * @type string
@@ -375,6 +382,20 @@ namespace Statistic {
 	 * @brief Displays values based on at what time a timestamp occurred
 	 */
 	abstract class AbsoluteTimeView extends TimeView {
+		boolean timeformatSet = false;
+		
+		function addTimeformat( object timeformat ) {
+			if( not .timeformatSet ) {
+				.timeformat = null;
+				.timeformatSet = true;
+			}	
+			if( .timeformat ) {
+				timeformat.setPreviousTimeformat( .timeformat );
+				.timeformat = timeformat;
+			} else
+				.timeformat = timeformat;
+		}
+		
 		/**
 		 * @function getData
 		 * @declaration function getData()
@@ -389,12 +410,12 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ value ] ];
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTimestamp = .timeformat.fromString( a['key'][0] );
-				number bTimestamp = .timeformat.fromString( b['key'][0] );
+				number aTimestamp = .timeformat.fromString( a['key'] );
+				number bTimestamp = .timeformat.fromString( b['key'] );
 				
 				if( aTimestamp < bTimestamp )
 					return -1;
@@ -443,12 +464,12 @@ namespace Statistic {
 			};
 			
 			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ value ] ];
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTime = a['key'][0].toNumber();
-				number bTime = b['key'][0].toNumber();
+				number aTime = a['key'].toNumber();
+				number bTime = b['key'].toNumber();
 				
 				if( aTime < bTime )
 					return -1;
@@ -487,7 +508,7 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Action' => key ], 'value' => [ value ] ];
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			return data;
@@ -524,11 +545,11 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Area' => key ], 'value' => [ value ] ];
+				data[] = [ 'key' => key, 'value' => value ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'][0].orderedCompare( b['key'][0] );
+				return a['key'].orderedCompare( b['key'] );
 			};
 			
 			return data;
@@ -565,11 +586,11 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Area' => key ], 'value' => [ 'Time' => .timeformat.length( value ) ] ];
+				data[] = [ 'key' => key, 'value' => .timeformat.length( value ) ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'][0].orderedCompare( b['key'][0] );
+				return a['key'].orderedCompare( b['key'] );
 			};
 			
 			return data;
