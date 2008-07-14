@@ -8,6 +8,8 @@ uses 'objrunsrv-workflow';
  * @brief Contains all Cention Reports
  */
 namespace Reports {
+	string name = "Incoming";
+	
 	/**
 	 * @class IncomingErrands
 	 * @extends Statistic.AbsoluteTimeView
@@ -34,6 +36,8 @@ namespace Reports {
 	 * @brief Handles data needed for closed errands statistic view
 	 */
 	class ClosedErrands extends Statistic.AbsoluteTimeView {
+		string name = "Closed";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -55,6 +59,8 @@ namespace Reports {
 	 * @brief Handles data needed for published errands statistic view
 	 */
 	class PublishedErrands extends Statistic.AbsoluteTimeView {
+		string name = "Published";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -77,6 +83,8 @@ namespace Reports {
 	 */
 	// Replies
 	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
+		string name = "Replies";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -98,6 +106,8 @@ namespace Reports {
 	 * @brief Handles data needed for errand closure status statistic view
 	 */
 	class ErrandClosureStatus extends Statistic.OperatorView {
+		string name = "Closure status";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -127,6 +137,8 @@ namespace Reports {
 	 * @brief Handles data needed for response time statistic view
 	 */
 	class ErrandResponseTime extends Statistic.RelativeTimeView {
+		string name = "Response time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -148,6 +160,8 @@ namespace Reports {
 	 * @brief Handles data needed for errand process time statistic view
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		string name = "Process time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -168,7 +182,9 @@ namespace Reports {
 	 * @extends Statistic.OperatorView
 	 * @brief Handles data needed for average errand response time statistic view
 	 */
-	class AverageErrandResponseTime extends Statistic.AreaTimeView {
+	class AverageErrandResponseTime extends Statistic.AreaRelativeTimeView {
+		string name = "Average response time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -193,7 +209,9 @@ namespace Reports {
 	 * @extends Statistic.OperatorView
 	 * @brief Handles data needed for average errand process time statistic view
 	 */
-	class AverageErrandProcessTime extends Statistic.OperatorTimeView {
+	class AverageErrandProcessTime extends Statistic.OperatorRelativeTimeView {
+		string name = "Average process time";
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )

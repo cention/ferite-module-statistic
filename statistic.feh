@@ -55,15 +55,15 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class TimeFromat
-	 * @brief Base class for Timeformat
+	 * @class AbsoluteTimeFromat
+	 * @brief Base class for all absolute timeformats
 	 */
-	abstract class Timeformat {
+	abstract class AbsoluteTimeformat {
 		object previousTimeformat;
 		
 		/**
 		 * @function constructor
-		 * @declaration function constructor( object nextTimeformat )
+		 * @declaration function constructor( object previousTimeformat )
 		 * @brief Create a new Timeformat that decorates another Timeformat
 		 * @param object previousTimeformat the Timeformat to decorate
 		 */
@@ -121,7 +121,16 @@ namespace Statistic {
 			
 			return Date.parse( time, format ).time();
 		}
-		
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeTimeformat
+	 * @brief Base class for all relative timeformats
+	 */
+	abstract class RelativeTimeformat {
 		/**
 		 * @function length
 		 * @declaration function length( number seconds )
@@ -137,12 +146,45 @@ namespace Statistic {
 	 * @end
 	 */
 	
+	class AbsoluteTimeformatSeperator {
+		string seperator;
+		
+		function constructor( string seperator )
+			.seperator = seperator;
+		
+		function set( string seperator )
+			.seperator = seperator;
+		
+		function get
+			return .seperator;
+	}
+	
+	class AbsoluteTimeformatGroup {
+		array timeformats;
+		
+		function constructor
+			.timeformats = [];
+		
+		function add( object timeformat )
+			.timeformats[] = timeformat;
+		
+		function get {
+			string format;
+			.timeformats.each() using ( timeformat ) {
+				format += timeformat.get();
+			};
+			return format;
+		}
+	}
+	
 	/**
-	 * @class YearFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a year
+	 * @class AbsoluteYearFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a year
 	 */
-	class YearFormat extends Timeformat {
+	class AbsoluteYearFormat extends AbsoluteTimeformat {
+		string name = "Year";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -150,6 +192,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%Y";
+	}
+	/**
+	 * @end
+	 */
+
+	/**
+	 * @class RelativeYearFormat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A RelativeTimeformat representing a year
+	 */
+	class RelativeYearFormat extends RelativeTimeformat {
+		string name = "Years";
 		
 		/**
 		 * @variable seconds
@@ -161,13 +215,16 @@ namespace Statistic {
 	/**
 	 * @end
 	 */
+
 	
 	/**
-	 * @class MonthFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a month
+	 * @class AbsoluteMonthFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a month
 	 */
-	class MonthFormat extends Timeformat {
+	class MonthFormat extends AbsoluteTimeformat {
+		string name = "Month";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -175,6 +232,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%B";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeMonthFormat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A RelativeTimeformat representing a month
+	 */
+	class RelativeMonthFormat extends RelativeTimeformat {
+		string name = "Months";
 		
 		/**
 		 * @variable seconds
@@ -188,11 +257,13 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class WeekFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a week
+	 * @class AbsoluteWeekFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a week
 	 */
-	class WeekFormat extends Timeformat {
+	class AbsoluteWeekFormat extends AbsoluteTimeformat {
+		string name = "Week";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -200,6 +271,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%V";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeWeekFormat
+	 * @extends Statistic.Timeformat
+	 * @brief A RelativeTimeformat representing a week
+	 */
+	class WeekFormat extends RelativeTimeformat {
+		string name = "Weeks";
 		
 		/**
 		 * @variable seconds
@@ -214,9 +297,12 @@ namespace Statistic {
 	
 	/**
 	 * @class WeekdayFormat
-	 * @extends Statistic.Timeformat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a weekday.
 	 */
-	class WeekdayFormat extends Timeformat {
+	class WeekdayFormat extends AbsoluteTimeformat {
+		string name = "Weekday";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -224,24 +310,19 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%A";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a weekday in seconds
-		 */
-		number seconds = 86400;
 	}
 	/**
 	 * @end
 	 */
 	
 	/**
-	 * @class DayFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a day
+	 * @class AbsoluteDayFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a day
 	 */
-	class DayFormat extends Timeformat {
+	class AbsoluteDayFormat extends AbsoluteTimeformat {
+		string name = "Day";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -249,6 +330,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%F";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeDayFormat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A RelativeTimeformat representing a day
+	 */
+	class RelativeDayFormat extends RelativeTimeformat {
+		string name = "Days";
 		
 		/**
 		 * @variable seconds
@@ -262,11 +355,13 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class HourFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing an hour
+	 * @class AbsoluteHourFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing an hour
 	 */
-	class HourFormat extends Timeformat {
+	class AbsoluteHourFormat extends AbsoluteTimeformat {
+		string name = "Hour";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -274,6 +369,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%H";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeHourFormat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A RelativeTimeformat representing an hour
+	 */
+	class RelativeHourFormat extends RelativeTimeformat {
+		string name = "Hours";
 		
 		/**
 		 * @variable seconds
@@ -287,11 +394,13 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class MinuteFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a minute
+	 * @class AbsoluteMinuteFormat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a minute
 	 */
-	class MinuteFormat extends Timeformat {
+	class MinuteFormat extends AbsoluteTimeformat {
+		string name = "Minute";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -299,6 +408,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%M";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeMinuteFormat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A RelativeTimeformat representing a minute
+	 */
+	class RelativeMinuteFormat extends RelativeTimeformat {
+		string name = "Minutes";
 		
 		/**
 		 * @variable seconds
@@ -312,11 +433,13 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class SecondTimeformat
-	 * @extends Statistic.Timeformat
-	 * @brief A Timeformat representing a second
+	 * @class AbsoluteSecondTimeformat
+	 * @extends Statistic.AbsoluteTimeformat
+	 * @brief An AbsoluteTimeformat representing a second
 	 */
-	class SecondFormat extends Timeformat {
+	class AbsoluteSecondFormat extends AbsoluteTimeformat {
+		string name = "Second";
+		
 		/**
 		 * @variable format
 		 * @type string
@@ -324,6 +447,18 @@ namespace Statistic {
 		          created from the timestamp provided to toString()
 		 */
 		string format = "%S";
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeSecondTimeformat
+	 * @extends Statistic.RelativeTimeformat
+	 * @brief A Timeformat representing a second
+	 */
+	class RelativeSecondFormat extends RelativeTimeformat {
+		string name = "Seconds";
 		
 		/**
 		 * @variable seconds
@@ -342,12 +477,27 @@ namespace Statistic {
 	 */
 	abstract class View {
 		object timeframe;
+		array areas;
+		array operators;
 		
 		function setTimeframe( object timeframe )
 			.timeframe = timeframe;
 		
 		function setTimeframe( number start, number end )
 			.timeframe = new Statistic.Timeframe( start, end );
+		
+		function addArea( number id )
+			areas[] = name;
+		
+		function setAreas( array areas )
+			.areas = areas;
+		
+		function addOperator( number id )
+			.operators[] = id;
+		
+		function setOperators( array operators )
+			.operators = operators;
+
 	}
 	/**
 	 * @end
@@ -360,14 +510,6 @@ namespace Statistic {
 	 */
 	abstract class TimeView extends View {
 		object timeformat;
-		
-		/**
-		 * @function constructor
-		 * @declaration function constructor()
-		 * @brief Creates a new TimeView with default values
-		 */
-		function constructor()
-			.timeformat = new Statistic.HourFormat();
 		
 		function setTimeformat( object timeformat )
 			.timeformat = timeformat;
@@ -383,6 +525,14 @@ namespace Statistic {
 	 */
 	abstract class AbsoluteTimeView extends TimeView {
 		boolean timeformatSet = false;
+		
+		/**
+		 * @function constructor
+		 * @declaration function constructor()
+		 * @brief Creates a new AbsoluteTimeView with default values
+		 */
+		function constructor()
+			.timeformat = new Statistic.AbsoluteHourFormat();
 		
 		function addTimeformat( object timeformat ) {
 			if( not .timeformatSet ) {
@@ -410,12 +560,12 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ 'Email' => value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTimestamp = .timeformat.fromString( a['key'] );
-				number bTimestamp = .timeformat.fromString( b['key'] );
+				number aTimestamp = .timeformat.fromString( a['key'][0] );
+				number bTimestamp = .timeformat.fromString( b['key'][0] );
 				
 				if( aTimestamp < bTimestamp )
 					return -1;
@@ -441,6 +591,14 @@ namespace Statistic {
 	 */
 	abstract class RelativeTimeView extends TimeView {
 		/**
+		 * @function constructor
+		 * @declaration function constructor()
+		 * @brief Creates a new RelativeTimeView with default values
+		 */
+		function constructor()
+			.timeformat = new Statistic.RelativeHourFormat();
+		
+		/**
 		 * @function getData
 		 * @declaration function getData()
 		 * @brief Get the data parsed, sorted and ready to be used
@@ -464,12 +622,12 @@ namespace Statistic {
 			};
 			
 			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ .timeformat.name => key ], 'value' => [ 'Email' => value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTime = a['key'].toNumber();
-				number bTime = b['key'].toNumber();
+				number aTime = a['key'][0].toNumber();
+				number bTime = b['key'][0].toNumber();
 				
 				if( aTime < bTime )
 					return -1;
@@ -508,7 +666,7 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ 'Action' => key ], 'value' => [ 'Email' => value ] ];
 			};
 			
 			return data;
@@ -523,13 +681,7 @@ namespace Statistic {
 	 * @extends Statistic.View
 	 */
 	abstract class AreaView extends View {
-		array areas;
-		
-		function addArea( string name )
-			areas[] = name;
-		
-		function setAreas( array areas )
-			.areas = areas;
+		string key = "Area";
 		
 		/**
 		 * @function getData
@@ -545,11 +697,11 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => value ];
+				data[] = [ 'key' => [ .key => key ], 'value' => [ 'Email' => value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'].orderedCompare( b['key'] );
+				return a['key'][0].orderedCompare( b['key'][0] );
 			};
 			
 			return data;
@@ -563,15 +715,9 @@ namespace Statistic {
 	 * @class AreaTimeView
 	 * @extends Statistic.TimeView
 	 */
-	abstract class AreaTimeView extends TimeView {
-		array areas;
-		
-		function addArea( string name )
-			areas[] = name;
-		
-		function setAreas( array areas )
-			.areas = areas;
-		
+	abstract class AreaRelativeTimeView extends TimeView {
+		string key = "Area";
+			
 		/**
 		 * @function getData
 		 * @declaration function getData()
@@ -579,14 +725,24 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
+			array rawData1 = [];
+			array rawData2 = [];
 			array data = [];
 			
 			if( .timeframe )
-				rawData = .fetchData( .timeframe );
+				rawData1 = .fetchData( .timeframe );
 			
-			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => key, 'value' => .timeformat.length( value ) ];
+			rawData1.map() using ( key, value ) {
+				string time = "" + .timeformat.length( key.toNumber() );
+				
+				if( not rawData2.keyExists( time ) )
+					rawData2[time] = value;
+				
+				rawData2[time] += value;
+			};
+			
+			rawData2.map() using ( key, value ) {
+				data[] = [ 'key' => [ .key =>key ], 'value' => [ 'Time' => value ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
@@ -603,13 +759,7 @@ namespace Statistic {
 	 * @brief Displays values divided into list of operators
 	 */
 	abstract class OperatorView extends AreaView {
-		array operators;
-		
-		function addOperator( string name )
-			.operators[] = name;
-		
-		function setOperators( array operators )
-			.operators = operators;
+		string key = "Operator";
 		
 		/**
 		 * @function getData
@@ -626,14 +776,8 @@ namespace Statistic {
 	 * @class OperatorTimeView
 	 * @extends Statistic.AreaTimeView
 	 */
-	abstract class OperatorTimeView extends AreaTimeView {
-		array operators;
-		
-		function addOperator( string name )
-			.operators[] = name;
-		
-		function setOperators( array operators )
-			.operators = operators;
+	abstract class OperatorRelativeTimeView extends AreaRelativeTimeView {
+		string key = "Operator";
 		
 		/**
 		 * @function getData

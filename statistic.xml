@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<module>
+	<name>statistic</name>
+	<documentation-list>
+		<include>statistic.feh</include>
+		<include>reports.feh</include>
+	</documentation-list>
+	<dependance-list>
+	</dependance-list>
+</module>
+
