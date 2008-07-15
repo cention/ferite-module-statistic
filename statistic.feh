@@ -622,7 +622,9 @@ namespace Statistic {
 			};
 			
 			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => [ .timeformat.name => key ], 'value' => [ 'Email' => value ] ];
+				data[] = [ 'key' => [ .timeformat.name => key ],
+				           'value' => [ 'Email' => value ]
+				         ];
 			};
 			
 			data = data.sort() using ( a, b ) {
@@ -715,7 +717,7 @@ namespace Statistic {
 	 * @class AreaTimeView
 	 * @extends Statistic.TimeView
 	 */
-	abstract class AreaRelativeTimeView extends TimeView {
+	abstract class AreaRelativeTimeView extends RelativeTimeView {
 		string key = "Area";
 			
 		/**
@@ -725,28 +727,18 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData1 = [];
-			array rawData2 = [];
+			array rawData = [];
 			array data = [];
 			
 			if( .timeframe )
-				rawData1 = .fetchData( .timeframe );
+				rawData = .fetchData( .timeframe );
 			
-			rawData1.map() using ( key, value ) {
-				string time = "" + .timeformat.length( key.toNumber() );
-				
-				if( not rawData2.keyExists( time ) )
-					rawData2[time] = value;
-				
-				rawData2[time] += value;
-			};
-			
-			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => [ .key =>key ], 'value' => [ 'Time' => value ] ];
+			rawData.map() using ( key, value ) {
+				data[] = [ 'key' => [ .key => key ], 'value' => [ .timeformat.name => .timeformat.length( value ) ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
-				return a['key'].orderedCompare( b['key'] );
+				return a['key'][0].orderedCompare( b['key'][0] );
 			};
 			
 			return data;
