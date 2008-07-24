@@ -23,8 +23,16 @@ namespace Reports {
 		 * @param object timeframe The timeframe in which to fetch values
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .timeformat.get() );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else
+				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+		}
 	}
 	/**
 	 * @end
@@ -46,8 +54,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .timeformat.get() );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else
+				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+		}
 	}
 	/**
 	 * @end
@@ -69,8 +85,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .timeformat.get() );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else
+				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+		}
 	}
 	/**
 	 * @end
@@ -93,8 +117,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .timeformat.get() );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else
+				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+		}
 	}
 	/**
 	 * @end
@@ -147,8 +179,16 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .operators );
+			else
+				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end );
+		}
 	}
 	/**
 	 * @end
@@ -170,13 +210,21 @@ namespace Reports {
 		 * @param number timeframeEnd the end timestamp for the timeframe
 		 * @returns An array with the data
 		 */
-		function fetchData( object timeframe )
-			return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end );
+		function fetchData( object timeframe ) {
+			if( .areas.size() and .operators.size() )
+				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
+			else if( .areas.size() )
+				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .operators );
+			else
+				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end );
+		}
 	}
 	/**
 	 * @end
 	 */
-	 
+	
 	/**
 	 * @class AverageErrandResponseTime
 	 * @extends Statistic.OperatorView
@@ -196,6 +244,10 @@ namespace Reports {
 		function fetchData( object timeframe ) {
 			if( .areas.size() )
 				return Workflow.Errand.averageResponseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
+			else if( .areas.size() )
+				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .areas );
+			else if( .operators.size() )
+				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .operators );
 			else
 				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end );
 		}

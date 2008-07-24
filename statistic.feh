@@ -55,417 +55,28 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class AbsoluteTimeFromat
-	 * @brief Base class for all absolute timeformats
+	 * @class Time
+	 * @brief Base class for all relative times
 	 */
-	abstract class AbsoluteTimeformat {
-		object previousTimeformat;
+	class Time {
+		string name;
+		number seconds;
 		
-		/**
-		 * @function constructor
-		 * @declaration function constructor( object previousTimeformat )
-		 * @brief Create a new Timeformat that decorates another Timeformat
-		 * @param object previousTimeformat the Timeformat to decorate
-		 */
-		function constructor( object previousTimeformat )
-			.previousTimeformat = previousTimeformat;
-		
-		function setPreviousTimeformat( object previousTimeformat )
-			.previousTimeformat = previousTimeformat;
-		
-		/**
-		 * @function get
-		 * @declaration function get()
-		 * @brief Get the format
-		 * @return The format as a string
-		 */
-		function get() {
-			if( .previousTimeformat )
-				return .format + ' ' + .previousTimeformat.get();
-			else
-				return .format;
+		function constructor( string name, number seconds ) {
+			.name = name;
+			.seconds = seconds;
 		}
 		
-		/**
-		 * @function toString
-		 * @declaration function toString()
-		 * @brief Output Timeformat as a string based on a timestamp
-		 * @param number timestamp the timestamp to base the output on
-		 * @return The timestamp as a string
-		 */
-		function toString( number timestamp ) {
-			object date = Date.date( timestamp );
-			string text = date.format( .format );
-			
-			if( .previousTimeformat )
-				text += " " + .previousTimeformat.toString( timestamp );
-			
-			return text;
-		}
-		
-		/**
-		 * @function fromString
-		 * @declaration function fromString( string time )
-		 * @brief Convert a string into a timestamp
-		 * @param string time the time string to convert the timestamp to
-		 * @return The time as a timestamp number
-		 */
-		function fromString( string time ) {
-			object timeformat = .previousTimeformat;
-			string format = .format;
-
-			while( timeformat ) {
-				format += " " + timeformat.format;
-				timeformat = timeformat.previousTimeformat;
-			}
-			
-			return Date.parse( time, format ).time();
-		}
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeTimeformat
-	 * @brief Base class for all relative timeformats
-	 */
-	abstract class RelativeTimeformat {
 		/**
 		 * @function length
 		 * @declaration function length( number seconds )
-		 * @brief Calculate how many Timeformat happened during seconds
+		 * @brief Calculate how many this Time happened during seconds
 		 * @param number seconds the number of seconds
-		 * @return The number of Timeformat types that are elapsed during the seconds
+		 * @return The number of this Time that are elapsed during the seconds
 		 */
 		function length( number seconds ) {
 			return ( seconds / .seconds ).round();
 		}
-	}
-	/**
-	 * @end
-	 */
-	
-	class AbsoluteTimeformatSeperator {
-		string seperator;
-		
-		function constructor( string seperator )
-			.seperator = seperator;
-		
-		function set( string seperator )
-			.seperator = seperator;
-		
-		function get
-			return .seperator;
-	}
-	
-	class AbsoluteTimeformatGroup {
-		array timeformats;
-		
-		function constructor
-			.timeformats = [];
-		
-		function add( object timeformat )
-			.timeformats[] = timeformat;
-		
-		function get {
-			string format;
-			.timeformats.each() using ( timeformat ) {
-				format += timeformat.get();
-			};
-			return format;
-		}
-	}
-	
-	/**
-	 * @class AbsoluteYearFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a year
-	 */
-	class AbsoluteYearFormat extends AbsoluteTimeformat {
-		string name = "Year";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%Y";
-	}
-	/**
-	 * @end
-	 */
-
-	/**
-	 * @class RelativeYearFormat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A RelativeTimeformat representing a year
-	 */
-	class RelativeYearFormat extends RelativeTimeformat {
-		string name = "Years";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of an year in seconds
-		 */
-		number seconds = 31536000;
-	}
-	/**
-	 * @end
-	 */
-
-	
-	/**
-	 * @class AbsoluteMonthFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a month
-	 */
-	class MonthFormat extends AbsoluteTimeformat {
-		string name = "Month";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%B";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeMonthFormat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A RelativeTimeformat representing a month
-	 */
-	class RelativeMonthFormat extends RelativeTimeformat {
-		string name = "Months";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a month in seconds
-		 */
-		number seconds = 2592000;
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class AbsoluteWeekFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a week
-	 */
-	class AbsoluteWeekFormat extends AbsoluteTimeformat {
-		string name = "Week";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%V";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeWeekFormat
-	 * @extends Statistic.Timeformat
-	 * @brief A RelativeTimeformat representing a week
-	 */
-	class WeekFormat extends RelativeTimeformat {
-		string name = "Weeks";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a week in seconds
-		 */
-		number seconds = 604800;
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class WeekdayFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a weekday.
-	 */
-	class WeekdayFormat extends AbsoluteTimeformat {
-		string name = "Weekday";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%A";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class AbsoluteDayFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a day
-	 */
-	class AbsoluteDayFormat extends AbsoluteTimeformat {
-		string name = "Day";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%F";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeDayFormat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A RelativeTimeformat representing a day
-	 */
-	class RelativeDayFormat extends RelativeTimeformat {
-		string name = "Days";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a day in seconds
-		 */
-		number seconds = 86400;
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class AbsoluteHourFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing an hour
-	 */
-	class AbsoluteHourFormat extends AbsoluteTimeformat {
-		string name = "Hour";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%H";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeHourFormat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A RelativeTimeformat representing an hour
-	 */
-	class RelativeHourFormat extends RelativeTimeformat {
-		string name = "Hours";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of an hour in seconds
-		 */
-		number seconds = 3600;
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class AbsoluteMinuteFormat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a minute
-	 */
-	class MinuteFormat extends AbsoluteTimeformat {
-		string name = "Minute";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%M";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeMinuteFormat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A RelativeTimeformat representing a minute
-	 */
-	class RelativeMinuteFormat extends RelativeTimeformat {
-		string name = "Minutes";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a minute in seconds
-		 */
-		number seconds = 60;
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class AbsoluteSecondTimeformat
-	 * @extends Statistic.AbsoluteTimeformat
-	 * @brief An AbsoluteTimeformat representing a second
-	 */
-	class AbsoluteSecondFormat extends AbsoluteTimeformat {
-		string name = "Second";
-		
-		/**
-		 * @variable format
-		 * @type string
-		 * @brief The format used when toString() calls format() on the Date object
-		          created from the timestamp provided to toString()
-		 */
-		string format = "%S";
-	}
-	/**
-	 * @end
-	 */
-	
-	/**
-	 * @class RelativeSecondTimeformat
-	 * @extends Statistic.RelativeTimeformat
-	 * @brief A Timeformat representing a second
-	 */
-	class RelativeSecondFormat extends RelativeTimeformat {
-		string name = "Seconds";
-		
-		/**
-		 * @variable seconds
-		 * @type number
-		 * @brief The length of a second in seconds
-		 */
-		number seconds = 1;
 	}
 	/**
 	 * @end
@@ -497,6 +108,9 @@ namespace Statistic {
 		
 		function setOperators( array operators )
 			.operators = operators;
+		
+		function isTimeView
+			return false;
 
 	}
 	/**
@@ -509,10 +123,13 @@ namespace Statistic {
 	 * @brief Base class for a statistic options dealing with time
 	 */
 	abstract class TimeView extends View {
-		object timeformat;
+		object outputTime;
 		
-		function setTimeformat( object timeformat )
-			.timeformat = timeformat;
+		function setOutputTime( object outputTime )
+			.outputTime = outputTime;
+		
+		function isTimeView
+			return true;
 	}
 	/**
 	 * @end
@@ -524,27 +141,8 @@ namespace Statistic {
 	 * @brief Displays values based on at what time a timestamp occurred
 	 */
 	abstract class AbsoluteTimeView extends TimeView {
-		boolean timeformatSet = false;
-		
-		/**
-		 * @function constructor
-		 * @declaration function constructor()
-		 * @brief Creates a new AbsoluteTimeView with default values
-		 */
-		function constructor()
-			.timeformat = new Statistic.AbsoluteHourFormat();
-		
-		function addTimeformat( object timeformat ) {
-			if( not .timeformatSet ) {
-				.timeformat = null;
-				.timeformatSet = true;
-			}	
-			if( .timeformat ) {
-				timeformat.setPreviousTimeformat( .timeformat );
-				.timeformat = timeformat;
-			} else
-				.timeformat = timeformat;
-		}
+		function isAbsoluteTimeView
+			return true;
 		
 		/**
 		 * @function getData
@@ -556,7 +154,7 @@ namespace Statistic {
 			array rawData = [];
 			array data = [];
 			
-			if( .timeframe )
+			if( .timeframe and .outputTime )
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
@@ -564,8 +162,8 @@ namespace Statistic {
 			};
 			
 			data = data.sort() using ( a, b ) {
-				number aTimestamp = .timeformat.fromString( a['key'][0] );
-				number bTimestamp = .timeformat.fromString( b['key'][0] );
+				number aTimestamp = .outputTime.toTimestamp( a['key'][0] );
+				number bTimestamp = .outputTime.toTimestamp( b['key'][0] );
 				
 				if( aTimestamp < bTimestamp )
 					return -1;
@@ -590,13 +188,8 @@ namespace Statistic {
 	 * brief Displays values based on how long time a timestamp represents
 	 */
 	abstract class RelativeTimeView extends TimeView {
-		/**
-		 * @function constructor
-		 * @declaration function constructor()
-		 * @brief Creates a new RelativeTimeView with default values
-		 */
-		function constructor()
-			.timeformat = new Statistic.RelativeHourFormat();
+		function isAbsoluteTimeView
+			return false;
 		
 		/**
 		 * @function getData
@@ -613,7 +206,7 @@ namespace Statistic {
 				rawData1 = .fetchData( .timeframe );
 			
 			rawData1.map() using ( key, value ) {
-				string time = "" + .timeformat.length( key.toNumber() );
+				string time = "" + .outputTime.length( key.toNumber() );
 				
 				if( not rawData2.keyExists( time ) )
 					rawData2[time] = value;
@@ -622,7 +215,7 @@ namespace Statistic {
 			};
 			
 			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => [ .timeformat.name => key ],
+				data[] = [ 'key' => [ .outputTime.name => key ],
 				           'value' => [ 'Email' => value ]
 				         ];
 			};
@@ -734,7 +327,7 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ .key => key ], 'value' => [ .timeformat.name => .timeformat.length( value ) ] ];
+				data[] = [ 'key' => [ .key => key ], 'value' => [ .outputTime.name => .outputTime.length( value ) ] ];
 			};
 			
 			data = data.sort() using ( a, b ) {
