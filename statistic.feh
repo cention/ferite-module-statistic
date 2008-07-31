@@ -261,7 +261,7 @@ namespace Statistic {
 				rawData = .fetchData( .timeframe );
 			
 			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Action' => key ], 'value' => [ 'Email' => value ] ];
+				data[] = [ 'key' => [ .key => key ], 'value' => [ 'Email' => value ] ];
 			};
 			
 			return data;
