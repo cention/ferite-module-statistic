@@ -25,11 +25,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+				return Workflow.Errand.arriveTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+				return Workflow.Errand.arriveTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+				return Workflow.Errand.arriveTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
 			else
 				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -56,11 +56,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+				return Workflow.Errand.closeTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+				return Workflow.Errand.closeTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+				return Workflow.Errand.closeTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
 			else
 				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -87,11 +87,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+				return Workflow.Errand.publishedTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+				return Workflow.Errand.publishedTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+				return Workflow.Errand.publishedTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
 			else
 				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -119,11 +119,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+				return Workflow.Errand.withRepliesCloseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
+				return Workflow.Errand.withRepliesCloseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+				return Workflow.Errand.withRepliesCloseTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
 			else
 				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -181,11 +181,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
+				return Workflow.Errand.responseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .areas );
+				return Workflow.Errand.responseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end, .operators );
+				return Workflow.Errand.responseTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
 			else
 				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -212,11 +212,11 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .areas, .operators );
+				return Workflow.Errand.processTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
 			else if( .areas.size() )
-				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .areas );
+				return Workflow.Errand.processTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
 			else if( .operators.size() )
-				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end, .operators );
+				return Workflow.Errand.processTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
 			else
 				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -244,10 +244,6 @@ namespace Reports {
 		function fetchData( object timeframe ) {
 			if( .areas.size() )
 				return Workflow.Errand.averageResponseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .areas.size() )
-				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end, .operators );
 			else
 				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -293,13 +289,13 @@ namespace Reports {
 		
 		function fetchData( object timeframe ) {
 			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.classificationByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+				return Workflow.Errand.classificationByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators, 'System.Errand.%' );
 			else if ( .areas.size() )
-				return Workflow.Errand.classificationByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
+				return Workflow.Errand.classificationByAreaIDsBetween( timeframe.start, timeframe.end, .areas, 'System.Errand.%' );
 			else if ( .operators.size() )
-				return Workflow.Errand.classificationByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+				return Workflow.Errand.classificationByUserIDsBetween( timeframe.start, timeframe.end, .operators, 'System.Errand.%' );
 			else
-				return Workflow.Errand.classificationBetween( timeframe.start, timeframe.end );
+				return Workflow.Errand.classificationBetween( timeframe.start, timeframe.end, 'System.Errand.%' );
 		}
 	}
 }
