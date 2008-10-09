@@ -24,12 +24,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.arriveTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.arriveTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.arriveTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.arriveTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.arriveTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
 			else
 				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -55,12 +55,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.closeTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.closeTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.closeTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.closeTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.closeTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
 			else
 				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -86,12 +86,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.publishedTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.publishedTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.publishedTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.publishedTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.publishedTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
 			else
 				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -118,12 +118,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.withRepliesCloseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.withRepliesCloseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.withRepliesCloseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.withRepliesCloseTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.withRepliesCloseTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
 			else
 				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
 		}
@@ -134,10 +134,10 @@ namespace Reports {
 	
 	/**
 	 * @class ErrandClosureStatus
-	 * @extends Statistic.OperatorView
+	 * @extends Statistic.AgentView
 	 * @brief Handles data needed for errand closure status statistic view
 	 */
-	class ErrandClosureStatus extends Statistic.OperatorView {
+	class ErrandClosureStatus extends Statistic.AgentView {
 		string name = "Closure status";
 		
 		/**
@@ -149,12 +149,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.closureStatusesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.closureStatusesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.closureStatusesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.closureStatusesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.closureStatusesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
 			else
 				return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end );
 		}
@@ -180,12 +180,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.responseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.responseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.responseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.responseTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.responseTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
 			else
 				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -211,12 +211,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.processTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.processTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
 			else if( .areas.size() )
 				return Workflow.Errand.processTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .operators.size() )
-				return Workflow.Errand.processTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else if( .agents.size() )
+				return Workflow.Errand.processTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
 			else
 				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -227,7 +227,7 @@ namespace Reports {
 	
 	/**
 	 * @class AverageErrandResponseTime
-	 * @extends Statistic.OperatorView
+	 * @extendsStatistic.AreaRelativeTimeView
 	 * @brief Handles data needed for average errand response time statistic view
 	 */
 	class AverageErrandResponseTime extends Statistic.AreaRelativeTimeView {
@@ -254,10 +254,10 @@ namespace Reports {
 	
 	/**
 	 * @class AverageErrandProcessTime
-	 * @extends Statistic.OperatorView
+	 * @extends Statistic.AgentRelativeTimeView
 	 * @brief Handles data needed for average errand process time statistic view
 	 */
-	class AverageErrandProcessTime extends Statistic.OperatorRelativeTimeView {
+	class AverageErrandProcessTime extends Statistic.AgentRelativeTimeView {
 		string name = "Average process time";
 		
 		/**
@@ -269,12 +269,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.averageProcessTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.averageProcessTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
 			else if ( .areas.size() )
 				return Workflow.Errand.averageProcessTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if ( .operators.size() )
-				return Workflow.Errand.averageProcessTimesByUserIDsBetween( timeframe.start, timeframe.end, .operators );
+			else if ( .agents.size() )
+				return Workflow.Errand.averageProcessTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
 			else
 				return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end );
 		}
@@ -288,12 +288,12 @@ namespace Reports {
 		string key = "Classification";
 		
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .operators.size() )
-				return Workflow.Errand.classificationByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .operators, 'System.Errand.%' );
+			if( .areas.size() and .agents.size() )
+				return Workflow.Errand.classificationByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents, 'System.Errand.%' );
 			else if ( .areas.size() )
 				return Workflow.Errand.classificationByAreaIDsBetween( timeframe.start, timeframe.end, .areas, 'System.Errand.%' );
-			else if ( .operators.size() )
-				return Workflow.Errand.classificationByUserIDsBetween( timeframe.start, timeframe.end, .operators, 'System.Errand.%' );
+			else if ( .agents.size() )
+				return Workflow.Errand.classificationByUserIDsBetween( timeframe.start, timeframe.end, .agents, 'System.Errand.%' );
 			else
 				return Workflow.Errand.classificationBetween( timeframe.start, timeframe.end, 'System.Errand.%' );
 		}

@@ -89,7 +89,7 @@ namespace Statistic {
 	abstract class View {
 		object timeframe;
 		array areas;
-		array operators;
+		array agents;
 		
 		function setTimeframe( object timeframe )
 			.timeframe = timeframe;
@@ -103,11 +103,11 @@ namespace Statistic {
 		function setAreas( array areas )
 			.areas = areas;
 		
-		function addOperator( number id )
-			.operators[] = id;
+		function addAgent( number id )
+			.agents[] = id;
 		
-		function setOperators( array operators )
-			.operators = operators;
+		function setAgents( array agents )
+			.agents = agents;
 		
 		function isTimeView
 			return false;
@@ -339,12 +339,12 @@ namespace Statistic {
 	}
 	
 	/**
-	 * @class OperatorView
+	 * @class AgentView
 	 * @extends Statistic.View
-	 * @brief Displays values divided into list of operators
+	 * @brief Displays values divided into list of agents
 	 */
-	abstract class OperatorView extends AreaView {
-		string key = "Operator";
+	abstract class AgentView extends AreaView {
+		string key = "Agent";
 		
 		/**
 		 * @function getData
@@ -358,11 +358,11 @@ namespace Statistic {
 	 */
 	
 	/**
-	 * @class OperatorTimeView
+	 * @class AgentTimeView
 	 * @extends Statistic.AreaTimeView
 	 */
-	abstract class OperatorRelativeTimeView extends AreaRelativeTimeView {
-		string key = "Operator";
+	abstract class AgentRelativeTimeView extends AreaRelativeTimeView {
+		string key = "Agent";
 		
 		/**
 		 * @function getData
