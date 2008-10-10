@@ -82,13 +82,30 @@ namespace Statistic {
 	 * @end
 	 */
 	
+	class DataGroup {
+		string name;
+		array values;
+		constructor( string name, array values ) {
+			.name = name;
+			.values = values;
+		}
+		function toString {
+			return '' + .values;
+		}
+	}
+	
 	/**
 	 * @class view
 	 * @brief The base class for all statistic views
 	 */
 	abstract class View {
 		object timeframe;
+		array dataGroups;
+		boolean byArea;
 		array areas;
+		boolean byGroup;
+		array groups;
+		boolean byAgent;
 		array agents;
 		
 		function setTimeframe( object timeframe )
@@ -97,21 +114,130 @@ namespace Statistic {
 		function setTimeframe( number start, number end )
 			.timeframe = new Statistic.Timeframe( start, end );
 		
-		function addArea( number id )
-			areas[] = name;
+		function addDataGroup( string name, array data )
+			.dataGroups[] = new Statistic.DataGroup( name, data );
 		
-		function setAreas( array areas )
+		function addArea( number id ) {
+			.byArea = true;
+			.areas[] = name;
+		}
+		
+		function setAreas( array areas ) {
+			.byArea = true;
 			.areas = areas;
+		}
 		
-		function addAgent( number id )
+		function addGroup( number id ) {
+			.byGroup = true;
+			.groups[] = id;
+		}
+		
+		function setGroups( array groups ) {
+			.byGroup = true;
+			.groups = groups;
+		}
+		
+		function addAgent( number id ) {
+			.byAgent = true;
 			.agents[] = id;
+		}
 		
-		function setAgents( array agents )
+		function setAgents( array agents ) {
+			.byAgent = true;
 			.agents = agents;
+		}
 		
 		function isTimeView
 			return false;
-
+		
+		function makeData( string keyHeaderName ) {
+			array columnHeaders = [];
+			array valueColumns = [];
+			array rows = [];
+			
+			// Add the header for the first column (the key column e.g. the time
+			// in a time view or the agent's name in an agent view
+			columnHeaders[] = keyHeaderName;
+			
+			// Go through all data groups (e.g. Email and Manual) and create column headers
+			.dataGroups.each() using ( dataGroup ) {
+				if( dataGroup.values.size() > 0 ) {
+					// If the value is an array that means we have multiple
+					// values for a key (e.g. closure statuses for an agent).
+					if( dataGroup.values[0] isa array ) {
+						dataGroup.values.each() using ( value ) {
+							value.map() using ( key, v ) {
+								// Data from object server might look like this:
+								// [ 'agent1' => [ 'status1' => 1, 'status3' => 2 ],
+								//   'agent2' => [ 'status2' => 1 ] ]
+								// That means we have to go through all the data
+								// and fetch all key names (which will be column headers)
+								// so when putting the data into rows later we can
+								// to like this for e.g. agent one: 'status2' => 0
+								// and everything will be good in the world
+								if( not columnHeaders.keyExists( key ) ) {
+									columnHeaders[] = key;
+									valueColumns[] = key;
+								}
+							};
+						};
+					} else {
+						// If only one value exists the data group name is used
+						// as column header (e.g. Email and Manual)
+						columnHeaders[] = dataGroup.name;
+						// The valueColumns array will not be used in the single value case
+						valueColumns[] = dataGroup.name;
+					}
+				}
+			};
+			
+			// Go through all data groups and create rows
+			.dataGroups.each() using ( dataGroup ) {
+				dataGroup.values.map() using ( key, value ) {
+					boolean rowExists = false;
+					number rowIndex = -1;
+					array row = [];
+					rows.eachWithIndex() using ( r, i ) {
+						if( r[0] == key ) {
+							row = r;
+							rowExists = true;
+							rowIndex = i;
+						}
+					};
+					if( not rowExists ) {
+						// If the first column is 'Agent' the would be the agent's name
+						row[] = key;
+					}
+					// Multiple values for a key (e.g closure status)
+					if( value isa array ) {
+						// We need to go through and make sure that we have values
+						// in all columns in all rows. See above why.
+						valueColumns.each() using ( column ) {
+							boolean columnFound = false;
+							value.map() using ( k, v ) {
+								if( k == column ) {
+									row[] = v;
+									columnFound = true;
+									return false; // break;
+								};
+							};
+							if( not columnFound ) {
+								row[] = 0;
+							}
+						};
+					} else {
+						row[] = value;
+					}
+					if( rowIndex > -1 ) {
+						rows[rowIndex] = row;
+					} else {
+						rows[] = row;
+					}
+				};
+			};
+			
+			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
+		}
 	}
 	/**
 	 * @end
@@ -151,30 +277,18 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
 			array data = [];
-			
-			if( .timeframe and .outputTime )
-				rawData = .fetchData( .timeframe );
-			
-			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ 'Time' => key ], 'value' => [ 'Email' => value ] ];
-			};
-			
-			data = data.sort() using ( a, b ) {
-				number aTimestamp = .outputTime.toTimestamp( a['key'][0] );
-				number bTimestamp = .outputTime.toTimestamp( b['key'][0] );
-				
-				if( aTimestamp < bTimestamp )
-					return -1;
-				
-				if( aTimestamp == bTimestamp )
-					return 0;
-				
-				if( aTimestamp > bTimestamp )
-					return 1;
-			};
-			
+			if( .timeframe and .outputTime ) {
+				.fetchData( .timeframe );
+				data = .makeData( .outputTime.name );
+				data['Rows'] = data['Rows'].sort() using ( a, b ) {
+					number aTimestamp = .outputTime.toTimestamp( a[0] );
+					number bTimestamp = .outputTime.toTimestamp( b[0] );					
+					if( aTimestamp < bTimestamp ) return -1;
+					if( aTimestamp == bTimestamp ) return 0;
+					if( aTimestamp > bTimestamp ) return 1;
+				};
+			}
 			return data;
 		}
 	}
@@ -198,41 +312,42 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData1 = [];
-			array rawData2 = [];
 			array data = [];
 			
-			if( .timeframe )
-				rawData1 = .fetchData( .timeframe );
-			
-			rawData1.map() using ( key, value ) {
-				string time = "" + .outputTime.length( key.toNumber() );
+			if( .timeframe ) {
+				array newDataGroups = [];
 				
-				if( not rawData2.keyExists( time ) )
-					rawData2[time] = value;
+				.fetchData( .timeframe );
 				
-				rawData2[time] += value;
-			};
-			
-			rawData2.map() using ( key, value ) {
-				data[] = [ 'key' => [ .outputTime.name => key ],
-				           'value' => [ 'Email' => value ]
-				         ];
-			};
-			
-			data = data.sort() using ( a, b ) {
-				number aTime = a['key'][0].toNumber();
-				number bTime = b['key'][0].toNumber();
+				.dataGroups.each() using ( dataGroup ) {
+					object newDataGroup = new Statistic.DataGroup();
+					newDataGroup.name = dataGroup.name;
+					newDataGroup.values = [];
+					
+					dataGroup.values.map() using ( key, value ) {
+						string time = '' + .outputTime.length( key.toNumber() );
+						if( not newDataGroup.values.keyExists( time ) ) {
+							newDataGroup.values[time] = value;
+						} else {
+							newDataGroup.values[time] += value;
+						}
+					};
+					
+					newDataGroups[] = newDataGroup;
+				};
 				
-				if( aTime < bTime )
-					return -1;
+				.dataGroups = newDataGroups;
 				
-				if( aTime == bTime )
-					return 0;
+				data = .makeData( .outputTime.name );
 				
-				if( aTime > bTime )
-					return 1;
-			};
+				data['Rows'] = data['Rows'].sort() using ( a, b ) {
+					number aTime = a[0].toNumber();
+					number bTime = b[0].toNumber();
+					if( aTime < bTime ) return -1;
+					if( aTime == bTime ) return 0;
+					if( aTime > bTime ) return 1;
+				};
+			}
 			
 			return data;
 		}
@@ -254,16 +369,11 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
 			array data = [];
-			
-			if( .timeframe )
-				rawData = .fetchData( .timeframe );
-			
-			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ .key => key ], 'value' => [ 'Email' => value ] ];
-			};
-			
+			if( .timeframe ) {
+				.fetchData( .timeframe );
+				data = .makeData( .key );
+			}
 			return data;
 		}
 	}
@@ -285,20 +395,12 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
 			array data = [];
 			
-			if( .timeframe )
+			if( .timeframe ) {
 				rawData = .fetchData( .timeframe );
-			
-			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ .key => key ], 'value' => [ 'Email' => value ] ];
-			};
-			
-			data = data.sort() using ( a, b ) {
-				return a['key'][0].orderedCompare( b['key'][0] );
-			};
-			
+				data = .makeData( .key );
+			}		
 			return data;
 		}
 	}
@@ -320,20 +422,12 @@ namespace Statistic {
 		 * @return An array with the data
 		 */
 		function getData() {
-			array rawData = [];
 			array data = [];
 			
-			if( .timeframe )
+			if( .timeframe ) {
 				rawData = .fetchData( .timeframe );
-			
-			rawData.map() using ( key, value ) {
-				data[] = [ 'key' => [ .key => key ], 'value' => [ .outputTime.name => .outputTime.length( value ) ] ];
-			};
-			
-			data = data.sort() using ( a, b ) {
-				return a['key'][0].orderedCompare( b['key'][0] );
-			};
-			
+				data = .makeData( .key );
+			}		
 			return data;
 		}
 	}

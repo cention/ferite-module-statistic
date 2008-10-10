@@ -24,14 +24,10 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.arriveTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.arriveTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.arriveTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
-			else
-				return Workflow.Errand.arriveTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+			array email = Workflow.Errand.incomingReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			array manual = Workflow.Errand.incomingReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			.addDataGroup( 'Email', email );
+			.addDataGroup( 'Manual', manual );
 		}
 	}
 	/**
@@ -55,14 +51,10 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.closeTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.closeTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.closeTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
-			else
-				return Workflow.Errand.closeTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+			array email = Workflow.Errand.closedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			array manual = Workflow.Errand.closedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			.addDataGroup( 'Email', email );
+			.addDataGroup( 'Manual', manual );
 		}
 	}
 	/**
@@ -86,14 +78,10 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.publishedTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.publishedTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.publishedTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
-			else
-				return Workflow.Errand.publishedTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+			array email = Workflow.Errand.publishedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			array manual = Workflow.Errand.publishedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			.addDataGroup( 'Email', email );
+			.addDataGroup( 'Manual', manual );
 		}
 	}
 	/**
@@ -118,14 +106,10 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.withRepliesCloseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.withRepliesCloseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.withRepliesCloseTimesByUserIDsBetween( timeframe.start, timeframe.end, .outputTime.format(), .agents );
-			else
-				return Workflow.Errand.withRepliesCloseTimesBetween( timeframe.start, timeframe.end, .outputTime.format() );
+			array email = Workflow.Errand.repliesReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			array manual = Workflow.Errand.repliesReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents, .outputTime.format() );
+			.addDataGroup( 'Email', email );
+			.addDataGroup( 'Manual', manual );
 		}
 	}
 	/**
@@ -149,14 +133,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.closureStatusesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.closureStatusesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.closureStatusesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
-			else
-				return Workflow.Errand.closureStatusesBetween( timeframe.start, timeframe.end );
+			array status = Workflow.Errand.closureStatusReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'Status', status );
 		}
 	}
 	/**
@@ -180,14 +158,9 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.responseTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.responseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.responseTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
-			else
-				return Workflow.Errand.responseTimesBetween( timeframe.start, timeframe.end );
+			array responseTime = Workflow.Errand.responseTimeReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'ResponseTime', responseTime );
+
 		}
 	}
 	/**
@@ -211,14 +184,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.processTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
-			else if( .areas.size() )
-				return Workflow.Errand.processTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if( .agents.size() )
-				return Workflow.Errand.processTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
-			else
-				return Workflow.Errand.processTimesBetween( timeframe.start, timeframe.end );
+			array processTime = Workflow.Errand.processTimeReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'ProcessTime', processTime );
 		}
 	}
 	/**
@@ -242,10 +209,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() )
-				return Workflow.Errand.averageResponseTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else
-				return Workflow.Errand.averageResponseTimesBetween( timeframe.start, timeframe.end );
+			array averageResponseTime = Workflow.Errand.averageResponseTimeReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'AverageResponseTime', averageResponseTime );
 		}
 	}
 	/**
@@ -269,14 +234,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.averageProcessTimesByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents );
-			else if ( .areas.size() )
-				return Workflow.Errand.averageProcessTimesByAreaIDsBetween( timeframe.start, timeframe.end, .areas );
-			else if ( .agents.size() )
-				return Workflow.Errand.averageProcessTimesByUserIDsBetween( timeframe.start, timeframe.end, .agents );
-			else
-				return Workflow.Errand.averageProcessTimesBetween( timeframe.start, timeframe.end );
+			array averageProcessTime = Workflow.Errand.averageProcessTimeReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'AverageProcessTime', averageProcessTime );
 		}
 	}
 	/**
@@ -288,14 +247,8 @@ namespace Reports {
 		string key = "Classification";
 		
 		function fetchData( object timeframe ) {
-			if( .areas.size() and .agents.size() )
-				return Workflow.Errand.classificationByAreaIDsAndUserIDsBetween( timeframe.start, timeframe.end, .areas, .agents, 'System.Errand.%' );
-			else if ( .areas.size() )
-				return Workflow.Errand.classificationByAreaIDsBetween( timeframe.start, timeframe.end, .areas, 'System.Errand.%' );
-			else if ( .agents.size() )
-				return Workflow.Errand.classificationByUserIDsBetween( timeframe.start, timeframe.end, .agents, 'System.Errand.%' );
-			else
-				return Workflow.Errand.classificationBetween( timeframe.start, timeframe.end, 'System.Errand.%' );
+			array classification = Workflow.Errand.classificationReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byGroup, .groups, .byAgent, .agents );
+			.addDataGroup( 'Classification', classification );
 		}
 	}
 }
