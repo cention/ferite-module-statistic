@@ -94,6 +94,10 @@ namespace Statistic {
 		}
 	}
 	
+	final static number SERVICE_ALL = 0;
+	final static number SERVICE_EMAIL = 1;
+	final static number SERVICE_MANUAL = 2;
+	
 	/**
 	 * @class view
 	 * @brief The base class for all statistic views
@@ -103,10 +107,12 @@ namespace Statistic {
 		array dataGroups;
 		boolean byArea;
 		array areas;
-		boolean byGroup;
-		array groups;
 		boolean byAgent;
 		array agents;
+		number service;		
+		
+		function setService( number service )
+			.service = service;
 		
 		function setTimeframe( object timeframe )
 			.timeframe = timeframe;
@@ -123,18 +129,10 @@ namespace Statistic {
 		}
 		
 		function setAreas( array areas ) {
-			.byArea = true;
-			.areas = areas;
-		}
-		
-		function addGroup( number id ) {
-			.byGroup = true;
-			.groups[] = id;
-		}
-		
-		function setGroups( array groups ) {
-			.byGroup = true;
-			.groups = groups;
+			if( areas.size() > 0 ) {
+				.byArea = true;
+				.areas = areas;
+			}
 		}
 		
 		function addAgent( number id ) {
@@ -143,8 +141,10 @@ namespace Statistic {
 		}
 		
 		function setAgents( array agents ) {
-			.byAgent = true;
-			.agents = agents;
+			if( agents.size() > 0 ) {
+				.byAgent = true;
+				.agents = agents;
+			}
 		}
 		
 		function isTimeView
@@ -173,7 +173,7 @@ namespace Statistic {
 								// That means we have to go through all the data
 								// and fetch all key names (which will be column headers)
 								// so when putting the data into rows later we can
-								// to like this for e.g. agent one: 'status2' => 0
+								// do like this for e.g. agent one: 'status2' => 0
 								// and everything will be good in the world
 								if( not columnHeaders.keyExists( key ) ) {
 									columnHeaders[] = key;
@@ -205,7 +205,7 @@ namespace Statistic {
 						}
 					};
 					if( not rowExists ) {
-						// If the first column is 'Agent' the would be the agent's name
+						// If the first column is 'Agent' this would be the agent's name
 						row[] = key;
 					}
 					// Multiple values for a key (e.g closure status)
@@ -398,7 +398,7 @@ namespace Statistic {
 			array data = [];
 			
 			if( .timeframe ) {
-				rawData = .fetchData( .timeframe );
+				.fetchData( .timeframe );
 				data = .makeData( .key );
 			}		
 			return data;
@@ -425,7 +425,7 @@ namespace Statistic {
 			array data = [];
 			
 			if( .timeframe ) {
-				rawData = .fetchData( .timeframe );
+				.fetchData( .timeframe );
 				data = .makeData( .key );
 			}		
 			return data;
