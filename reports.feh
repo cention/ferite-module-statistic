@@ -149,14 +149,34 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
+			array answered = [];
+			array deleted = [];
+			array returned = [];
+			array agent = [];
+			array area = [];
+			array folder = [];
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.closureStatusReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
-				.addDataGroup( 'Email', email );
+				answered.append( Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
+				deleted.append( Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
+				returned.append( Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
+				agent.append( Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
+				area.append( Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
+				folder.append( Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );				
 			}
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.closureStatusReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents );
-				.addDataGroup( 'Manual', manual );
+				answered.append( Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				deleted.append( Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				returned.append( Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				agent.append( Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				area.append( Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				folder.append( Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
 			}
+			.addDataGroup( 'Answered', answered );
+			.addDataGroup( 'Deleted', deleted );
+			.addDataGroup( 'Returned', returned );
+			.addDataGroup( 'Forwarded to agent', agent );
+			.addDataGroup( 'Forwarded to area', area );
+			.addDataGroup( 'Forwarded to folder', folder );
 		}
 	}
 	/**
