@@ -75,7 +75,7 @@ namespace Statistic {
 		 * @return The number of this Time that are elapsed during the seconds
 		 */
 		function length( number seconds ) {
-			return ( seconds / .seconds ).round();
+			return ( seconds / .seconds );
 		}
 	}
 	/**
@@ -161,33 +161,32 @@ namespace Statistic {
 			
 			// Go through all data groups (e.g. Email and Manual) and create column headers
 			.dataGroups.each() using ( dataGroup ) {
-				if( dataGroup.values.size() > 0 ) {
-					// If the value is an array that means we have multiple
-					// values for a key (e.g. closure statuses for an agent).
-					if( dataGroup.values[0] isa array ) {
-						dataGroup.values.each() using ( value ) {
-							value.map() using ( key, v ) {
-								// Data from object server might look like this:
-								// [ 'agent1' => [ 'status1' => 1, 'status3' => 2 ],
-								//   'agent2' => [ 'status2' => 1 ] ]
-								// That means we have to go through all the data
-								// and fetch all key names (which will be column headers)
-								// so when putting the data into rows later we can
-								// do like this for e.g. agent one: 'status2' => 0
-								// and everything will be good in the world
-								if( not columnHeaders.keyExists( key ) ) {
-									columnHeaders[] = key;
-									valueColumns[] = key;
-								}
-							};
+				// If the value is an array that means we have multiple
+				// values for a key (e.g. closure statuses for an agent).
+				if( dataGroup.values.size() > 0 and dataGroup.values[0] isa array ) {
+					multipleKeyValues = true;
+					dataGroup.values.each() using ( value ) {
+						value.map() using ( key, v ) {
+							// Data from object server might look like this:
+							// [ 'agent1' => [ 'status1' => 1, 'status3' => 2 ],
+							//   'agent2' => [ 'status2' => 1 ] ]
+							// That means we have to go through all the data
+							// and fetch all key names (which will be column headers)
+							// so when putting the data into rows later we can
+							// do like this for e.g. agent one: 'status2' => 0
+							// and everything will be good in the world
+							if( not columnHeaders.keyExists( key ) ) {
+								columnHeaders[] = key;
+								valueColumns[] = key;
+							}
 						};
-					} else {
-						// If only one value exists the data group name is used
-						// as column header (e.g. Email and Manual)
-						columnHeaders[] = dataGroup.name;
-						// The valueColumns array will not be used in the single value case
-						valueColumns[] = dataGroup.name;
-					}
+					};
+				} else {
+					// If only one value exists the data group name is used
+					// as column header (e.g. Email and Manual)
+					columnHeaders[] = dataGroup.name;
+					// The valueColumns array will not be used in the single value case
+					valueColumns[] = dataGroup.name;
 				}
 			};
 			
@@ -281,13 +280,15 @@ namespace Statistic {
 			if( .timeframe and .outputTime ) {
 				.fetchData( .timeframe );
 				data = .makeData( .outputTime.name );
+				/*
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTimestamp = .outputTime.toTimestamp( a[0] );
-					number bTimestamp = .outputTime.toTimestamp( b[0] );					
+					number bTimestamp = .outputTime.toTimestamp( b[0] );
 					if( aTimestamp < bTimestamp ) return -1;
 					if( aTimestamp == bTimestamp ) return 0;
 					if( aTimestamp > bTimestamp ) return 1;
 				};
+				*/
 			}
 			return data;
 		}
@@ -325,12 +326,10 @@ namespace Statistic {
 					newDataGroup.values = [];
 					
 					dataGroup.values.map() using ( key, value ) {
-						string time = '' + .outputTime.length( key.toNumber() );
-						if( not newDataGroup.values.keyExists( time ) ) {
-							newDataGroup.values[time] = value;
-						} else {
-							newDataGroup.values[time] += value;
-						}
+						key = '' + .outputTime.length( key.toNumber() );
+						if( not newDataGroup.values.keyExists( key ) )
+							newDataGroup.values[key] = 0;
+						newDataGroup.values[key] += value;
 					};
 					
 					newDataGroups[] = newDataGroup;
@@ -338,7 +337,8 @@ namespace Statistic {
 				
 				.dataGroups = newDataGroups;
 				
-				data = .makeData( .outputTime.name );
+				data = .makeData( .key );
+				
 				
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTime = a[0].toNumber();
@@ -388,15 +388,8 @@ namespace Statistic {
 	abstract class AreaView extends View {
 		string key = "Area";
 		
-		/**
-		 * @function getData
-		 * @declaration function getData()
-		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array with the data
-		 */
 		function getData() {
 			array data = [];
-			
 			if( .timeframe ) {
 				.fetchData( .timeframe );
 				data = .makeData( .key );
@@ -414,22 +407,6 @@ namespace Statistic {
 	 */
 	abstract class AreaRelativeTimeView extends RelativeTimeView {
 		string key = "Area";
-			
-		/**
-		 * @function getData
-		 * @declaration function getData()
-		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array with the data
-		 */
-		function getData() {
-			array data = [];
-			
-			if( .timeframe ) {
-				.fetchData( .timeframe );
-				data = .makeData( .key );
-			}		
-			return data;
-		}
 	}
 	
 	/**
@@ -440,12 +417,14 @@ namespace Statistic {
 	abstract class AgentView extends AreaView {
 		string key = "Agent";
 		
-		/**
-		 * @function getData
-		 * @declaration function getData()
-		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array with the data
-		 */
+		function getData() {
+			array data = [];
+			if( .timeframe ) {
+				.fetchData( .timeframe );
+				data = .makeData( .key );
+			}		
+			return data;
+		}
 	}
 	/**
 	 * @end
@@ -457,13 +436,6 @@ namespace Statistic {
 	 */
 	abstract class AgentRelativeTimeView extends AreaRelativeTimeView {
 		string key = "Agent";
-		
-		/**
-		 * @function getData
-		 * @declaration function getData()
-		 * @brief Get the data parsed, sorted and ready to be used
-		 * @return An array with the data
-		 */
 	}
 	/**
 	 * @end

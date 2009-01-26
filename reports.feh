@@ -190,6 +190,7 @@ namespace Reports {
 	 */
 	class ErrandResponseTime extends Statistic.RelativeTimeView {
 		string name = "Response time";
+		string key = "Response time";
 		
 		/**
 		 * @function fetchData
@@ -311,18 +312,26 @@ namespace Reports {
 		string name = "Classification";
 		string key = "Classification";
 		
+		function parseValues( array& values ) {
+			array newValues = [];
+			object r = new Regexp( 'client\.\[(.*)\]' );
+			values.map() using ( key, value ) {
+				if( not key.nCompareCase( 'system.', 7 ) ) {
+					key = r.replaceAll( key ) using ( match ) {
+						array captures = match.captures();
+						return captures[0];
+					};
+					newValues[key] = value;
+				}
+			};
+			return newValues;
+		}
+				
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.classificationReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
-				debug( .timeframe.start );
-				debug( .timeframe.end );
-				debug( email );
-				.addDataGroup( 'Email', email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.classificationReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents );
-				.addDataGroup( 'Manual', manual );
-			}
+			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL )
+				addDataGroup( 'Email', .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) ) );
+			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL )
+				.addDataGroup( 'Manual', .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) ) );
 		}
 	}
 }
