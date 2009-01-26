@@ -329,7 +329,7 @@ namespace Reports {
 				
 		function fetchData( object timeframe ) {
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL )
-				addDataGroup( 'Email', .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) ) );
+				.addDataGroup( 'Email', .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) ) );
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL )
 				.addDataGroup( 'Manual', .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) ) );
 		}

@@ -164,7 +164,6 @@ namespace Statistic {
 				// If the value is an array that means we have multiple
 				// values for a key (e.g. closure statuses for an agent).
 				if( dataGroup.values.size() > 0 and dataGroup.values[0] isa array ) {
-					multipleKeyValues = true;
 					dataGroup.values.each() using ( value ) {
 						value.map() using ( key, v ) {
 							// Data from object server might look like this:
