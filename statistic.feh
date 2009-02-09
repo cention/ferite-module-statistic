@@ -279,7 +279,6 @@ namespace Statistic {
 			if( .timeframe and .outputTime ) {
 				.fetchData( .timeframe );
 				data = .makeData( .outputTime.name );
-				/*
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTimestamp = .outputTime.toTimestamp( a[0] );
 					number bTimestamp = .outputTime.toTimestamp( b[0] );
@@ -287,7 +286,6 @@ namespace Statistic {
 					if( aTimestamp == bTimestamp ) return 0;
 					if( aTimestamp > bTimestamp ) return 1;
 				};
-				*/
 			}
 			return data;
 		}

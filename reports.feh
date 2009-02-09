@@ -222,6 +222,7 @@ namespace Reports {
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
 		string name = "Process time";
+		string key = "Response time";
 		
 		/**
 		 * @function fetchData
