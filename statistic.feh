@@ -404,6 +404,46 @@ namespace Statistic {
 	 */
 	abstract class AreaRelativeTimeView extends RelativeTimeView {
 		string key = "Area";
+		
+		function getData() {
+			array data = [];
+			
+			if( .timeframe ) {
+				array newDataGroups = [];
+				
+				.fetchData( .timeframe );
+				
+				.dataGroups.each() using ( dataGroup ) {
+					object newDataGroup = new Statistic.DataGroup();
+					newDataGroup.name = dataGroup.name;
+					newDataGroup.values = [];
+					
+					dataGroup.values.map() using ( key, value ) {
+						value = .outputTime.length( value );
+						if( not newDataGroup.values.keyExists( key ) )
+							newDataGroup.values[key] = 0;
+						newDataGroup.values[key] += value;
+					};
+					
+					newDataGroups[] = newDataGroup;
+				};
+				
+				.dataGroups = newDataGroups;
+				
+				data = .makeData( .key );
+				
+				
+				data['Rows'] = data['Rows'].sort() using ( a, b ) {
+					number aTime = a[0].toNumber();
+					number bTime = b[0].toNumber();
+					if( aTime < bTime ) return -1;
+					if( aTime == bTime ) return 0;
+					if( aTime > bTime ) return 1;
+				};
+			}
+			
+			return data;
+		}
 	}
 	
 	/**

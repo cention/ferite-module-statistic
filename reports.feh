@@ -156,27 +156,123 @@ namespace Reports {
 			array area = [];
 			array folder = [];
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				answered.append( Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
-				deleted.append( Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
-				returned.append( Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
-				agent.append( Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
-				area.append( Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );
-				folder.append( Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents ) );				
+				answered = Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
+				deleted  = Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
+				returned = Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
+				agent    = Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
+				area     = Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
+				folder   = Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, false, .byArea, .areas, .byAgent, .agents );
 			}
 			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				answered.append( Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
-				deleted.append( Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
-				returned.append( Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
-				agent.append( Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
-				area.append( Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
-				folder.append( Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ) );
+				Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not answered.keyExists(key) )
+						answered[key] = 0;
+					answered[key] += value;
+				};
+				Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not deleted.keyExists(key) )
+						deleted[key] = 0;
+					deleted[key] += value;
+				};
+				Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not returned.keyExists(key) )
+						returned[key] = 0;
+					returned[key] += value;
+				};
+				Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not agent.keyExists(key) )
+						agent[key] = 0;
+					agent[key] += value;
+				};
+				Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not area.keyExists(key) )
+						area[key] = 0;
+					area[key] += value;
+				};
+				Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, true, .byArea, .areas, .byAgent, .agents ).map() using ( key, value ) {
+					if( not folder.keyExists(key) )
+						folder[key] = 0;
+					folder[key] += value;
+				};
 			}
+			answered.keys().each() using ( key ) {
+				if( not deleted.keyExists(key) )
+					deleted[key] = 0;
+				if( not returned.keyExists(key) )
+					returned[key] = 0;
+				if( not area.keyExists(key) )
+					area[key] = 0;
+				if( not agent.keyExists(key) )
+					agent[key] = 0;
+				if( not folder.keyExists(key) )
+					folder[key] = 0;
+			};
+			deleted.keys().each() using ( key ) {
+				if( not answered.keyExists(key) )
+					answered[key] = 0;
+				if( not returned.keyExists(key) )
+					returned[key] = 0;
+				if( not area.keyExists(key) )
+					area[key] = 0;
+				if( not agent.keyExists(key) )
+					agent[key] = 0;
+				if( not folder.keyExists(key) )
+					folder[key] = 0;
+			};
+			returned.keys().each() using ( key ) {
+				if( not answered.keyExists(key) )
+					deleted[key] = 0;
+				if( not deleted.keyExists(key) )
+					deleted[key] = 0;
+				if( not area.keyExists(key) )
+					area[key] = 0;
+				if( not agent.keyExists(key) )
+					agent[key] = 0;
+				if( not folder.keyExists(key) )
+					folder[key] = 0;
+			};
+			area.keys().each() using ( key ) {
+				if( not answered.keyExists(key) )
+					deleted[key] = 0;
+				if( not deleted.keyExists(key) )
+					deleted[key] = 0;
+				if( not returned.keyExists(key) )
+					returned[key] = 0;
+				if( not agent.keyExists(key) )
+					agent[key] = 0;
+				if( not folder.keyExists(key) )
+					folder[key] = 0;
+			};
+			agent.keys().each() using ( key ) {
+				if( not answered.keyExists(key) )
+					deleted[key] = 0;
+				if( not deleted.keyExists(key) )
+					deleted[key] = 0;
+				if( not returned.keyExists(key) )
+					returned[key] = 0;
+				if( not area.keyExists(key) )
+					area[key] = 0;
+				if( not folder.keyExists(key) )
+					folder[key] = 0;
+			};
+			folder.keys().each() using ( key ) {
+				if( not answered.keyExists(key) )
+					deleted[key] = 0;
+				if( not deleted.keyExists(key) )
+					deleted[key] = 0;
+				if( not returned.keyExists(key) )
+					returned[key] = 0;
+				if( not area.keyExists(key) )
+					area[key] = 0;
+				if( not agent.keyExists(key) )
+					agent[key] = 0;
+			};
 			.addDataGroup( 'Answered', answered );
 			.addDataGroup( 'Deleted', deleted );
 			.addDataGroup( 'Returned', returned );
 			.addDataGroup( 'Forwarded to agent', agent );
 			.addDataGroup( 'Forwarded to area', area );
-			.addDataGroup( 'Forwarded to folder', folder );
+			.addDataGroup( 'Moved to folder', folder );
 		}
 	}
 	/**
