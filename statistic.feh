@@ -300,6 +300,8 @@ namespace Statistic {
 	 * brief Displays values based on how long time a timestamp represents
 	 */
 	abstract class RelativeTimeView extends TimeView {
+		string key;
+		
 		function isAbsoluteTimeView
 			return false;
 		
@@ -383,7 +385,12 @@ namespace Statistic {
 	 * @extends Statistic.View
 	 */
 	abstract class AreaView extends View {
-		string key = "Area";
+		string key;
+		
+		constructor {
+			super();
+			.key = I('Area');
+		}
 		
 		function getData() {
 			array data = [];
@@ -403,7 +410,10 @@ namespace Statistic {
 	 * @extends Statistic.TimeView
 	 */
 	abstract class AreaRelativeTimeView extends RelativeTimeView {
-		string key = "Area";
+		constructor {
+			super();
+			.key = I('Area');
+		}
 		
 		function getData() {
 			array data = [];
@@ -452,15 +462,9 @@ namespace Statistic {
 	 * @brief Displays values divided into list of agents
 	 */
 	abstract class AgentView extends AreaView {
-		string key = "Agent";
-		
-		function getData() {
-			array data = [];
-			if( .timeframe ) {
-				.fetchData( .timeframe );
-				data = .makeData( .key );
-			}		
-			return data;
+		constructor {
+			super();
+			.key = I('Agent');
 		}
 	}
 	/**
@@ -472,7 +476,10 @@ namespace Statistic {
 	 * @extends Statistic.AreaTimeView
 	 */
 	abstract class AgentRelativeTimeView extends AreaRelativeTimeView {
-		string key = "Agent";
+		constructor {
+			super();
+			.key = I('Agent');
+		}
 	}
 	/**
 	 * @end
