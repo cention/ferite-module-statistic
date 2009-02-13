@@ -105,7 +105,6 @@ namespace Statistic {
 	abstract class View {
 		object timeframe;
 		array dataGroups;
-		boolean byArea;
 		array areas;
 		boolean byAgent;
 		array agents;
@@ -124,15 +123,11 @@ namespace Statistic {
 			.dataGroups[] = new Statistic.DataGroup( name, data );
 		
 		function addArea( number id ) {
-			.byArea = true;
 			.areas[] = name;
 		}
 		
 		function setAreas( array areas ) {
-			if( areas.size() > 0 ) {
-				.byArea = true;
-				.areas = areas;
-			}
+			.areas = areas;
 		}
 		
 		function addAgent( number id ) {
