@@ -145,7 +145,7 @@ namespace Statistic {
 		function isTimeView
 			return false;
 		
-		/*
+		
 		function makeData( string keyHeaderName ) {
 			array columnHeaders = [];
 			array valueColumns = [];
@@ -230,12 +230,16 @@ namespace Statistic {
 				};
 			};
 			
+			print("Column headers: ${columnHeaders}<br />");
+			print("Rows: ${rows}");
+			
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
 		}
-		*/
+		
 		
 		function makeData( string keyHeaderName, array rawData ) {
 			array columnHeaders = [];
+			array groups = [];
 			array rows = [];
 		
 			// +---------+-------+--------+
@@ -253,7 +257,14 @@ namespace Statistic {
 			// [ 'October', 235, 41 ]
 		
 			columnHeaders[] = keyHeaderName;
-		
+			
+			
+			rawData.each() using ( rawRow ) {
+				if( not groups.valueExists(rawRow['g']) ) {
+					groups[] = rawRow['g'];
+				}
+			};
+			
 			rawData.each() using ( rawRow ) {
 				boolean rowExists = false;
 				number rowIndex;
@@ -273,9 +284,12 @@ namespace Statistic {
 			
 				if( not rowExists ) {
 					row[] = rawRow['x'];
+					groups.each() using ( g ) {
+						row[g] = 0;
+					};
 				}
 			
-				row[] = rawRow['y'];
+				row[rawRow['g']] = rawRow['y'];
 			
 				if( rowExists ) {
 					rows[rowIndex] = row;
@@ -328,6 +342,7 @@ namespace Statistic {
 			array data = [];
 			if( .timeframe and .outputTime ) {
 				data = .makeData( .outputTime.name, .fetchData( .timeframe ) );
+				/*
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTimestamp = .outputTime.toTimestamp( a[0] );
 					number bTimestamp = .outputTime.toTimestamp( b[0] );
@@ -335,6 +350,7 @@ namespace Statistic {
 					if( aTimestamp == bTimestamp ) return 0;
 					if( aTimestamp > bTimestamp ) return 1;
 				};
+				*/
 			}
 			return data;
 		}
