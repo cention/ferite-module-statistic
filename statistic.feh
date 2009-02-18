@@ -145,6 +145,7 @@ namespace Statistic {
 		function isTimeView
 			return false;
 		
+		/*
 		function makeData( string keyHeaderName ) {
 			array columnHeaders = [];
 			array valueColumns = [];
@@ -231,6 +232,60 @@ namespace Statistic {
 			
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
 		}
+		*/
+		
+		function makeData( string keyHeaderName, array rawData ) {
+			array columnHeaders = [];
+			array rows = [];
+		
+			// +---------+-------+--------+
+			// | Time    | Email | Manual |
+			// +---------+-------+--------+
+			// | January | 234   | 23     |
+			// +---------+-------+--------+
+			// | October | 345   | 41     |
+			// +---------+-------+--------+
+		
+			// [ 'x' => 'January', 'y' => 234, 'group' => 'Email' ]
+			// [ 'x' => 'January', 'y' => 23', 'group' => 'Manual' ];
+		
+			// [ 'January', 234, 23 ]
+			// [ 'October', 235, 41 ]
+		
+			columnHeaders[] = keyHeaderName;
+		
+			rawData.each() using ( rawRow ) {
+				boolean rowExists = false;
+				number rowIndex;
+				array row = [];
+			
+				if( not columnHeaders.valueExists(rawRow['g']) ) {
+					columnHeaders[] = rawRow['g'];
+				}
+			
+				rows.eachWithIndex() using ( r, i ) {
+					if( r[0] == rawRow['x'] ) {
+						row = r;
+						rowIndex = i;
+						rowExists = true;
+					}
+				};
+			
+				if( not rowExists ) {
+					row[] = rawRow['x'];
+				}
+			
+				row[] = rawRow['y'];
+			
+				if( rowExists ) {
+					rows[rowIndex] = row;
+				} else {
+					rows[] = row;
+				}
+			};
+			
+			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
+		}
 	}
 	/**
 	 * @end
@@ -272,8 +327,7 @@ namespace Statistic {
 		function getData() {
 			array data = [];
 			if( .timeframe and .outputTime ) {
-				.fetchData( .timeframe );
-				data = .makeData( .outputTime.name );
+				data = .makeData( .outputTime.name, .fetchData( .timeframe ) );
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTimestamp = .outputTime.toTimestamp( a[0] );
 					number bTimestamp = .outputTime.toTimestamp( b[0] );
@@ -312,8 +366,9 @@ namespace Statistic {
 			if( .timeframe ) {
 				array newDataGroups = [];
 				
-				.fetchData( .timeframe );
+				//.fetchData( .timeframe );
 				
+				/*
 				.dataGroups.each() using ( dataGroup ) {
 					object newDataGroup = new Statistic.DataGroup();
 					newDataGroup.name = dataGroup.name;
@@ -330,10 +385,11 @@ namespace Statistic {
 				};
 				
 				.dataGroups = newDataGroups;
+				*/
 				
-				data = .makeData( .key );
+				data = .makeData( .key, .fetchData( .timeframe ) );
 				
-				
+				/*
 				data['Rows'] = data['Rows'].sort() using ( a, b ) {
 					number aTime = a[0].toNumber();
 					number bTime = b[0].toNumber();
@@ -341,6 +397,7 @@ namespace Statistic {
 					if( aTime == bTime ) return 0;
 					if( aTime > bTime ) return 1;
 				};
+				*/
 			}
 			
 			return data;

@@ -29,14 +29,19 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.incomingReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.incomingReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+			              FROM workflow_errands AS errands
+			              LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+			              WHERE errands.timestamparrive >= ${timeframe.start}
+			              AND errands.timestamparrive <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentswhereclause}
+			              GROUP BY x, g
+			              ORDER BY x";
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -65,14 +70,21 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.closedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup(I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.closedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + actions.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						        (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_actions AS actions
+						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id 
+						  WHERE actions.type IN (3, 7)
+						  AND actions.timestampwhen >= ${timeframe.start}
+						  AND actions.timestampwhen <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentswhereclause}
+						  GROUP BY x, g
+						  ORDER BY x";
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -101,14 +113,23 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.publishedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.publishedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + answers.timestampcreated * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_answers AS answers
+						  INNER JOIN workflow_errands AS errands ON answers.workflow_answer_id = errands.answer_fkey
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON errands.workflow_errand_id = errand_tags_links.parent_workflow_errand_id
+						  INNER JOIN workflow_tags AS tags ON errand_tags_links.child_workflow_tag_id = tags.workflow_tag_id
+						  WHERE tags.name = 'system.errand.published.yes'
+						  AND answers.timestampcreated >= ${timeframe.start}
+						  AND answers.timestampcreated <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentswhereclause}
+						  GROUP BY x, g
+						  ORDER BY x;";
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -138,14 +159,20 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.repliesReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.repliesReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents, .outputTime.format() );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						         FROM workflow_errands AS errands
+						         LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						         WHERE errands.parent_fkey > 0
+						         AND errands.timestamparrive >= ${timeframe.start}
+						         AND errands.timestamparrive <= ${timeframe.end}
+						         AND errands.targetarea_fkey IN (${.areas.join(',')})
+						         ${agentswhereclause}
+						         GROUP BY x, g
+						         ORDER BY x";
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -336,14 +363,21 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.responseTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.responseTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         ((actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) AS x,
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_actions AS actions
+						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						  WHERE actions.type IN (3, 7)
+						  AND actions.timestampwhen >= ${timeframe.start}
+						  AND actions.timestampwhen <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentswhereclause}
+						  GROUP BY x, g
+						  ORDER BY x";
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -356,6 +390,8 @@ namespace Reports {
 	 * @brief Handles data needed for errand process time statistic view
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		string name;
+		
 		constructor {
 			super();
 			.name = I('Process time');
@@ -371,14 +407,28 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.processTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.processTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         (sum(actions.timestampWhen - 
+						              (SELECT actions2.timestampwhen
+						               FROM workflow_actions AS actions2
+						               WHERE actions2.type = 2
+						               AND actions2.timestampwhen <= actions.timestampwhen
+						               AND actions2.context_fkey = actions.context_fkey
+						               ORDER BY actions2.timestampwhen DESC
+						               LIMIT 1)) / (${.outputTime.seconds})) AS x,
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_actions AS actions
+						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						  WHERE actions.type IN (3, 4, 5, 6, 7, 8)
+						  AND actions.timestampwhen >= ${timeframe.start}
+						  AND actions.timestampwhen <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentswhereclause}
+						  GROUP BY g
+						  ORDER BY x";
+              return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
