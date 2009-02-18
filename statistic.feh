@@ -258,21 +258,27 @@ namespace Statistic {
 		
 			columnHeaders[] = keyHeaderName;
 			
-			
+			/*
 			rawData.each() using ( rawRow ) {
 				if( not groups.valueExists(rawRow['g']) ) {
-					groups[] = rawRow['g'];
+					groups[rawRow['g']] = rawRow['g'];
 				}
 			};
+			*/
+			
+			groups = ['Email' => 'Email', 'Manual' => 'Manual', 'Bridge' => 'Bridge'];
+			columnHeaders = [keyHeaderName, 'Email', 'Manual', 'Bridge'];
 			
 			rawData.each() using ( rawRow ) {
 				boolean rowExists = false;
 				number rowIndex;
 				array row = [];
-			
+				
+				/*
 				if( not columnHeaders.valueExists(rawRow['g']) ) {
 					columnHeaders[] = rawRow['g'];
 				}
+				*/
 			
 				rows.eachWithIndex() using ( r, i ) {
 					if( r[0] == rawRow['x'] ) {
@@ -285,11 +291,11 @@ namespace Statistic {
 				if( not rowExists ) {
 					row[] = rawRow['x'];
 					groups.each() using ( g ) {
-						row[g] = 0;
+						row[] = 0;
 					};
 				}
 			
-				row[rawRow['g']] = rawRow['y'];
+				row[groups.getIndex(rawRow['g'])+1] = rawRow['y'];
 			
 				if( rowExists ) {
 					rows[rowIndex] = row;
