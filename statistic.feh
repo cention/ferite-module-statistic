@@ -420,11 +420,12 @@ namespace Statistic {
 			return functionCalls;
 		}
 		
-		function orderingFields {
-			return .orderingFields(false);
+		function orderingFields() {
+			return ( .orderingFieldsList ? ',' : '' ) + .orderingFieldsList.join(',') + ',';
 		}
-		function orderingFields( boolean friend ) {
-			return ( friend ? ',' : '' ) + .orderingFieldsList.join(',') + ( friend ? ',' : '' );
+		
+		function orderByStatement {
+			return ( .orderingFieldsList ? 'ORDER BY ' + .orderingFieldsList.join(',') : '' );
 		}
 	}
 	/**

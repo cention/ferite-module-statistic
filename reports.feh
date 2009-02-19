@@ -40,9 +40,8 @@ namespace Reports {
 			              AND errands.timestamparrive <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
 			              ${agentswhereclause}
-			              GROUP BY x ${.orderingFields(true)} g
-			              ORDER BY ${.orderingFields()}";
-			              print(sql);
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -85,8 +84,8 @@ namespace Reports {
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentswhereclause}
-						  GROUP BY x ${.orderingFields(true)} g
-						  ORDER BY ${.orderingFields()}";
+						  GROUP BY x ${.orderingFields()} g
+						  ${.orderByStatement()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -131,8 +130,8 @@ namespace Reports {
 						  AND answers.timestampcreated <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentswhereclause}
-						  GROUP BY x ${.orderingFields(true)} g
-						  ORDER BY ${.orderingFields()}";
+						  GROUP BY x ${.orderingFields()} g
+						  ${.orderByStatement()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -175,8 +174,8 @@ namespace Reports {
 						         AND errands.timestamparrive <= ${timeframe.end}
 						         AND errands.targetarea_fkey IN (${.areas.join(',')})
 						         ${agentswhereclause}
-						         GROUP BY x ${.orderingFields(true)} g
-						         ORDER BY ${.orderingFields()}";
+						         GROUP BY x ${.orderingFields()} g
+						         ${.orderByStatement()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
