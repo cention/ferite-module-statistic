@@ -32,6 +32,7 @@ namespace Reports {
 			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('errands.timestampArrive')}
 			                     (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 			              FROM workflow_errands AS errands
 			              LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
@@ -39,8 +40,9 @@ namespace Reports {
 			              AND errands.timestamparrive <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
 			              ${agentswhereclause}
-			              GROUP BY x, g
-			              ORDER BY x";
+			              GROUP BY x ${.orderingFields(true)} g
+			              ORDER BY ${.orderingFields()}";
+			              print(sql);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -73,6 +75,7 @@ namespace Reports {
 			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 						         to_char((TIMESTAMP 'epoch' + actions.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('actions.timestampwhen')}
 						        (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_actions AS actions
 						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
@@ -82,8 +85,8 @@ namespace Reports {
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentswhereclause}
-						  GROUP BY x, g
-						  ORDER BY x";
+						  GROUP BY x ${.orderingFields(true)} g
+						  ORDER BY ${.orderingFields()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -116,6 +119,7 @@ namespace Reports {
 			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 						         to_char((TIMESTAMP 'epoch' + answers.timestampcreated * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('answers.timestampcreated')}
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_answers AS answers
 						  INNER JOIN workflow_errands AS errands ON answers.workflow_answer_id = errands.answer_fkey
@@ -127,8 +131,8 @@ namespace Reports {
 						  AND answers.timestampcreated <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentswhereclause}
-						  GROUP BY x, g
-						  ORDER BY x;";
+						  GROUP BY x ${.orderingFields(true)} g
+						  ORDER BY ${.orderingFields()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -161,7 +165,8 @@ namespace Reports {
 		function fetchData( object timeframe ) {
 			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         to_char((TIMESTAMP 'epoch' + errands.timestamparrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('errands.timestamparrive')}
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						         FROM workflow_errands AS errands
 						         LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
@@ -170,8 +175,8 @@ namespace Reports {
 						         AND errands.timestamparrive <= ${timeframe.end}
 						         AND errands.targetarea_fkey IN (${.areas.join(',')})
 						         ${agentswhereclause}
-						         GROUP BY x, g
-						         ORDER BY x";
+						         GROUP BY x ${.orderingFields(true)} g
+						         ORDER BY ${.orderingFields()}";
 			return ObjRunObject.rawQuery(sql);
 		}
 	}

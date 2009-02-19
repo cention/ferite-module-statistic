@@ -360,6 +360,72 @@ namespace Statistic {
 			}
 			return data;
 		}
+		array orderingFieldsList;
+		function extractFunctionCalls( string timestamp ) {
+			string functionCalls;
+			number fieldNumber = 1;
+			array items = .outputTime.items;
+			array fields = [];
+			.orderingFieldsList = [];
+			items.each() using ( item ) {
+				switch(item.pgsqlFormat) {
+					case 'Dy':
+					case 'Day':
+						fields[] = 'dow';
+						break;
+					case 'Mon':
+					case 'Month':
+					case 'MM':
+						fields[] = 'month';
+						break;
+					case 'DD':
+					case 'D':
+						fields[] = 'day';
+						break;
+					case 'IYYY-MM-DD':
+						fields[] = 'year';
+						fields[] = 'month';
+						fields[] = 'day';
+						break;
+					case 'HH24':
+						fields[] = 'hour';
+						break;
+					case 'MI':
+						fields[] = 'minute';
+						break;
+					case 'HH24:MI':
+						fields[] = 'hour';
+						fields[] = 'minute';
+						break;
+					case 'HH24:MI:SS':
+						fields[] = 'hour';
+						fields[] = 'minute';
+						fields[] = 'second';
+						break;
+					case 'SS':
+						fields[] = 'second';
+						break;
+					case 'IW':
+						fields[] = 'week';
+						break;
+					case 'IYYY':
+						fields[] = 'year';
+						break;
+				}
+			};
+			fields.eachWithIndex() using ( field, index ) {
+				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + ${timestamp} * INTERVAL '1  second')) AS ordering${index},";
+				.orderingFieldsList[] = "ordering${index}";
+			};
+			return functionCalls;
+		}
+		
+		function orderingFields {
+			return .orderingFields(false);
+		}
+		function orderingFields( boolean friend ) {
+			return ( friend ? ',' : '' ) + .orderingFieldsList.join(',') + ( friend ? ',' : '' );
+		}
 	}
 	/**
 	 * @end
