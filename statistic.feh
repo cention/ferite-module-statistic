@@ -82,22 +82,6 @@ namespace Statistic {
 	 * @end
 	 */
 	
-	class DataGroup {
-		string name;
-		array values;
-		constructor( string name, array values ) {
-			.name = name;
-			.values = values;
-		}
-		function toString {
-			return '' + .values;
-		}
-	}
-	
-	final static number SERVICE_ALL = 0;
-	final static number SERVICE_EMAIL = 1;
-	final static number SERVICE_MANUAL = 2;
-	
 	/**
 	 * @class view
 	 * @brief The base class for all statistic views
@@ -105,13 +89,20 @@ namespace Statistic {
 	abstract class View {
 		object timeframe;
 		array dataGroups;
+		array groups;
 		array areas;
-		boolean byAgent;
 		array agents;
-		number service;		
+		number service;
 		
 		function setService( number service )
 			.service = service;
+		
+		function serviceWhereClause {
+			if( .service != Workflow.Errand.SERVICE_ANY ) {
+				return "AND services.type = ${.service}";
+			}
+			return "";
+		}
 		
 		function setTimeframe( object timeframe )
 			.timeframe = timeframe;
@@ -119,123 +110,20 @@ namespace Statistic {
 		function setTimeframe( number start, number end )
 			.timeframe = new Statistic.Timeframe( start, end );
 		
-		function addDataGroup( string name, array data )
-			.dataGroups[] = new Statistic.DataGroup( name, data );
-		
-		function addArea( number id ) {
-			.areas[] = name;
+		function setGroups( array groups ) {
+			.groups = groups;
 		}
 		
 		function setAreas( array areas ) {
 			.areas = areas;
 		}
 		
-		function addAgent( number id ) {
-			.byAgent = true;
-			.agents[] = id;
-		}
-		
 		function setAgents( array agents ) {
-			if( agents.size() > 0 ) {
-				.byAgent = true;
-				.agents = agents;
-			}
+			.agents = agents;
 		}
 		
 		function isTimeView
 			return false;
-		
-		
-		function makeData( string keyHeaderName ) {
-			array columnHeaders = [];
-			array valueColumns = [];
-			array rows = [];
-			
-			// Add the header for the first column (the key column e.g. the time
-			// in a time view or the agent's name in an agent view
-			columnHeaders[] = keyHeaderName;
-			
-			// Go through all data groups (e.g. Email and Manual) and create column headers
-			.dataGroups.each() using ( dataGroup ) {
-				// If the value is an array that means we have multiple
-				// values for a key (e.g. closure statuses for an agent).
-				if( dataGroup.values.size() > 0 and dataGroup.values[0] isa array ) {
-					dataGroup.values.each() using ( value ) {
-						value.map() using ( key, v ) {
-							// Data from object server might look like this:
-							// [ 'agent1' => [ 'status1' => 1, 'status3' => 2 ],
-							//   'agent2' => [ 'status2' => 1 ] ]
-							// That means we have to go through all the data
-							// and fetch all key names (which will be column headers)
-							// so when putting the data into rows later we can
-							// do like this for e.g. agent one: 'status2' => 0
-							// and everything will be good in the world
-							if( not columnHeaders.keyExists( key ) ) {
-								columnHeaders[] = key;
-								valueColumns[] = key;
-							}
-						};
-					};
-				} else {
-					// If only one value exists the data group name is used
-					// as column header (e.g. Email and Manual)
-					columnHeaders[] = dataGroup.name;
-					// The valueColumns array will not be used in the single value case
-					valueColumns[] = dataGroup.name;
-				}
-			};
-			
-			// Go through all data groups and create rows
-			.dataGroups.each() using ( dataGroup ) {
-				dataGroup.values.map() using ( key, value ) {
-					boolean rowExists = false;
-					number rowIndex = -1;
-					array row = [];
-					rows.eachWithIndex() using ( r, i ) {
-						if( r[0] == key ) {
-							row = r;
-							rowExists = true;
-							rowIndex = i;
-						}
-					};
-					if( not rowExists ) {
-						// If the first column is 'Agent' this would be the agent's name
-						row[] = key;
-					}
-					// Multiple values for a key (e.g closure status)
-					if( value isa array ) {
-						// We need to go through and make sure that we have values
-						// in all columns in all rows. See above why.
-						valueColumns.each() using ( column ) {
-							boolean columnFound = false;
-							value.map() using ( k, v ) {
-								if( k == column ) {
-									row[] = v;
-									columnFound = true;
-									return false; // break;
-								};
-							};
-							if( not columnFound ) {
-								row[] = 0;
-							}
-						};
-					} else {
-						row[] = value;
-					}
-					if( rowIndex > -1 ) {
-						rows[rowIndex] = row;
-					} else {
-						rows[] = row;
-					}
-				};
-			};
-			
-			print("Column headers: ${columnHeaders}<br />");
-			print("Rows: ${rows}");
-			
-			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
-		}
-		
 		
 		function makeData( string keyHeaderName, array rawData ) {
 			array columnHeaders = [];
@@ -255,31 +143,25 @@ namespace Statistic {
 		
 			// [ 'January', 234, 23 ]
 			// [ 'October', 235, 41 ]
-		
-			columnHeaders[] = keyHeaderName;
 			
-			/*
 			rawData.each() using ( rawRow ) {
-				if( not groups.valueExists(rawRow['g']) ) {
-					groups[rawRow['g']] = rawRow['g'];
+				string g = rawRow['g'];
+				if( not .groups.keyExists(g) ) {
+					.groups[g] = I(g);
 				}
 			};
-			*/
+
+			columnHeaders[] = keyHeaderName;
 			
-			groups = ['Email' => 'Email', 'Manual' => 'Manual', 'Bridge' => 'Bridge'];
-			columnHeaders = [keyHeaderName, 'Email', 'Manual', 'Bridge'];
+			.groups.each() using ( g ) {
+				columnHeaders[] = g;
+			};
 			
 			rawData.each() using ( rawRow ) {
 				boolean rowExists = false;
 				number rowIndex;
 				array row = [];
 				
-				/*
-				if( not columnHeaders.valueExists(rawRow['g']) ) {
-					columnHeaders[] = rawRow['g'];
-				}
-				*/
-			
 				rows.eachWithIndex() using ( r, i ) {
 					if( r[0] == rawRow['x'] ) {
 						row = r;
@@ -290,13 +172,13 @@ namespace Statistic {
 			
 				if( not rowExists ) {
 					row[] = rawRow['x'];
-					groups.each() using ( g ) {
+					.groups.each() using ( g ) {
 						row[] = 0;
 					};
 				}
-			
-				row[groups.getIndex(rawRow['g'])+1] = rawRow['y'];
-			
+				
+				row[.groups.getIndex(rawRow['g'])+1] = rawRow['y'];
+				
 				if( rowExists ) {
 					rows[rowIndex] = row;
 				} else {
@@ -347,16 +229,7 @@ namespace Statistic {
 		function getData() {
 			array data = [];
 			if( .timeframe and .outputTime ) {
-				data = .makeData( .outputTime.name, .fetchData( .timeframe ) );
-				/*
-				data['Rows'] = data['Rows'].sort() using ( a, b ) {
-					number aTimestamp = .outputTime.toTimestamp( a[0] );
-					number bTimestamp = .outputTime.toTimestamp( b[0] );
-					if( aTimestamp < bTimestamp ) return -1;
-					if( aTimestamp == bTimestamp ) return 0;
-					if( aTimestamp > bTimestamp ) return 1;
-				};
-				*/
+				data = .makeData( I(.outputTime.name), .fetchData( .timeframe ) );
 			}
 			return data;
 		}
@@ -451,44 +324,9 @@ namespace Statistic {
 		 */
 		function getData() {
 			array data = [];
-			
-			if( .timeframe ) {
-				array newDataGroups = [];
-				
-				//.fetchData( .timeframe );
-				
-				/*
-				.dataGroups.each() using ( dataGroup ) {
-					object newDataGroup = new Statistic.DataGroup();
-					newDataGroup.name = dataGroup.name;
-					newDataGroup.values = [];
-					
-					dataGroup.values.map() using ( key, value ) {
-						key = '' + .outputTime.length( key.toNumber() );
-						if( not newDataGroup.values.keyExists( key ) )
-							newDataGroup.values[key] = 0;
-						newDataGroup.values[key] += value;
-					};
-					
-					newDataGroups[] = newDataGroup;
-				};
-				
-				.dataGroups = newDataGroups;
-				*/
-				
+			if( .timeframe and .outputTime ) {
 				data = .makeData( .key, .fetchData( .timeframe ) );
-				
-				/*
-				data['Rows'] = data['Rows'].sort() using ( a, b ) {
-					number aTime = a[0].toNumber();
-					number bTime = b[0].toNumber();
-					if( aTime < bTime ) return -1;
-					if( aTime == bTime ) return 0;
-					if( aTime > bTime ) return 1;
-				};
-				*/
 			}
-			
 			return data;
 		}
 	}
@@ -502,6 +340,7 @@ namespace Statistic {
 	 * @brief Displays how many times a list of actions occurred
 	 */
 	abstract class ActionView extends View {
+		string key;
 		/**
 		 * @function getData
 		 * @declaration function getData()
@@ -511,8 +350,7 @@ namespace Statistic {
 		function getData() {
 			array data = [];
 			if( .timeframe ) {
-				.fetchData( .timeframe );
-				data = .makeData( .key );
+				data = .makeData( .key, .fetchData( .timeframe ) );
 			}
 			return data;
 		}
@@ -536,9 +374,8 @@ namespace Statistic {
 		function getData() {
 			array data = [];
 			if( .timeframe ) {
-				.fetchData( .timeframe );
-				data = .makeData( .key );
-			}		
+				data = .makeData( .key, .fetchData( .timeframe ) );
+			}
 			return data;
 		}
 	}
@@ -556,6 +393,7 @@ namespace Statistic {
 			.key = I('Area');
 		}
 		
+		/*
 		function getData() {
 			array data = [];
 			
@@ -595,6 +433,7 @@ namespace Statistic {
 			
 			return data;
 		}
+		*/
 	}
 	
 	/**

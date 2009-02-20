@@ -42,6 +42,7 @@ namespace Reports {
 			              ${agentswhereclause}
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -86,6 +87,7 @@ namespace Reports {
 						  ${agentswhereclause}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -132,6 +134,7 @@ namespace Reports {
 						  ${agentswhereclause}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -176,6 +179,7 @@ namespace Reports {
 						         ${agentswhereclause}
 						         GROUP BY x ${.orderingFields()} g
 						         ${.orderByStatement()}";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -205,138 +209,32 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			array answered = [];
-			array deleted = [];
-			array returned = [];
-			array agent = [];
-			array area = [];
-			array folder = [];
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				answered = Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				deleted  = Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				returned = Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				agent    = Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				area     = Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				if( F('folders') ) {
-					folder   = Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				}
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				Workflow.Errand.closureStatusAnsweredReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-					if( not answered.keyExists(key) )
-						answered[key] = 0;
-					answered[key] += value;
-				};
-				Workflow.Errand.closureStatusDeletedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-					if( not deleted.keyExists(key) )
-						deleted[key] = 0;
-					deleted[key] += value;
-				};
-				Workflow.Errand.closureStatusReturnedReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-					if( not returned.keyExists(key) )
-						returned[key] = 0;
-					returned[key] += value;
-				};
-				Workflow.Errand.closureStatusForwardedToAgentReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-					if( not agent.keyExists(key) )
-						agent[key] = 0;
-					agent[key] += value;
-				};
-				Workflow.Errand.closureStatusForwardedToAreaReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-					if( not area.keyExists(key) )
-						area[key] = 0;
-					area[key] += value;
-				};
-				if( F('folders') ) {
-					Workflow.Errand.closureStatusForwardedToFolderReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ).map() using ( key, value ) {
-						if( not folder.keyExists(key) )
-							folder[key] = 0;
-						folder[key] += value;
-					};
-				}
-			}
-			answered.keys().each() using ( key ) {
-				if( not deleted.keyExists(key) )
-					deleted[key] = 0;
-				if( not returned.keyExists(key) )
-					returned[key] = 0;
-				if( not area.keyExists(key) )
-					area[key] = 0;
-				if( not agent.keyExists(key) )
-					agent[key] = 0;
-				if( not folder.keyExists(key) )
-					folder[key] = 0;
-			};
-			deleted.keys().each() using ( key ) {
-				if( not answered.keyExists(key) )
-					answered[key] = 0;
-				if( not returned.keyExists(key) )
-					returned[key] = 0;
-				if( not area.keyExists(key) )
-					area[key] = 0;
-				if( not agent.keyExists(key) )
-					agent[key] = 0;
-				if( not folder.keyExists(key) )
-					folder[key] = 0;
-			};
-			returned.keys().each() using ( key ) {
-				if( not answered.keyExists(key) )
-					deleted[key] = 0;
-				if( not deleted.keyExists(key) )
-					deleted[key] = 0;
-				if( not area.keyExists(key) )
-					area[key] = 0;
-				if( not agent.keyExists(key) )
-					agent[key] = 0;
-				if( not folder.keyExists(key) )
-					folder[key] = 0;
-			};
-			area.keys().each() using ( key ) {
-				if( not answered.keyExists(key) )
-					deleted[key] = 0;
-				if( not deleted.keyExists(key) )
-					deleted[key] = 0;
-				if( not returned.keyExists(key) )
-					returned[key] = 0;
-				if( not agent.keyExists(key) )
-					agent[key] = 0;
-				if( not folder.keyExists(key) )
-					folder[key] = 0;
-			};
-			agent.keys().each() using ( key ) {
-				if( not answered.keyExists(key) )
-					deleted[key] = 0;
-				if( not deleted.keyExists(key) )
-					deleted[key] = 0;
-				if( not returned.keyExists(key) )
-					returned[key] = 0;
-				if( not area.keyExists(key) )
-					area[key] = 0;
-				if( not folder.keyExists(key) )
-					folder[key] = 0;
-			};
-			if( F('folders') ) {
-				folder.keys().each() using ( key ) {
-					if( not answered.keyExists(key) )
-						deleted[key] = 0;
-					if( not deleted.keyExists(key) )
-						deleted[key] = 0;
-					if( not returned.keyExists(key) )
-						returned[key] = 0;
-					if( not area.keyExists(key) )
-						area[key] = 0;
-					if( not agent.keyExists(key) )
-						agent[key] = 0;
-				};
-			}
-			.addDataGroup( I('Answered'), answered );
-			.addDataGroup( I('Deleted'), deleted );
-			.addDataGroup( I('Returned'), returned );
-			.addDataGroup( I('Forwarded to agent'), agent );
-			.addDataGroup( I('Forwarded to area'), area );
-			if( F('folders') ) {
-				.addDataGroup( I('Moved to folder'), folder );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(actions.context_fkey) AS y,
+			                     users.username AS x,
+			                     (CASE WHEN actions.type = 3 THEN 'Answered'
+			                           WHEN actions.type = 4 THEN 'Forwarded to agent'
+			                           WHEN actions.type = 8 THEN 'Returned'
+			                           WHEN actions.type = 7 THEN 'Deleted'
+						               WHEN actions.type = 5 THEN 'Forwarded to area'
+			                           WHEN actions.type = 6 THEN 'Moved to folder' END) AS g
+			              FROM workflow_actions AS actions
+			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
+			              WHERE actions.type IN (3, 4, 5, 6, 7, 8)
+			              AND actions.timestampwhen >= ${timeframe.start}
+			              AND actions.timestampwhen <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentswhereclause}
+			              GROUP BY x, g
+			              ORDER BY x";
+			.setGroups(['Answered'           => I('Answered'),
+			            'Forwarded to agent' => I('Forwarded to agent'),
+			            'Returned'           => I('Returned'),
+			            'Deleted'            => I('Deleted'),
+			            'Forwarded to area'  => I('Forwarded to area'),
+			            'Moved to folder'    => I('Moved to folder')]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -368,7 +266,7 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+			string sql = "SELECT count(actions.context_fkey) AS y,
 						         ((actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) AS x,
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_actions AS actions
@@ -381,6 +279,7 @@ namespace Reports {
 						  ${agentswhereclause}
 						  GROUP BY x, g
 						  ORDER BY x";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -412,7 +311,7 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+			string sql = "SELECT count(actions.context_fkey) AS y,
 						         (sum(actions.timestampWhen - 
 						              (SELECT actions2.timestampwhen
 						               FROM workflow_actions AS actions2
@@ -432,7 +331,8 @@ namespace Reports {
 						  ${agentswhereclause}
 						  GROUP BY g
 						  ORDER BY x";
-              return ObjRunObject.rawQuery(sql);
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -461,14 +361,22 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.averageResponseTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.averageResponseTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT areas.name AS x,
+			                     ((sum(actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) / count(actions.context_fkey)) AS y,
+			                     'Errands' AS g
+			              FROM workflow_actions AS actions
+			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+			              INNER JOIN workflow_areas AS areas ON errands.targetarea_fkey = areas.workflow_area_id
+			              WHERE actions.type IN (3, 7)
+			              AND actions.timestampwhen >= ${timeframe.start}
+			              AND actions.timestampwhen <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentswhereclause}
+			              GROUP BY x, g
+			              ORDER BY x ASC;";
+			.setGroups(['Errands' => I('Errands')]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -497,14 +405,30 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL ) {
-				array email = Workflow.Errand.averageProcessTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Email'), email );
-			}
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL ) {
-				array manual = Workflow.Errand.averageProcessTimeReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents );
-				.addDataGroup( I('Manual'), manual );
-			}
+			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT users.username AS x,
+			                     (sum(actions.timestampwhen -
+			                      (SELECT actions2.timestampwhen
+			                       FROM workflow_actions AS actions2
+			                       WHERE actions2.type = 2
+			                       AND actions2.timestampwhen <= actions.timestampwhen
+			                       AND actions2.origin_fkey = actions.origin_fkey
+			                       AND actions2.context_fkey = actions.context_fkey
+			                       ORDER BY actions2.timestampwhen DESC
+			                       LIMIT 1)) / (${.outputTime.seconds}) ) / count(actions.context_fkey) AS y,
+			                     'Errands' as g
+			              FROM workflow_actions AS actions
+			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
+			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+			              WHERE actions.type IN (3, 4, 5, 6, 7, 8)
+			              AND actions.timestampwhen >= ${timeframe.start}
+			              AND actions.timestampwhen <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentswhereclause}
+			              GROUP BY x, g
+			              ORDER BY x ASC";
+			.setGroups(['Errands' => I('Errands')]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
@@ -520,26 +444,24 @@ namespace Reports {
 			.key = I('Classification');
 		}
 		
-		function parseValues( array& values ) {
-			array newValues = [];
-			object r = new Regexp( 'client\.\[(.*)\]' );
-			values.map() using ( key, value ) {
-				if( not key.nCompareCase( 'system.', 7 ) ) {
-					key = r.replaceAll( key ) using ( match ) {
-						array captures = match.captures();
-						return captures[0];
-					};
-					newValues[key] = value;
-				}
-			};
-			return newValues;
-		}
-				
 		function fetchData( object timeframe ) {
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_EMAIL )
-				.addDataGroup( I('Email'), .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_EMAIL, .areas, .byAgent, .agents ) ) );
-			if( .service == Statistic.SERVICE_ALL or .service == Statistic.SERVICE_MANUAL )
-				.addDataGroup( I('Manual'), .parseValues( Workflow.Errand.classificationReport( timeframe.start, timeframe.end, Workflow.Errand.SERVICE_MANUAL, .areas, .byAgent, .agents ) ) );
+			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         tags.display as X,
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_tags AS tags
+						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
+						  INNER JOIN workflow_errands AS errands ON errand_tags_links.parent_workflow_errand_id = errands.workflow_errand_id
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						  WHERE substr(tags.name, 1, 7) = 'client.'
+						  AND errands.timestamparrive >= ${timeframe.start}
+						  AND errands.timestamparrive <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentswhereclause}
+						  GROUP BY x, g
+						  ORDER BY x";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 }
