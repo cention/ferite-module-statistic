@@ -7,6 +7,11 @@ uses 'reflection';
  * @brief Contains classes for working with statistics especially the Cention Reports system
  */
 namespace Statistic {
+	
+	final number SERVICE_ALL = 0;
+	final number SERVICE_EMAIL = 1;
+	final number SERVICE_MANUAL = 2;
+	
 	/**
 	 * @class Timeframe
 	 * @brief A timeframe with a start time and and an end time
