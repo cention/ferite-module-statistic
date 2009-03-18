@@ -151,6 +151,9 @@ namespace Statistic {
 			
 			rawData.each() using ( rawRow ) {
 				string g = rawRow['g'];
+				if( not g ) {
+					g = I('No Name');
+				}
 				if( not .groups.keyExists(g) ) {
 					.groups[g] = I(g);
 				}
