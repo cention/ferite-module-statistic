@@ -43,8 +43,7 @@ namespace Reports {
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
-			print("${ObjRunObject.rawQuery(sql)}");
-			return [];
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
 	/**
