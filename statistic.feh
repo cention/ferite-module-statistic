@@ -98,6 +98,10 @@ namespace Statistic {
 		array areas;
 		array agents;
 		number service;
+		number systemGroup;
+		
+		function setSystemGroup( number systemGroup )
+			.systemGroup = systemGroup;
 		
 		function setService( number service )
 			.service = service;
