@@ -464,6 +464,82 @@ namespace Reports {
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
+	
+	class QuickAsk extends Statistic.AbsoluteTimeView {
+		string name;
+		
+		constructor {
+			super();
+			.name = I('Quick Ask');
+		}
+		
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(log.quickask_log_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + log.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('log.timestampwhen')}
+			                     'Quick Ask Question' as g
+			              FROM quickask_logs AS log
+			              WHERE log.searchtype = 1
+			              AND log.timestampwhen >= ${timeframe.start}
+			              AND log.timestampwhen <= ${timeframe.end}
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups(['Quick Ask Question' => I('Quick Ask Question')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class QuickAskQuestions extends Statistic.ActionView {
+		string name;
+		
+		constructor {
+			.name = I('Quick Ask Questions');
+			.key = I('Question');
+		}
+		
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(log.quickask_log_id) AS y,
+			                     questions.tag AS x,
+			                     'Quick Ask Question' AS g
+			              FROM quickask_logs AS log
+			              INNER JOIN quickask_log_matchingtemplates_links AS matches_links ON log.quickask_log_id = parent_quickask_log_id
+			              INNER JOIN quickask_matchingtemplates AS matches ON child_quickask_matchingtemplate_id = matches.quickask_matchingtemplate_id
+			              INNER JOIN quickask_questions AS questions ON matches.question = questions.quickask_question_id
+			              WHERE log.searchtype = 1
+			              AND log.timestampwhen >= ${timeframe.start}
+			              AND log.timestampwhen <= ${timeframe.end}
+			              GROUP BY x, g
+			              ORDER BY x";
+			.setGroups(['Quick Ask Question' => I('Quick Ask Question')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class QuickAskTemplates extends Statistic.ActionView {
+		string name;
+		
+		constructor {
+			.name = I('Quick Ask Templates');
+			.key = I('Template');
+		}
+		
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(log.quickask_log_id) AS y,
+			                     templates.tag AS x,
+			                     'Quick Ask Question' AS g
+			              FROM quickask_logs AS log
+			              INNER JOIN quickask_log_matchingtemplates_links AS matches_links ON log.quickask_log_id = parent_quickask_log_id
+			              INNER JOIN quickask_matchingtemplates AS matches ON child_quickask_matchingtemplate_id = matches.quickask_matchingtemplate_id
+			              INNER JOIN quickask_templates AS templates ON matches.template = templates.quickask_template_id
+			              WHERE log.searchtype = 1
+			              AND log.timestampwhen >= ${timeframe.start}
+			              AND log.timestampwhen <= ${timeframe.end}
+			              GROUP BY x, g
+			              ORDER BY x";
+			.setGroups(['Quick Ask Question' => I('Quick Ask Question')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
 }
 /**
  * @end
