@@ -73,7 +73,7 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+			string sql = "SELECT count(actions.context_fkey) AS y,
 						         to_char((TIMESTAMP 'epoch' + actions.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('actions.timestampwhen')}
 						        (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
