@@ -99,6 +99,10 @@ namespace Statistic {
 		array agents;
 		number service;
 		number systemGroup;
+		string language;
+		
+		function setLanguage( string language )
+			.language = language;
 		
 		function setSystemGroup( number systemGroup )
 			.systemGroup = systemGroup;
@@ -232,6 +236,45 @@ namespace Statistic {
 		function isAbsoluteTimeView
 			return true;
 		
+		function translate( string text, string language ) {
+			array list = [];
+			if( language == 'sv' ) {
+				list = [ [ 'January'   => 'Januari',
+				         'February'  => 'Februari',
+				         'March'     => 'Mars',
+				         'April'     => 'April',
+				         'May'       => 'Maj',
+				         'June'      => 'Juni',
+				         'July'      => 'Juli',
+				         'August'    => 'Augusti',
+				         'September' => 'September',
+				         'October'   => 'Oktober',
+				         'November'  => 'November',
+				         'December'  => 'December',
+				         'Monday'    => 'Måndag',
+				         'Tuesday'   => 'Tisdag',
+				         'Wednesday' => 'Onsdag',
+				         'Thursday'  => 'Torsdag',
+				         'Friday'    => 'Fredag',
+				         'Saturday'  => 'Lördag',
+				         'Sunday'    => 'Söndag' ],
+				         [ 'Oct'       => 'Okt',
+				         'Mon'       => 'Mån',
+				         'Tue'       => 'Tis',
+				         'Wed'       => 'Ons',
+				         'Thu'       => 'Tor',
+				         'Fri'       => 'Fre',
+				         'Sat'       => 'Lör',
+				         'Sun'       => 'Sön' ] ];
+			}
+			list.each() using ( translations ) {
+				translations.map() using ( key, value ) {
+					text = text.replace( key, value );
+				};
+			};
+			return text;
+		}
+		
 		/**
 		 * @function getData
 		 * @declaration function getData()
@@ -242,6 +285,13 @@ namespace Statistic {
 			array data = [];
 			if( .timeframe and .outputTime ) {
 				data = .makeData( I(.outputTime.name), .fetchData( .timeframe ) );
+				if( .language != 'en' ) {
+					if( data.keyExists('Rows') ) {
+						for( number i = 0; i < data['Rows'].size(); i++ ) {
+							data['Rows'][i][0] = .translate( data['Rows'][i][0], .language );
+						};
+					}
+				}
 			}
 			return data;
 		}
