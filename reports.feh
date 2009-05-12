@@ -29,7 +29,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('errands.timestampArrive')}
@@ -39,7 +39,8 @@ namespace Reports {
 			              WHERE errands.timestamparrive >= ${timeframe.start}
 			              AND errands.timestamparrive <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
-			              ${agentswhereclause}
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -72,7 +73,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(actions.context_fkey) AS y,
 						         to_char((TIMESTAMP 'epoch' + actions.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('actions.timestampwhen')}
@@ -84,7 +85,8 @@ namespace Reports {
 						  AND actions.timestampwhen >= ${timeframe.start}
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentswhereclause}
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -117,7 +119,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 						         to_char((TIMESTAMP 'epoch' + answers.timestampcreated * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('answers.timestampcreated')}
@@ -131,7 +133,8 @@ namespace Reports {
 						  AND answers.timestampcreated >= ${timeframe.start}
 						  AND answers.timestampcreated <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentswhereclause}
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -165,7 +168,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 						         to_char((TIMESTAMP 'epoch' + errands.timestamparrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('errands.timestamparrive')}
@@ -176,7 +179,8 @@ namespace Reports {
 						         AND errands.timestamparrive >= ${timeframe.start}
 						         AND errands.timestamparrive <= ${timeframe.end}
 						         AND errands.targetarea_fkey IN (${.areas.join(',')})
-						         ${agentswhereclause}
+						         ${agentsWhereClause}
+						         ${.serviceWhereClause()}
 						         GROUP BY x ${.orderingFields()} g
 						         ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -209,7 +213,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(actions.context_fkey) AS y,
 			                     users.username AS x,
 			                     (CASE WHEN actions.type = 3 THEN 'Answered'
@@ -225,7 +229,8 @@ namespace Reports {
 			              AND actions.timestampwhen >= ${timeframe.start}
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
-			              ${agentswhereclause}
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
 			              GROUP BY x, g
 			              ORDER BY x";
 			.setGroups(['Answered'           => I('Answered'),
@@ -265,7 +270,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(actions.context_fkey) AS y,
 						         ((actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) AS x,
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
@@ -276,7 +281,8 @@ namespace Reports {
 						  AND actions.timestampwhen >= ${timeframe.start}
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentswhereclause}
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
 						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -310,7 +316,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(actions.context_fkey) AS y,
 						         (sum(actions.timestampWhen - 
 						              (SELECT actions2.timestampwhen
@@ -328,7 +334,8 @@ namespace Reports {
 						  AND actions.timestampwhen >= ${timeframe.start}
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentswhereclause}
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
 						  GROUP BY g
 						  ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -361,7 +368,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT areas.name AS x,
 			                     ((sum(actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) / count(actions.context_fkey)) AS y,
 			                     'Errands' AS g
@@ -372,7 +379,8 @@ namespace Reports {
 			              AND actions.timestampwhen >= ${timeframe.start}
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
-			              ${agentswhereclause}
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
 			              GROUP BY x, g
 			              ORDER BY x ASC;";
 			.setGroups(['Errands' => I('Errands')]);
@@ -405,7 +413,7 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT users.username AS x,
 			                     (sum(actions.timestampwhen -
 			                      (SELECT actions2.timestampwhen
@@ -424,7 +432,8 @@ namespace Reports {
 			              AND actions.timestampwhen >= ${timeframe.start}
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
-			              ${agentswhereclause}
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
 			              GROUP BY x, g
 			              ORDER BY x ASC";
 			.setGroups(['Errands' => I('Errands')]);
@@ -445,7 +454,7 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			string agentswhereclause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
 						         tags.display as X,
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
@@ -457,7 +466,8 @@ namespace Reports {
 						  AND errands.timestamparrive >= ${timeframe.start}
 						  AND errands.timestamparrive <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentswhereclause}
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
 						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
