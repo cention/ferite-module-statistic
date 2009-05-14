@@ -81,7 +81,7 @@ namespace Reports {
 						  FROM workflow_actions AS actions
 						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
 						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id 
-						  WHERE actions.type IN (3, 7)
+						  WHERE actions.type IN (3, 7, 19)
 						  AND actions.timestampwhen >= ${timeframe.start}
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
@@ -277,7 +277,7 @@ namespace Reports {
 						  FROM workflow_actions AS actions
 						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
 						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						  WHERE actions.type IN (3, 7)
+						  WHERE actions.type IN (3, 7, 19)
 						  AND actions.timestampwhen >= ${timeframe.start}
 						  AND actions.timestampwhen <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
@@ -375,7 +375,7 @@ namespace Reports {
 			              FROM workflow_actions AS actions
 			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
 			              INNER JOIN workflow_areas AS areas ON errands.targetarea_fkey = areas.workflow_area_id
-			              WHERE actions.type IN (3, 7)
+			              WHERE actions.type IN (3, 7, 19)
 			              AND actions.timestampwhen >= ${timeframe.start}
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
@@ -443,6 +443,36 @@ namespace Reports {
 	/**
 	 * @end
 	 */
+	
+	class ErrandSLATime extends Statistic.AbsoluteTimeView {
+		string name;
+		
+		constructor {
+			super();
+			.name = I('SLA time');
+		}
+		
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('errands.timestampArrive')}
+			                     (CASE WHEN (actions.timestampwhen - errands.timestamparrive) <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
+			              FROM workflow_errands AS errands
+			              INNER JOIN workflow_areas AS areas ON errands.targetarea_fkey = areas.workflow_area_id
+			              INNER JOIN workflow_actions AS actions ON errands.workflow_errand_id = actions.context_fkey
+			              WHERE actions.type IN (3, 7, 19)
+			              AND errands.timestamparrive >= ${timeframe.start}
+			              AND errands.timestamparrive <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups(['Responded according to SLA time' => I('Responded according to SLA time'), 'Responded after SLA time' => I('Responded after SLA time')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
 	
 	class ErrandClassification extends Statistic.ActionView {
 		string name;
