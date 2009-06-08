@@ -525,7 +525,6 @@ namespace Reports {
 			              WHERE logs.searchtype = 1
 			              AND logs.timestampwhen >= ${timeframe.start}
 			              AND logs.timestampwhen <= ${timeframe.end}
-			              AND logs.area IN (${.areas.join(',')})
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
 			.setGroups(['Answered' => I('Answered'), 'Unanswered' => I('Unanswered')]);
@@ -552,7 +551,6 @@ namespace Reports {
 			              WHERE logs.searchtype = 1
 			              AND logs.timestampwhen >= ${timeframe.start}
 			              AND logs.timestampwhen <= ${timeframe.end}
-			              AND logs.area IN (${.areas.join(',')})
 			              GROUP BY x, g
 			              ORDER BY x";
 			.setGroups(['Close Answer' => I('Close Answer'), 'Related Answer' => I('Related Answer')]);
