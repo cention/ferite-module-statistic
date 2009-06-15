@@ -141,8 +141,8 @@ namespace Statistic {
 			return false;
 		
 		function makeData( string keyHeaderName, array rawData ) {
+			number rawRowCount = rawData.size();
 			array columnHeaders = [];
-			array groups = [];
 			array rows = [];
 		
 			// +---------+-------+--------+
@@ -159,50 +159,27 @@ namespace Statistic {
 			// [ 'January', 234, 23 ]
 			// [ 'October', 235, 41 ]
 			
-			rawData.each() using ( rawRow ) {
-				string g = rawRow['g'];
-				if( not g ) {
-					g = I('No Name');
-				}
-				if( not .groups.keyExists(g) ) {
-					.groups[g] = I(g);
-				}
-			};
-
 			columnHeaders[] = keyHeaderName;
 			
-			.groups.each() using ( g ) {
-				columnHeaders[] = g;
-			};
-			
-			rawData.each() using ( rawRow ) {
-				boolean rowExists = false;
-				number rowIndex;
+			for( number i = 0; i < rawRowCount; i++ ) {
+				array rawRow = rawData[i]; // Should this be avoided in this case?
 				array row = [];
 				
-				rows.eachWithIndex() using ( r, i ) {
-					if( r[0] == rawRow['x'] ) {
-						row = r;
-						rowIndex = i;
-						rowExists = true;
-					}
-				};
-			
-				if( not rowExists ) {
-					row[] = rawRow['x'];
-					.groups.each() using ( g ) {
-						row[] = 0;
-					};
+				if( not .groups.keyExists(rawRow['g']) ) {
+					.groups[rawRow['g']] = I(rawRow['g']);
+					columnHeaders[] = I(rawRow['g']);
+				}
+				
+				if( not rows.keyExists('' + rawRow['x']) ) {
+					row = [ '' + rawRow['x'], 0, 0, 0, 0, 0, 0 ];
+				} else {
+					row = rows['' + rawRow['x']];
 				}
 				
 				row[.groups.getIndex(rawRow['g'])+1] = rawRow['y'];
 				
-				if( rowExists ) {
-					rows[rowIndex] = row;
-				} else {
-					rows[] = row;
-				}
-			};
+				rows['' + rawRow['x']] = row;
+			}
 			
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
 		}
