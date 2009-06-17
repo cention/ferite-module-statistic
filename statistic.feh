@@ -161,6 +161,10 @@ namespace Statistic {
 
 			columnHeaders[] = keyHeaderName;
 			
+			.groups.each() using ( column ) {
+				columnHeaders[] = column;
+			};
+			
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
 				array row = [];
@@ -168,8 +172,6 @@ namespace Statistic {
 				
 				if( not (.groups.keyExists(rawRow['g'])) ) {
 					.groups[rawRow['g']] = translation;
-				}
-				if( not (columnHeaders.valueExists(translation))) {
 					columnHeaders[] = translation;
 				}
 				
