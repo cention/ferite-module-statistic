@@ -158,16 +158,19 @@ namespace Statistic {
 		
 			// [ 'January', 234, 23 ]
 			// [ 'October', 235, 41 ]
-			
+
 			columnHeaders[] = keyHeaderName;
 			
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
 				array row = [];
+				string translation = I(rawRow['g']);
 				
-				if( not .groups.keyExists(rawRow['g']) ) {
-					.groups[rawRow['g']] = I(rawRow['g']);
-					columnHeaders[] = I(rawRow['g']);
+				if( not (.groups.keyExists(rawRow['g'])) ) {
+					.groups[rawRow['g']] = translation;
+				}
+				if( not (columnHeaders.valueExists(translation))) {
+					columnHeaders[] = translation;
 				}
 				
 				if( not rows.keyExists('' + rawRow['x']) ) {
