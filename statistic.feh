@@ -112,9 +112,9 @@ namespace Statistic {
 		
 		function serviceWhereClause {
 			if( .service == Workflow.Errand.SERVICE_EMAIL ) {
-				return "AND errands.service_fkey IN (0, 1)";
+				return "AND data.service_id IN (0, 1)";
 			} else if( .service != Workflow.Errand.SERVICE_ANY ) {
-				return "AND errands.service_fkey = ${.service}";
+				return "AND data.service_id = ${.service}";
 			}
 			return "";
 		}

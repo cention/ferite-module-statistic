@@ -29,16 +29,16 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
-			                     ${.extractFunctionCalls('errands.timestampArrive')}
-			                     (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-			              FROM workflow_errands AS errands
-			              LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-			              WHERE errands.timestamparrive >= ${timeframe.start}
-			              AND errands.timestamparrive <= ${timeframe.end}
-			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errand_id) AS y,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              ${.extractFunctionCalls('data.timestamp_arrive')}
+			              (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			              FROM workflow_errandreportdatas AS data
+			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			              WHERE data.timestamp_arrive >= ${timeframe.start}
+			              AND data.timestamp_arrive <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
 			              ${agentsWhereClause}
 			              ${.serviceWhereClause()}
 			              GROUP BY x ${.orderingFields()} g
@@ -73,18 +73,18 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(actions.context_fkey) AS y,
-						         to_char((TIMESTAMP 'epoch' + actions.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
-						         ${.extractFunctionCalls('actions.timestampwhen')}
-						        (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_actions AS actions
-						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
-						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id 
-						  WHERE actions.type IN (3, 7, 19)
-						  AND actions.timestampwhen >= ${timeframe.start}
-						  AND actions.timestampwhen <= ${timeframe.end}
-						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     sum(data.timestamp_close + ${(Config.TimeZoneOffset * 2) * 60}) AS tobbe,
+						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('data.timestamp_close')}
+						        (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_errandreportdatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id 
+						  WHERE data.timestamp_close > 0
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause()}
 						  GROUP BY x ${.orderingFields()} g
@@ -121,7 +121,7 @@ namespace Reports {
 		function fetchData( object timeframe ) {
 			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + answers.timestampcreated * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         to_char((TIMESTAMP 'epoch' + (answers.timestampcreated + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('answers.timestampcreated')}
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_answers AS answers
@@ -168,17 +168,17 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + errands.timestamparrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
-						         ${.extractFunctionCalls('errands.timestamparrive')}
-						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						         FROM workflow_errands AS errands
-						         LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						         WHERE errands.parent_fkey > 0
-						         AND errands.timestamparrive >= ${timeframe.start}
-						         AND errands.timestamparrive <= ${timeframe.end}
-						         AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('data.timestamp_close')}
+						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						         FROM workflow_errandreportdatas AS data
+						         LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+						         WHERE data.timestamp_replied > 0
+						         AND data.timestamp_close >= ${timeframe.start}
+						         AND data.timestamp_close <= ${timeframe.end}
+						         AND data.area_id IN (${.areas.join(',')})
 						         ${agentsWhereClause}
 						         ${.serviceWhereClause()}
 						         GROUP BY x ${.orderingFields()} g
@@ -270,17 +270,16 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(actions.context_fkey) AS y,
-						         ((actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) AS x,
-						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_actions AS actions
-						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
-						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						  WHERE actions.type IN (3, 7, 19)
-						  AND actions.timestampwhen >= ${timeframe.start}
-						  AND actions.timestampwhen <= ${timeframe.end}
-						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     data.response_time / ${.outputTime.seconds} AS x,
+						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_errandreportdatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+						  WHERE timestamp_close > 0
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause()}
 						  GROUP BY x, g
@@ -316,27 +315,19 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(actions.context_fkey) AS y,
-						         (sum(actions.timestampWhen - 
-						              (SELECT actions2.timestampwhen
-						               FROM workflow_actions AS actions2
-						               WHERE actions2.type = 2
-						               AND actions2.timestampwhen <= actions.timestampwhen
-						               AND actions2.context_fkey = actions.context_fkey
-						               ORDER BY actions2.timestampwhen DESC
-						               LIMIT 1)) / (${.outputTime.seconds})) AS x,
-						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_actions AS actions
-						  INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
-						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						  WHERE actions.type IN (3, 4, 5, 6, 7, 8)
-						  AND actions.timestampwhen >= ${timeframe.start}
-						  AND actions.timestampwhen <= ${timeframe.end}
-						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     data.process_time / ${.outputTime.seconds} AS x,
+						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_errandreportdatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+						  WHERE data.timestamp_close > 0
+						  AND data.timestamp_arrive >= ${timeframe.start}
+						  AND data.timestamp_arrive <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause()}
-						  GROUP BY g
+						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
@@ -368,20 +359,19 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT areas.name AS x,
-			                     ((sum(actions.timestampwhen - errands.timestamparrive) / (${.outputTime.seconds})) / count(actions.context_fkey)) AS y,
+			                     floor(avg(data.response_time) / ${.outputTime.seconds}) AS y,
 			                     'Errands' AS g
-			              FROM workflow_actions AS actions
-			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
-			              INNER JOIN workflow_areas AS areas ON errands.targetarea_fkey = areas.workflow_area_id
-			              WHERE actions.type IN (3, 7, 19)
-			              AND actions.timestampwhen >= ${timeframe.start}
-			              AND actions.timestampwhen <= ${timeframe.end}
-			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              FROM workflow_errandreportdatas AS data
+			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
+			              WHERE data.timestamp_close > 0
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
 			              ${agentsWhereClause}
 			              ${.serviceWhereClause()}
-			              GROUP BY x, g
+			              GROUP BY x
 			              ORDER BY x ASC;";
 			.setGroups(['Errands' => I('Errands')]);
 			return ObjRunObject.rawQuery(sql);
@@ -413,29 +403,18 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT users.username AS x,
-			                     (sum(actions.timestampwhen -
-			                      (SELECT actions2.timestampwhen
-			                       FROM workflow_actions AS actions2
-			                       WHERE actions2.type = 2
-			                       AND actions2.timestampwhen <= actions.timestampwhen
-			                       AND actions2.origin_fkey = actions.origin_fkey
-			                       AND actions2.context_fkey = actions.context_fkey
-			                       ORDER BY actions2.timestampwhen DESC
-			                       LIMIT 1)) / (${.outputTime.seconds}) ) / count(actions.context_fkey) AS y,
-			                     'Errands' as g
-			              FROM workflow_actions AS actions
-			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
-			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
-			              WHERE actions.type IN (3, 4, 5, 6, 7, 8)
-			              AND actions.timestampwhen >= ${timeframe.start}
-			              AND actions.timestampwhen <= ${timeframe.end}
-			              AND errands.targetarea_fkey IN (${.areas.join(',')})
-			              ${agentsWhereClause}
-			              ${.serviceWhereClause()}
-			              GROUP BY x, g
-			              ORDER BY x ASC";
+			                     floor(avg(data.process_time) / ${.outputTime.seconds}) AS y,
+			                     'Average Time' AS g
+			                     FROM workflow_userreportdatas AS data
+			                     JOIN workflow_users AS users ON users.workflow_user_id = data.user_id
+			                     WHERE data.timestamp_open >= ${timeframe.start}
+			                     AND data.timestamp_open <= ${timeframe.end}
+			                     AND data.area_id IN (${.areas.join(',')})
+			                     ${agentsWhereClause}
+			                     GROUP BY x
+			                     ORDER BY x ASC";
 			.setGroups(['Errands' => I('Errands')]);
 			return ObjRunObject.rawQuery(sql);
 		}
@@ -453,18 +432,17 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-			                     to_char((TIMESTAMP 'epoch' + errands.timestampArrive * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
-			                     ${.extractFunctionCalls('errands.timestampArrive')}
-			                     (CASE WHEN (actions.timestampwhen - errands.timestamparrive) <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
-			              FROM workflow_errands AS errands
-			              INNER JOIN workflow_areas AS areas ON errands.targetarea_fkey = areas.workflow_area_id
-			              INNER JOIN workflow_actions AS actions ON errands.workflow_errand_id = actions.context_fkey
-			              WHERE actions.type IN (3, 7, 19)
-			              AND errands.timestamparrive >= ${timeframe.start}
-			              AND errands.timestamparrive <= ${timeframe.end}
-			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('data.timestamp_close')}
+			                     (CASE WHEN data.response_time <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
+			              FROM workflow_errandreportdatas AS data
+			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
+			              WHERE data.timestamp_close > 0
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
 			              ${agentsWhereClause}
 			              ${.serviceWhereClause()}
 			              GROUP BY x ${.orderingFields()} g
@@ -515,7 +493,7 @@ namespace Reports {
 		
 		function fetchData( object timeframe ) {
 			string sql = "SELECT count(distinct quickask_log_id) AS y,
-			                     to_char((TIMESTAMP 'epoch' + logs.timestampwhen * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     to_char((TIMESTAMP 'epoch' + (logs.timestampwhen + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('logs.timestampwhen')}
 			                     (CASE WHEN matchingtemplates.matchtype IN (1, 2) THEN 'Answered' ELSE 'Unanswered' END) AS g
 			              FROM quickask_logs AS logs
