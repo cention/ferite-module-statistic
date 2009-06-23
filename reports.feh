@@ -214,7 +214,7 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(actions.context_fkey) AS y,
+			string sql = "SELECT count(actions.workflow_action_id) AS y,
 			                     users.username AS x,
 			                     (CASE WHEN actions.type = 3 THEN 'Answered'
 			                           WHEN actions.type = 4 THEN 'Forwarded to agent'
@@ -222,8 +222,9 @@ namespace Reports {
 			                           WHEN actions.type = 7 THEN 'Deleted'
 						               WHEN actions.type = 5 THEN 'Forwarded to area'
 			                           WHEN actions.type = 6 THEN 'Moved to folder' END) AS g
-			              FROM workflow_actions AS actions
-			              INNER JOIN workflow_errands AS errands ON actions.context_fkey = errands.workflow_errand_id
+			              FROM workflow_errands AS errands
+			              INNER JOIN workflow_errand_actions_links ON parent_workflow_errand_id = errands.workflow_errand_id
+			              INNER JOIN workflow_actions AS actions ON child_workflow_action_id = actions.workflow_action_id
 			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
 			              WHERE actions.type IN (3, 4, 5, 6, 7, 8)
 			              AND actions.timestampwhen >= ${timeframe.start}
