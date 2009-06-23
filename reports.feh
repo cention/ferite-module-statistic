@@ -34,7 +34,7 @@ namespace Reports {
 			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			              ${.extractFunctionCalls('data.timestamp_arrive')}
 			              (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-			              FROM workflow_errandreportdatas AS data
+			              FROM workflow_reporterranddatas AS data
 			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 			              WHERE data.timestamp_arrive >= ${timeframe.start}
 			              AND data.timestamp_arrive <= ${timeframe.end}
@@ -79,7 +79,7 @@ namespace Reports {
 						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('data.timestamp_close')}
 						        (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_errandreportdatas AS data
+						  FROM workflow_reporterranddatas AS data
 						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id 
 						  WHERE data.timestamp_close > 0
 						  AND data.timestamp_close >= ${timeframe.start}
@@ -173,7 +173,7 @@ namespace Reports {
 						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('data.timestamp_close')}
 						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-						         FROM workflow_errandreportdatas AS data
+						         FROM workflow_reporterranddatas AS data
 						         LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 						         WHERE data.timestamp_replied > 0
 						         AND data.timestamp_close >= ${timeframe.start}
@@ -274,7 +274,7 @@ namespace Reports {
 			string sql = "SELECT count(data.errand_id) AS y,
 			                     data.response_time / ${.outputTime.seconds} AS x,
 						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_errandreportdatas AS data
+						  FROM workflow_reporterranddatas AS data
 						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 						  WHERE timestamp_close > 0
 						  AND data.timestamp_close >= ${timeframe.start}
@@ -319,7 +319,7 @@ namespace Reports {
 			string sql = "SELECT count(data.errand_id) AS y,
 			                     data.process_time / ${.outputTime.seconds} AS x,
 						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_errandreportdatas AS data
+						  FROM workflow_reporterranddatas AS data
 						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 						  WHERE data.timestamp_close > 0
 						  AND data.timestamp_arrive >= ${timeframe.start}
@@ -362,8 +362,8 @@ namespace Reports {
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT areas.name AS x,
 			                     floor(avg(data.response_time) / ${.outputTime.seconds}) AS y,
-			                     'Errands' AS g
-			              FROM workflow_errandreportdatas AS data
+			                     'Average Time' AS g
+			              FROM workflow_reporterranddatas AS data
 			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
 			              WHERE data.timestamp_close > 0
 			              AND data.timestamp_close >= ${timeframe.start}
@@ -373,7 +373,7 @@ namespace Reports {
 			              ${.serviceWhereClause()}
 			              GROUP BY x
 			              ORDER BY x ASC;";
-			.setGroups(['Errands' => I('Errands')]);
+			.setGroups(['Average Time' => I('Average Time')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -407,15 +407,15 @@ namespace Reports {
 			string sql = "SELECT users.username AS x,
 			                     floor(avg(data.process_time) / ${.outputTime.seconds}) AS y,
 			                     'Average Time' AS g
-			                     FROM workflow_userreportdatas AS data
-			                     JOIN workflow_users AS users ON users.workflow_user_id = data.user_id
-			                     WHERE data.timestamp_open >= ${timeframe.start}
-			                     AND data.timestamp_open <= ${timeframe.end}
-			                     AND data.area_id IN (${.areas.join(',')})
-			                     ${agentsWhereClause}
-			                     GROUP BY x
-			                     ORDER BY x ASC";
-			.setGroups(['Errands' => I('Errands')]);
+			              FROM workflow_reportuserdatas AS data
+			              JOIN workflow_users AS users ON users.workflow_user_id = data.user_id
+			              WHERE data.timestamp_open >= ${timeframe.start}
+			              AND data.timestamp_open <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              GROUP BY x
+			              ORDER BY x ASC";
+			.setGroups(['Average Time' => I('Average Time')]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -437,7 +437,7 @@ namespace Reports {
 			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('data.timestamp_close')}
 			                     (CASE WHEN data.response_time <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
-			              FROM workflow_errandreportdatas AS data
+			              FROM workflow_reporterranddatas AS data
 			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
 			              WHERE data.timestamp_close > 0
 			              AND data.timestamp_close >= ${timeframe.start}

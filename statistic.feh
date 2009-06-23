@@ -143,6 +143,7 @@ namespace Statistic {
 		function makeData( string keyHeaderName, array rawData ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
+			array totals = [ '' ]; // First column should not have any total (agent name)
 			array rows = [];
 		
 			// +---------+-------+--------+
@@ -161,8 +162,9 @@ namespace Statistic {
 
 			columnHeaders[] = keyHeaderName;
 			
-			.groups.each() using ( column ) {
-				columnHeaders[] = column;
+			.groups.eachWithIndex() using ( name, index ) {
+				columnHeaders[] = name;
+				totals[.groups.getName(index)] = 0;
 			};
 			
 			for( number i = 0; i < rawRowCount; i++ ) {
@@ -181,12 +183,18 @@ namespace Statistic {
 					row = rows['' + rawRow['x']];
 				}
 				
-				row[.groups.getIndex(rawRow['g'])+1] = rawRow['y'];
+				row[.groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				
 				rows['' + rawRow['x']] = row;
+				
+				if( not totals.keyExists(rawRow['g']) ) {
+					totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				} else {
+					totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				}
 			}
 			
-			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows ];
+			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}
 	}
 	/**
