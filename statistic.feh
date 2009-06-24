@@ -93,13 +93,13 @@ namespace Statistic {
 	 */
 	abstract class View {
 		object timeframe;
-		array dataGroups;
 		array groups;
 		array areas;
 		array agents;
 		number service;
 		number systemGroup;
 		string language;
+		boolean average;
 		
 		function setLanguage( string language )
 			.language = language;
@@ -137,13 +137,17 @@ namespace Statistic {
 			.agents = agents;
 		}
 		
+		function setAverage( boolean average ) {
+			.average = average;
+		}
+		
 		function isTimeView
 			return false;
 		
 		function makeData( string keyHeaderName, array rawData ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
-			array totals = [ '' ]; // First column should not have any total (agent name)
+			array totals = [ I('Total') ];
 			array rows = [];
 		
 			// +---------+-------+--------+
@@ -191,6 +195,12 @@ namespace Statistic {
 					totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				} else {
 					totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				}
+			}
+			
+			if( .average ) {
+				for( number i = 1; i < totals.size(); i++ ) {
+					totals[i] = totals[i] / rows.size();
 				}
 			}
 			
@@ -446,48 +456,6 @@ namespace Statistic {
 			super();
 			.key = I('Area');
 		}
-		
-		/*
-		function getData() {
-			array data = [];
-			
-			if( .timeframe ) {
-				array newDataGroups = [];
-				
-				.fetchData( .timeframe );
-				
-				.dataGroups.each() using ( dataGroup ) {
-					object newDataGroup = new Statistic.DataGroup();
-					newDataGroup.name = dataGroup.name;
-					newDataGroup.values = [];
-					
-					dataGroup.values.map() using ( key, value ) {
-						value = .outputTime.length( value );
-						if( not newDataGroup.values.keyExists( key ) )
-							newDataGroup.values[key] = 0;
-						newDataGroup.values[key] += value;
-					};
-					
-					newDataGroups[] = newDataGroup;
-				};
-				
-				.dataGroups = newDataGroups;
-				
-				data = .makeData( .key );
-				
-				
-				data['Rows'] = data['Rows'].sort() using ( a, b ) {
-					number aTime = a[0].toNumber();
-					number bTime = b[0].toNumber();
-					if( aTime < bTime ) return -1;
-					if( aTime == bTime ) return 0;
-					if( aTime > bTime ) return 1;
-				};
-			}
-			
-			return data;
-		}
-		*/
 	}
 	
 	/**
