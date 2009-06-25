@@ -203,7 +203,6 @@ namespace Statistic {
 					totals[i] = totals[i] / rows.size();
 				}
 			}
-			
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}
 	}
