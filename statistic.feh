@@ -96,10 +96,13 @@ namespace Statistic {
 		array groups;
 		array areas;
 		array agents;
+		array textEngines;
 		number service;
 		number systemGroup;
 		string language;
 		boolean average;
+		boolean workflow;
+		boolean textEngine;
 		
 		function setLanguage( string language )
 			.language = language;
@@ -109,6 +112,10 @@ namespace Statistic {
 		
 		function setService( number service )
 			.service = service;
+		
+		function setTextEngines( array textEngines ) {
+			.textEngines = textEngines;
+		}
 		
 		function serviceWhereClause {
 			if( .service == Workflow.Errand.SERVICE_EMAIL ) {
@@ -143,6 +150,12 @@ namespace Statistic {
 		
 		function isTimeView
 			return false;
+		
+		function isWorkflowReport
+			return .workflow;
+		
+		function isTextEngineReport
+			return .textEngine;
 		
 		function makeData( string keyHeaderName, array rawData ) {
 			number rawRowCount = rawData.size();

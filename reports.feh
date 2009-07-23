@@ -19,6 +19,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Incoming');
+			.workflow = true;
 		}
 		
 		/**
@@ -62,6 +63,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Closed');
+			.workflow = true;
 		}
 		
 		/**
@@ -108,6 +110,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Published');
+			.workflow = true;
 		}
 		
 		/**
@@ -157,6 +160,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Replies');
+			.workflow = true;
 		}
 		
 		/**
@@ -202,6 +206,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Closure status');
+			.workflow = true;
 		}
 		
 		/**
@@ -260,6 +265,7 @@ namespace Reports {
 			super();
 			.name = I('Response time');
 			.key = I('Response time');
+			.workflow = true;
 		}
 		
 		/**
@@ -305,6 +311,7 @@ namespace Reports {
 			super();
 			.name = I('Process time');
 			.key = I('Process time');
+			.workflow = true;
 		}
 		
 		/**
@@ -349,6 +356,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Average response time');
+			.workflow = true;
 		}
 		
 		/**
@@ -394,6 +402,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Average process time');
+			.workflow = true;
 		}
 		
 		/**
@@ -432,6 +441,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('SLA time');
+			.workflow = true;
 		}
 		
 		function fetchData( object timeframe ) {
@@ -492,6 +502,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Quick Ask Questions');
+			.textEngine = true;
 		}
 		
 		function fetchData( object timeframe ) {
@@ -506,6 +517,7 @@ namespace Reports {
 			              WHERE logs.searchtype = 1
 			              AND logs.timestampwhen >= ${timeframe.start}
 			              AND logs.timestampwhen <= ${timeframe.end}
+			              AND logs.textEngine IN (${.textEngines.join(',')})
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
 			.setGroups(['Answered' => I('Answered'), 'Unanswered' => I('Unanswered')]);
@@ -519,6 +531,7 @@ namespace Reports {
 		constructor {
 			super();
 			.name = I('Quick Ask Answers');
+			.textEngine = true;
 		}
 		
 		function fetchData( object timeframe ) {
@@ -532,6 +545,7 @@ namespace Reports {
 			              WHERE logs.searchtype = 1
 			              AND logs.timestampwhen >= ${timeframe.start}
 			              AND logs.timestampwhen <= ${timeframe.end}
+			              AND logs.textEngine IN (${.textEngines.join(',')})
 			              GROUP BY x, g
 			              ORDER BY x";
 			.setGroups(['Close Answer' => I('Close Answer'), 'Related Answer' => I('Related Answer')]);
