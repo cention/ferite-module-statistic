@@ -202,7 +202,11 @@ namespace Statistic {
 				
 				row[.groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				
-				rows['' + rawRow['x']] = row;
+				if( rawRow['x'] ) {
+					rows['' + rawRow['x']] = row;
+				} else {
+					rows['Row ' + i] = row;
+				}
 				
 				if( not totals.keyExists(rawRow['g']) ) {
 					totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
