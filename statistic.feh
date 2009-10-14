@@ -92,6 +92,7 @@ namespace Statistic {
 	 * @brief The base class for all statistic views
 	 */
 	abstract class View {
+		string name;
 		object timeframe;
 		array groups;
 		array areas;
@@ -117,13 +118,17 @@ namespace Statistic {
 			.textEngines = textEngines;
 		}
 		
-		function serviceWhereClause {
+		function serviceWhereClause( string table, string column ) {
 			if( .service == Workflow.Errand.SERVICE_EMAIL ) {
-				return "AND data.service_id IN (0, 1)";
+				return "AND ${table}.${column} IN (0, 1)";
 			} else if( .service != Workflow.Errand.SERVICE_ANY ) {
-				return "AND data.service_id = ${.service}";
+				return "AND ${table}.${column} = ${.service}";
 			}
 			return "";
+		}
+		
+		function serviceWhereClause() {
+			return .serviceWhereClause('data', 'service_id');
 		}
 		
 		function setTimeframe( object timeframe )
@@ -148,11 +153,17 @@ namespace Statistic {
 			.average = average;
 		}
 		
+		function name
+			return .name;
+		
 		function isTimeView
 			return false;
 		
 		function isWorkflowReport
 			return .workflow;
+		
+		function isLibraryReport
+			return false;
 		
 		function isTextEngineReport
 			return .textEngine;
@@ -217,7 +228,8 @@ namespace Statistic {
 			
 			if( .average ) {
 				for( number i = 1; i < totals.size(); i++ ) {
-					totals[i] = totals[i] / rows.size();
+					number size = rows.size();
+					totals[i] = (size > 0 ? totals[i] / size : 0);
 				}
 			}
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
@@ -335,7 +347,7 @@ namespace Statistic {
 					case 'D':
 						fields[] = 'day';
 						break;
-					case 'IYYY-MM-DD':
+					case 'YYYY-MM-DD':
 						fields[] = 'year';
 						fields[] = 'month';
 						fields[] = 'day';
@@ -361,13 +373,13 @@ namespace Statistic {
 					case 'IW':
 						fields[] = 'week';
 						break;
-					case 'IYYY':
+					case 'YYYY':
 						fields[] = 'year';
 						break;
 				}
 			};
 			fields.eachWithIndex() using ( field, index ) {
-				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + ${timestamp} * INTERVAL '1  second')) AS ordering${index},";
+				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1  second')) AS ordering${index},";
 				.orderingFieldsList[] = "ordering${index}";
 			};
 			return functionCalls;

@@ -14,8 +14,6 @@ namespace Reports {
 	 * @brief Handles data needed for incoming errands statistic view
 	 */
 	class IncomingErrands extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Incoming');
@@ -58,8 +56,6 @@ namespace Reports {
 	 * @brief Handles data needed for closed errands statistic view
 	 */
 	class ClosedErrands extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Closed');
@@ -105,8 +101,6 @@ namespace Reports {
 	 * @brief Handles data needed for published errands statistic view
 	 */
 	class PublishedErrands extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Published');
@@ -137,7 +131,7 @@ namespace Reports {
 						  AND answers.timestampcreated <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentsWhereClause}
-						  ${.serviceWhereClause()}
+						  ${.serviceWhereClause('errands', 'service_fkey')}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -155,8 +149,6 @@ namespace Reports {
 	 */
 	// Replies
 	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Replies');
@@ -201,8 +193,6 @@ namespace Reports {
 	 * @brief Handles data needed for errand closure status statistic view
 	 */
 	class ErrandClosureStatus extends Statistic.AgentView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Closure status');
@@ -236,7 +226,7 @@ namespace Reports {
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
 			              ${agentsWhereClause}
-			              ${.serviceWhereClause()}
+			              ${.serviceWhereClause('errands', 'service_fkey')}
 			              GROUP BY x, g
 			              ORDER BY x";
 			.setGroups(['Answered'           => I('Answered'),
@@ -258,7 +248,6 @@ namespace Reports {
 	 * @brief Handles data needed for response time statistic view
 	 */
 	class ErrandResponseTime extends Statistic.RelativeTimeView {
-		string name;
 		string key;
 		
 		constructor {
@@ -305,8 +294,6 @@ namespace Reports {
 	 * @brief Handles data needed for errand process time statistic view
 	 */
 	class ErrandProcessTime extends Statistic.RelativeTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Process time');
@@ -351,8 +338,6 @@ namespace Reports {
 	 * @brief Handles data needed for average errand response time statistic view
 	 */
 	class AverageErrandResponseTime extends Statistic.AreaRelativeTimeView {
-		string name = "Average response time";
-		
 		constructor {
 			super();
 			.name = I('Average response time');
@@ -397,8 +382,6 @@ namespace Reports {
 	 * @brief Handles data needed for average errand process time statistic view
 	 */
 	class AverageErrandProcessTime extends Statistic.AgentRelativeTimeView {
-		string name = "Average process time";
-		
 		constructor {
 			super();
 			.name = I('Average process time');
@@ -436,8 +419,6 @@ namespace Reports {
 	 */
 	
 	class ErrandSLATime extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('SLA time');
@@ -466,8 +447,6 @@ namespace Reports {
 	}
 	
 	class ErrandClassification extends Statistic.ActionView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Classification');
@@ -488,7 +467,7 @@ namespace Reports {
 						  AND errands.timestamparrive <= ${timeframe.end}
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentsWhereClause}
-						  ${.serviceWhereClause()}
+						  ${.serviceWhereClause('errands', 'service_fkey')}
 						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
@@ -497,8 +476,6 @@ namespace Reports {
 	}
 	
 	class QuickAskQuestions extends Statistic.AbsoluteTimeView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Quick Ask Questions');
@@ -526,8 +503,6 @@ namespace Reports {
 	}
 	
 	class QuickAskAnswers extends Statistic.ActionView {
-		string name;
-		
 		constructor {
 			super();
 			.name = I('Quick Ask Answers');
