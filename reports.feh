@@ -28,7 +28,6 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errand_id) AS y,
 			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			              ${.extractFunctionCalls('data.timestamp_arrive')}
@@ -38,7 +37,6 @@ namespace Reports {
 			              WHERE data.timestamp_arrive >= ${timeframe.start}
 			              AND data.timestamp_arrive <= ${timeframe.end}
 			              AND data.area_id IN (${.areas.join(',')})
-			              ${agentsWhereClause}
 			              ${.serviceWhereClause()}
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
