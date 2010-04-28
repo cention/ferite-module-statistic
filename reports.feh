@@ -153,6 +153,15 @@ namespace Reports {
 			.workflow = true;
 		}
 		
+		boolean showDeletedErrands = false;
+		function setShowDeletedErrands( boolean value ) {
+			.showDeletedErrands = value;
+		}
+		array deleteTags;
+		function setDeleteTags( array value ) {
+			.deleteTags = value;
+		}
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -163,20 +172,27 @@ namespace Reports {
 		 */
 		function fetchData( object timeframe ) {
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(data.errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
-						         ${.extractFunctionCalls('data.timestamp_close')}
-						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
-						         FROM workflow_reporterranddatas AS data
-						         LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
-						         WHERE data.timestamp_replied > 0
-						         AND data.timestamp_close >= ${timeframe.start}
-						         AND data.timestamp_close <= ${timeframe.end}
-						         AND data.area_id IN (${.areas.join(',')})
-						         ${agentsWhereClause}
-						         ${.serviceWhereClause()}
-						         GROUP BY x ${.orderingFields()} g
-						         ${.orderByStatement()}";
+			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
+				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
+				(.showDeletedErrands ? "" : "AND NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))" ));
+			string sql = "
+				SELECT
+					count(data.errand_id) AS y,
+					to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+					${.extractFunctionCalls('data.timestamp_close')}
+					(CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+				FROM workflow_reporterranddatas AS data
+				LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+				WHERE
+					data.timestamp_replied > 0 AND
+					data.timestamp_close >= ${timeframe.start} AND
+					data.timestamp_close <= ${timeframe.end} AND
+					data.area_id IN (${.areas.join(',')})
+					${agentsWhereClause}
+					${.serviceWhereClause()}
+					${showDeletedErrandsWhereClause}
+				GROUP BY x ${.orderingFields()} g
+				${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
@@ -457,12 +473,13 @@ namespace Reports {
 			super();
 			.name = I('Classification');
 			.key = I('Classification');
+			.workflow = true;
 		}
 		
 		function fetchData( object timeframe ) {
 			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         tags.display as X,
+						         tags.display as x,
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_tags AS tags
 						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
@@ -476,6 +493,37 @@ namespace Reports {
 						  ${.serviceWhereClause('errands', 'service_fkey')}
 						  GROUP BY x, g
 						  ORDER BY x";
+			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class DeletedErrands extends Statistic.ActionView {
+		constructor {
+			super();
+			.name = I('Deleted Errands');
+			.key = I('Deleted Errands');
+			.workflow = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     tags.display as x,
+			                     (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			              FROM workflow_tags AS tags
+			              INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
+			              INNER JOIN workflow_reporterranddatas AS data ON errand_tags_links.parent_workflow_errand_id = data.errand_id
+			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			              WHERE tags.fordelete = true
+			              AND substr(tags.name, 1, 7) = 'client.'
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x, g
+			              ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
 			return ObjRunObject.rawQuery(sql);
 		}
