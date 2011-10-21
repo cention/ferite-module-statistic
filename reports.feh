@@ -511,6 +511,7 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
+			array rows;
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(data.errand_id) AS y,
 			                     tags.display as x,
@@ -520,7 +521,6 @@ namespace Reports {
 			              INNER JOIN workflow_reporterranddatas AS data ON errand_tags_links.parent_workflow_errand_id = data.errand_id
 			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 			              WHERE tags.fordelete = true
-			              AND substr(tags.name, 1, 7) = 'client.'
 			              AND data.timestamp_close >= ${timeframe.start}
 			              AND data.timestamp_close <= ${timeframe.end}
 			              AND data.area_id IN (${.areas.join(',')})
@@ -528,8 +528,32 @@ namespace Reports {
 			              ${.serviceWhereClause()}
 			              GROUP BY x, g
 			              ORDER BY x";
+			string untaggedsql = "SELECT count(data.errand_id) AS y,
+			                             'Untagged' AS x,
+			                             (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			                      FROM workflow_reporterranddatas AS data
+			                      LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			                      WHERE data.errand_id IN (SELECT parent_workflow_errand_id
+			                                               FROM workflow_errand_tags_links
+			                                               WHERE child_workflow_tag_id = (SELECT workflow_tag_id
+			                                                                              FROM workflow_tags
+			                                                                              WHERE name = 'system.errand.deleted'))
+			                      AND data.errand_id NOT IN (SELECT parent_workflow_errand_id
+			                                                 FROM workflow_errand_tags_links
+			                                                 WHERE child_workflow_tag_id IN (SELECT workflow_tag_id
+			                                                                                 FROM workflow_tags
+			                                                                                 WHERE fordelete = true))
+			                      AND data.timestamp_close >= ${timeframe.start}
+			                      AND data.timestamp_close <= ${timeframe.end}
+			                      AND data.area_id IN (${.areas.join(',')})
+			                      ${agentsWhereClause}
+			                      ${.serviceWhereClause()}
+			                      GROUP BY x, g
+			                      ORDER BY x";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
-			return ObjRunObject.rawQuery(sql);
+			rows = ObjRunObject.rawQuery(sql);
+			print(untaggedsql);
+			return rows.append(ObjRunObject.rawQuery(untaggedsql));
 		}
 	}
 	
