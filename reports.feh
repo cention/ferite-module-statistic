@@ -61,6 +61,15 @@ namespace Reports {
 			.workflow = true;
 		}
 		
+		boolean showDeletedErrands = false;
+		function setShowDeletedErrands( boolean value ) {
+			.showDeletedErrands = value;
+		}
+		array deleteTags;
+		function setDeleteTags( array value ) {
+			.deleteTags = value;
+		}
+		
 		/**
 		 * @function fetchData
 		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
@@ -72,6 +81,9 @@ namespace Reports {
 		function fetchData( object timeframe ) {
 			number timezoneOffset = Date.timezone() * 2;
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
+				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
+				(.showDeletedErrands ? "" : "AND NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))" ));
 			string sql = "SELECT count(data.errand_id) AS y,
 						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('data.timestamp_close')}
@@ -84,6 +96,7 @@ namespace Reports {
 						  AND data.area_id IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause()}
+						  ${showDeletedErrandsWhereClause}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
 			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
