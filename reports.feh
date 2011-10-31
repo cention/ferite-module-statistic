@@ -607,7 +607,6 @@ namespace Reports {
 				'Chat' => I('Chat')
 			]);
 			rows = ObjRunObject.rawQuery(sql);
-			print(untaggedsql);
 			return rows.append(ObjRunObject.rawQuery(untaggedsql));
 		}
 	}
