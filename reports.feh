@@ -41,7 +41,12 @@ namespace Reports {
 			              ${.serviceWhereClause()}
 			              GROUP BY x ${.orderingFields()} g
 			              ${.orderByStatement()}";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -99,7 +104,12 @@ namespace Reports {
 						  ${showDeletedErrandsWhereClause}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -147,7 +157,12 @@ namespace Reports {
 						  ${.serviceWhereClause('errands', 'service_fkey')}
 						  GROUP BY x ${.orderingFields()} g
 						  ${.orderByStatement()}";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -209,7 +224,12 @@ namespace Reports {
 					${showDeletedErrandsWhereClause}
 				GROUP BY x ${.orderingFields()} g
 				${.orderByStatement()}";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -320,7 +340,12 @@ namespace Reports {
 						  ${.serviceWhereClause()}
 						  GROUP BY x, g
 						  ORDER BY x";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -364,7 +389,12 @@ namespace Reports {
 						  ${.serviceWhereClause()}
 						  GROUP BY x, g
 						  ORDER BY x";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -512,7 +542,12 @@ namespace Reports {
 						  ${.serviceWhereClause('errands', 'service_fkey')}
 						  GROUP BY x, g
 						  ORDER BY x";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -565,7 +600,12 @@ namespace Reports {
 			                      ${.serviceWhereClause()}
 			                      GROUP BY x, g
 			                      ORDER BY x";
-			.setGroups(['Email' => I('Email'), 'Manual' => I('Manual')]);
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
 			rows = ObjRunObject.rawQuery(sql);
 			print(untaggedsql);
 			return rows.append(ObjRunObject.rawQuery(untaggedsql));
