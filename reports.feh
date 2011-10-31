@@ -579,7 +579,7 @@ namespace Reports {
 			              GROUP BY x, g
 			              ORDER BY x";
 			string untaggedsql = "SELECT count(data.errand_id) AS y,
-			                             'Untagged' AS x,
+			                             '${I('Untagged')}' AS x,
 			                             (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
 			                      FROM workflow_reporterranddatas AS data
 			                      LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
