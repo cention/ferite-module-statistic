@@ -243,6 +243,8 @@ namespace Reports {
 			string sql = "SELECT count(actions.workflow_action_id) AS y,
 			                     users.username AS x,
 			                     (CASE WHEN actions.type = 3 THEN 'Answered'
+			                           WHEN actions.type = 19 THEN 'Answered'
+			                           WHEN actions.type = 16 THEN 'Answered'
 			                           WHEN actions.type = 4 THEN 'Forwarded to agent'
 			                           WHEN actions.type = 8 THEN 'Returned'
 			                           WHEN actions.type = 7 THEN 'Deleted'
