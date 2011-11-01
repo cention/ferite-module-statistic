@@ -2,7 +2,7 @@
 <yard name="statistic">
 
 	<property id="name" value="cention-statistic" />
-	<property id="version" value="3.1" />
+	<property id="version" value="3.2" />
 	
 	<collection id="statistic">
 		<property type="prefix" value="$(FeriteModuleSourceDir)" />  
