@@ -101,9 +101,9 @@ namespace Statistic {
 		array services;
 		number systemGroup;
 		string language;
-		boolean average;
 		boolean workflow;
 		boolean textEngine;
+		object customTotalCounter;
 		
 		function setLanguage( string language )
 			.language = language;
@@ -153,8 +153,8 @@ namespace Statistic {
 			.agents = agents;
 		}
 		
-		function setAverage( boolean average ) {
-			.average = average;
+		function setCustomTotalCounter( object customCounter ) {
+			.customTotalCounter = customCounter;
 		}
 		
 		function name
@@ -197,6 +197,9 @@ namespace Statistic {
 			.groups.eachWithIndex() using ( name, index ) {
 				columnHeaders[] = name;
 				totals[.groups.getName(index)] = 0;
+				if( .customTotalCounter ) {
+					totals[.groups.getName(index)] = .customTotalCounter.invoke(.groups.getName(index));
+				}
 			};
 			
 			for( number i = 0; i < rawRowCount; i++ ) {
@@ -223,19 +226,15 @@ namespace Statistic {
 					rows['Row ' + i] = row;
 				}
 				
-				if( not totals.keyExists(rawRow['g']) ) {
-					totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
-				} else {
-					totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				if( not .customTotalCounter ) {
+					if( not totals.keyExists(rawRow['g']) ) {
+						totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+					} else {
+						totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+					}
 				}
 			}
 			
-			if( .average ) {
-				for( number i = 1; i < totals.size(); i++ ) {
-					number size = rows.size();
-					totals[i] = (size > 0 ? totals[i] / size : 0);
-				}
-			}
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}
 	}

@@ -438,7 +438,22 @@ namespace Reports {
 			              GROUP BY x
 			              ORDER BY x ASC;";
 			.setGroups(['Average Time' => I('Average Time')]);
-			.setAverage(true);
+			.setCustomTotalCounter(closure( string group ) {
+				array rows = ObjRunObject.rawQuery(
+						"SELECT floor(avg(data.response_time) / ${.outputTime.seconds}) AS total
+						 FROM workflow_reporterranddatas AS data
+						 WHERE data.timestamp_close > 0
+						 AND data.timestamp_close >= ${timeframe.start}
+						 AND data.timestamp_close <= ${timeframe.end}
+						 AND data.area_id IN (${.areas.join(',')})
+						 ${agentsWhereClause}
+						 ${.serviceWhereClause()}"
+					);
+				if( rows and rows[0]['total'] ) {
+					return rows[0]['total'].toNumber();
+				}
+				return 0;
+			});
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
@@ -480,7 +495,21 @@ namespace Reports {
 			              GROUP BY x
 			              ORDER BY x ASC";
 			.setGroups(['Average Time' => I('Average Time')]);
-			.setAverage(true);
+			.setCustomTotalCounter(closure( string group ) {
+				array rows = ObjRunObject.rawQuery(
+						"SELECT floor(avg(data.process_time) / ${.outputTime.seconds}) AS total
+						 FROM workflow_reportuserdatas AS data
+						 WHERE data.timestamp_open >= ${timeframe.start}
+						 AND data.timestamp_open <= ${timeframe.end}
+						 AND data.area_id IN (${.areas.join(',')})
+						 ${agentsWhereClause}
+						 ${.serviceWhereClause()}"
+					);
+				if( rows and rows[0]['total'] ) {
+					return rows[0]['total'].toNumber();
+				}
+				return 0;
+			});
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
