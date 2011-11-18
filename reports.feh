@@ -292,7 +292,7 @@ namespace Reports {
 			          'Moved to folder'    => I('Moved to folder')];
 			if( F('chat') ) {
 				groups['Chat expired']  = I('Chat expired');
-				groups['Chat finished'] = I('Chat finihsed');
+				groups['Chat finished'] = I('Chat finished');
 			}
 			.setGroups(groups);
 			return ObjRunObject.rawQuery(sql);
