@@ -564,8 +564,8 @@ namespace Reports {
 						  INNER JOIN workflow_errands AS errands ON errand_tags_links.parent_workflow_errand_id = errands.workflow_errand_id
 						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
 						  WHERE substr(tags.name, 1, 7) = 'client.'
-						  AND errands.timestampLastAnswered >= ${timeframe.start}
-						  AND errands.timestampLastAnswered <= ${timeframe.end}
+						  AND (errands.timestampClosed >= ${timeframe.start} OR errands.timestampLastAnswered >= ${timeframe.start})
+						  AND (errands.timestampClosed <= ${timeframe.end} OR errands.timestampLastAnswered <= ${timeframe.end})
 						  AND errands.targetarea_fkey IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause('errands', 'service_fkey')}
