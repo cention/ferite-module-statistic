@@ -120,7 +120,7 @@ namespace Statistic {
 		
 		function serviceWhereClause( string table, string column ) {
 			string services = .services.join(',') using ( service_id ) {
-				if( service_id.toNumber() == 1 ) {
+				if( service_id == 1 ) {
 					return '0,1';
 				}
 				return service_id;
