@@ -382,7 +382,7 @@ namespace Statistic {
 				}
 			};
 			fields.eachWithIndex() using ( field, index ) {
-				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${(Config.TimeZoneOffset * 2) * 60}') * INTERVAL '1  second')) AS ordering${index},";
+				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${(Date.timezone() * 2)}') * INTERVAL '1  second')) AS ordering${index},";
 				.orderingFieldsList[] = "ordering${index}";
 			};
 			return functionCalls;
