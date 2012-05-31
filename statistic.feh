@@ -220,7 +220,7 @@ namespace Statistic {
 				
 				row[.groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				
-				if( rawRow['x'] ) {
+				if( rawRow['x'] != '' ) {
 					rows['' + rawRow['x']] = row;
 				} else {
 					rows['Row ' + i] = row;
