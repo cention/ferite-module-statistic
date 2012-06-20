@@ -693,6 +693,44 @@ namespace Reports {
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
+	
+	class IncomingChatRequests extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Incoming Chat Requests');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( object timeframe )
+		 * @brief Fetches data used by the getData() function
+		 * @param object timeframe The timeframe in which to fetch values
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			number timezoneOffset = Date.timezone() * 2;
+			string sql = "SELECT count(*) AS y,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_when + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              ${.extractFunctionCalls('data.timestamp_when')}
+			              (CASE WHEN data.accepted = true THEN 'Accepted'
+			                    WHEN data.rejected_closed = true THEN 'Rejected (closed)'
+			                    WHEN data.rejected_unavailable = true THEN 'Rejected (unavailable)'
+			               END) AS g
+			              FROM workflow_reportchatdatas AS data
+			              WHERE data.timestamp_when >= ${timeframe.start}
+			              AND data.timestamp_when <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups([
+				'Accepted' => I('Accepted'),
+				'Rejected (closed)' => I('Rejected (closed)'),
+				'Rejected (unavailable)' => I('Rejected (unavailable)')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
 }
 /**
  * @end
