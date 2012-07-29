@@ -550,20 +550,18 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         tags.display as x,
-						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_tags AS tags
-						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
-						  INNER JOIN workflow_errands AS errands ON errand_tags_links.parent_workflow_errand_id = errands.workflow_errand_id
-						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						  WHERE substr(tags.name, 1, 7) = 'client.'
-						  AND (errands.timestampClosed >= ${timeframe.start} OR errands.timestampLastAnswered >= ${timeframe.start})
-						  AND (errands.timestampClosed <= ${timeframe.end} OR errands.timestampLastAnswered <= ${timeframe.end})
-						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentsWhereClause}
-						  ${.serviceWhereClause('errands', 'service_fkey')}
+			string agentsWhereClause = ( .agents ? "AND owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(child_workflow_tag_id) AS y,
+						         (SELECT display FROM workflow_tags WHERE workflow_tag_id=child_workflow_tag_id) AS x,
+						         (SELECT name FROM workflow_services WHERE workflow_service_id=(SELECT service_fkey FROM workflow_errands WHERE workflow_errand_id=parent_workflow_errand_id)) AS g
+						  FROM workflow_errand_tags_links
+						  WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE substr(name, 1, 7) = 'client.')
+						  AND parent_workflow_errand_id IN (SELECT workflow_errand_id FROM workflow_errands
+						                                    WHERE targetarea_fkey IN (${.areas.join(',')})
+						                                    AND ((timestampClosed >= ${timeframe.start} AND timestampClosed <= ${timeframe.end}) OR
+						                                         (timestampLastAnswered >= ${timeframe.start} AND timestampLastAnswered <= ${timeframe.end}))
+						                                    ${agentsWhereClause}
+						                                    ${.serviceWhereClause('workflow_errands', 'service_fkey')})
 						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups([
