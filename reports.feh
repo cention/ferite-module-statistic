@@ -378,8 +378,8 @@ namespace Reports {
 						  FROM workflow_reporterranddatas AS data
 						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
 						  WHERE data.timestamp_close > 0
-						  AND data.timestamp_arrive >= ${timeframe.start}
-						  AND data.timestamp_arrive <= ${timeframe.end}
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
 						  AND data.area_id IN (${.areas.join(',')})
 						  ${agentsWhereClause}
 						  ${.serviceWhereClause()}
