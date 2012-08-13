@@ -12,6 +12,10 @@ namespace Statistic {
 	final number SERVICE_EMAIL = 1;
 	final number SERVICE_MANUAL = 2;
 	
+	function timezoneOffset() {
+		return (Date.localDate(Date.now()).time() - Date.date(Date.now()).time()) + Date.timezone() + 3600;
+	}
+	
 	/**
 	 * @class Timeframe
 	 * @brief A timeframe with a start time and and an end time
@@ -382,7 +386,7 @@ namespace Statistic {
 				}
 			};
 			fields.eachWithIndex() using ( field, index ) {
-				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${(Date.timezone() * 2)}') * INTERVAL '1  second')) AS ordering${index},";
+				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1  second')) AS ordering${index},";
 				.orderingFieldsList[] = "ordering${index}";
 			};
 			return functionCalls;
