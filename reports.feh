@@ -28,9 +28,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string sql = "SELECT count(errand_id) AS y,
-			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			              ${.extractFunctionCalls('data.timestamp_arrive')}
 			              (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
 			              FROM workflow_reporterranddatas AS data
@@ -84,13 +83,12 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
 				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
 				(.showDeletedErrands ? "" : "AND NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))" ));
 			string sql = "SELECT count(data.errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('data.timestamp_close')}
 						        (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_reporterranddatas AS data
@@ -138,10 +136,9 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         to_char((TIMESTAMP 'epoch' + (answers.timestampcreated + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         to_char((TIMESTAMP 'epoch' + (answers.timestampcreated + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 						         ${.extractFunctionCalls('answers.timestampcreated')}
 						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
 						  FROM workflow_answers AS answers
@@ -201,7 +198,6 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
 				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
@@ -209,7 +205,7 @@ namespace Reports {
 			string sql = "
 				SELECT
 					count(data.errand_id) AS y,
-					to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+					to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 					${.extractFunctionCalls('data.timestamp_close')}
 					(CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
 				FROM workflow_reporterranddatas AS data
@@ -525,10 +521,9 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
 			string sql = "SELECT count(data.errand_id) AS y,
-			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('data.timestamp_close')}
 			                     (CASE WHEN data.response_time <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
 			              FROM workflow_reporterranddatas AS data
@@ -555,20 +550,18 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
-			string sql = "SELECT count(errands.workflow_errand_id) AS y,
-						         tags.display as x,
-						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
-						  FROM workflow_tags AS tags
-						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
-						  INNER JOIN workflow_errands AS errands ON errand_tags_links.parent_workflow_errand_id = errands.workflow_errand_id
-						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
-						  WHERE substr(tags.name, 1, 7) = 'client.'
-						  AND (errands.timestampClosed >= ${timeframe.start} OR errands.timestampLastAnswered >= ${timeframe.start})
-						  AND (errands.timestampClosed <= ${timeframe.end} OR errands.timestampLastAnswered <= ${timeframe.end})
-						  AND errands.targetarea_fkey IN (${.areas.join(',')})
-						  ${agentsWhereClause}
-						  ${.serviceWhereClause('errands', 'service_fkey')}
+			string agentsWhereClause = ( .agents ? "AND owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(child_workflow_tag_id) AS y,
+						         (SELECT display FROM workflow_tags WHERE workflow_tag_id=child_workflow_tag_id) AS x,
+						         (SELECT name FROM workflow_services WHERE workflow_service_id=(SELECT service_fkey FROM workflow_errands WHERE workflow_errand_id=parent_workflow_errand_id)) AS g
+						  FROM workflow_errand_tags_links
+						  WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE substr(name, 1, 7) = 'client.')
+						  AND parent_workflow_errand_id IN (SELECT workflow_errand_id FROM workflow_errands
+						                                    WHERE targetarea_fkey IN (${.areas.join(',')})
+						                                    AND ((timestampClosed >= ${timeframe.start} AND timestampClosed <= ${timeframe.end}) OR
+						                                         (timestampLastAnswered >= ${timeframe.start} AND timestampLastAnswered <= ${timeframe.end}))
+						                                    ${agentsWhereClause}
+						                                    ${.serviceWhereClause('workflow_errands', 'service_fkey')})
 						  GROUP BY x, g
 						  ORDER BY x";
 			.setGroups([
@@ -648,9 +641,8 @@ namespace Reports {
 		}
 		
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string sql = "SELECT count(distinct quickask_log_id) AS y,
-			                     to_char((TIMESTAMP 'epoch' + (logs.timestampwhen + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     to_char((TIMESTAMP 'epoch' + (logs.timestampwhen + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('logs.timestampwhen')}
 			                     (CASE WHEN matchingtemplates.matchtype IN (1, 2) THEN 'Answered' ELSE 'Unanswered' END) AS g
 			              FROM quickask_logs AS logs
@@ -709,9 +701,8 @@ namespace Reports {
 		 * @returns An array with the data
 		 */
 		function fetchData( object timeframe ) {
-			number timezoneOffset = Date.timezone() * 2;
 			string sql = "SELECT count(*) AS y,
-			              to_char((TIMESTAMP 'epoch' + (data.timestamp_when + INTEGER '${timezoneOffset}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_when + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			              ${.extractFunctionCalls('data.timestamp_when')}
 			              (CASE WHEN data.accepted = true THEN 'Accepted'
 			                    WHEN data.rejected_closed = true THEN 'Rejected (closed)'
