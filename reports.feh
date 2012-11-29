@@ -488,6 +488,7 @@ namespace Reports {
 			              AND data.timestamp_open <= ${timeframe.end}
 			              AND data.area_id IN (${.areas.join(',')})
 			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
 			              GROUP BY x
 			              ORDER BY x ASC";
 			.setGroups(['Average Time' => I('Average Time')]);
