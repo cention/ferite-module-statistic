@@ -259,8 +259,8 @@ namespace Reports {
 			string sql = "SELECT count(actions.workflow_action_id) AS y,
 			                     users.username AS x,
 			                     (CASE WHEN actions.type = 3 THEN 'Answered'
+			                           WHEN actions.type = 13 THEN 'Answered'
 			                           WHEN actions.type = 19 THEN 'Answered'
-			                           WHEN actions.type = 16 THEN 'Answered'
 			                           WHEN actions.type = 4 THEN 'Forwarded to agent'
 			                           WHEN actions.type = 8 THEN 'Returned'
 			                           WHEN actions.type = 7 THEN 'Deleted'
@@ -272,7 +272,26 @@ namespace Reports {
 			              INNER JOIN workflow_errand_actions_links ON parent_workflow_errand_id = errands.workflow_errand_id
 			              INNER JOIN workflow_actions AS actions ON child_workflow_action_id = actions.workflow_action_id
 			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
-			              WHERE actions.type IN (3, 4, 5, 6, 7, 8, 19, 20, 21)
+			              WHERE actions.type IN (3, 4, 5, 6, 7, 8, 13, 19, 20, 21)
+			              AND (actions.type != 13
+			                   OR (actions.type = 13
+			                       AND errands.workflow_errand_id NOT IN
+			                           (SELECT parent_workflow_errand_id
+			                            FROM workflow_errand_actions_links
+			                            WHERE parent_workflow_errand_id = errands.workflow_errand_id
+			                            AND child_workflow_action_id IN
+			                                (SELECT workflow_action_id
+			                                 FROM workflow_actions
+			                                 WHERE type = 19
+			                                 AND workflow_action_id IN
+			                                     (SELECT child_workflow_action_id
+			                                      FROM workflow_errand_actions_links
+			                                      WHERE parent_workflow_errand_id = errands.workflow_errand_id
+			                                     )
+			                                )
+			                           )
+			                      )
+			                  )
 			              AND actions.timestampwhen >= ${timeframe.start}
 			              AND actions.timestampwhen <= ${timeframe.end}
 			              AND errands.targetarea_fkey IN (${.areas.join(',')})
