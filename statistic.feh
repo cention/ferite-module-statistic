@@ -13,7 +13,8 @@ namespace Statistic {
 	final number SERVICE_MANUAL = 2;
 	
 	function timezoneOffset() {
-		return (Date.localDate(Date.now()).time() - Date.date(Date.now()).time()) + Date.timezone();
+		/* return (Date.localDate(Date.now()).time() - Date.date(Date.now()).time()) + Date.timezone(); */
+		return 14400;
 	}
 	
 	/**
