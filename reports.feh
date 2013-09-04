@@ -742,6 +742,55 @@ namespace Reports {
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
+	
+	class AnswerFeedback extends Statistic.AgentView{
+		constructor {
+			super();
+			.name = I('Answer Feedback');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( object timeframe )
+		 * @brief Fetches data used by the getData() function
+		 * @param object timeframe The timeframe in which to fetch values
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			array groups = [];
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(mail.satisfylevel) AS y,
+			                     users.username AS x,
+			                     (CASE WHEN mail.satisfylevel = 1 THEN 'Very Satisfied'
+			                           WHEN mail.satisfylevel = 2 THEN 'Satisfied'
+			                           WHEN mail.satisfylevel = 3 THEN 'Ok'
+			                           WHEN mail.satisfylevel = 4 THEN 'Dissatisfied'
+			                           WHEN mail.satisfylevel = 5 THEN 'Very Dissatisfied' END) AS g
+			              FROM workflow_errands AS errands
+			              INNER JOIN workflow_mails AS mail ON mail.workflow_mail_id = errands.mail_fkey
+			              INNER JOIN workflow_users AS users ON errands.owner_fkey = users.workflow_user_id
+			              WHERE mail.satisfylevel IN (1,2,3,4,5)
+			              AND mail.satisfylevel != 0			           
+			              AND errands.timestamplastanswered >= ${timeframe.start}
+			              AND errands.timestamplastanswered <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              GROUP BY x, g
+			              ORDER BY x";
+			              
+			groups = ['Very Satisfied'           => I('Very Satisfied'),
+			          'Satisfied' => I('Satisfied'),
+			          'Ok'           => I('Ok'),
+			          'Dissatisfied'            => I('Dissatisfied'),
+			          'Very Dissatisfied'    => I('Very Dissatisfied')];
+			.setGroups(groups);
+			
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	
 }
 /**
  * @end
