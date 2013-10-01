@@ -743,7 +743,7 @@ namespace Reports {
 		}
 	}
 	
-	class AnswerFeedback extends Statistic.AgentView{
+	class AnswerFeedback extends Statistic.AgentView {
 		constructor {
 			super();
 			.name = I('Answer Feedback');
@@ -768,7 +768,8 @@ namespace Reports {
 			                           WHEN mail.satisfylevel = 4 THEN 'Dissatisfied'
 			                           WHEN mail.satisfylevel = 5 THEN 'Very Dissatisfied' END) AS g
 			              FROM workflow_errands AS errands
-			              INNER JOIN workflow_mails AS mail ON mail.workflow_mail_id = errands.mail_fkey
+			              INNER JOIN workflow_answers AS answer ON answer.workflow_answer_id = errands.answer_fkey
+			              INNER JOIN workflow_mails AS mail ON mail.workflow_mail_id = answer.response_fkey
 			              INNER JOIN workflow_users AS users ON errands.owner_fkey = users.workflow_user_id
 			              WHERE mail.satisfylevel IN (1,2,3,4,5)
 			              AND mail.satisfylevel != 0			           
@@ -785,7 +786,6 @@ namespace Reports {
 			          'Dissatisfied'            => I('Dissatisfied'),
 			          'Very Dissatisfied'    => I('Very Dissatisfied')];
 			.setGroups(groups);
-			
 			return ObjRunObject.rawQuery(sql);
 		}
 	}
