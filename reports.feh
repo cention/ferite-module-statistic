@@ -630,11 +630,12 @@ namespace Reports {
 			                                               WHERE child_workflow_tag_id = (SELECT workflow_tag_id
 			                                                                              FROM workflow_tags
 			                                                                              WHERE name = 'system.errand.deleted'))
-			                      AND data.errand_id NOT IN (SELECT parent_workflow_errand_id
+			                       /* ashish@06.12.2013  this block crashing the page*/
+			                      /*AND data.errand_id NOT IN (SELECT parent_workflow_errand_id
 			                                                 FROM workflow_errand_tags_links
 			                                                 WHERE child_workflow_tag_id IN (SELECT workflow_tag_id
 			                                                                                 FROM workflow_tags
-			                                                                                 WHERE fordelete = true))
+			                                                                                 WHERE fordelete = true))*/
 			                      AND data.timestamp_close >= ${timeframe.start}
 			                      AND data.timestamp_close <= ${timeframe.end}
 			                      AND data.area_id IN (${.areas.join(',')})
