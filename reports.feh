@@ -2,6 +2,7 @@ uses 'console';
 uses 'statistic';
 uses 'ObjRunSrv';
 uses 'objrunsrv-workflow';
+uses 'webframework/webframework';
 
 /**
  * @namespace Reports

@@ -10,7 +10,7 @@ namespace modifies Array {
 			a[b.getName(i)] = b[i];
 		return a;
 	}
-	function setRow( array& a, array& groups, number value, array& extra ) {
+	function setRow( array& a, array& groups, string key, number value, array& extra ) {
 		number size = a.size();
 		number sizeGroups = groups.size();
 		boolean set = false;
@@ -37,7 +37,7 @@ namespace modifies Array {
 			}
 			if( found ) {
 				//Console.printlnErr('[DEBUG]  - Found!');
-				a[i]['key'] = value;
+				a[i][key] = value;
 				extra.each() using ( name ) {
 					a[i][name] = groups[name];
 				};
@@ -53,7 +53,7 @@ namespace modifies Array {
 				if( name.index('group') == 0 )
 					row[name] = groups[j];
 			}
-			row['key'] = value;
+			row[key] = value;
 			extra.each() using ( name ) {
 				row[name] = groups[name];
 			};
@@ -139,13 +139,6 @@ namespace Statistics {
 	} 
 
 	abstract class AbstractDateTimeGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		static number _nextOrderID;
-		static function nextOrderName() {
-			string name = 'order' + ._nextOrderID;
-			._nextOrderID++;
-			return name;
-		}
-		
 		array _fields;
 		
 		function build() {
@@ -153,8 +146,11 @@ namespace Statistics {
 			array have = [];
 			number time = .startTime() + Date.timezone();
 			number endTime = .endTime() + Date.timezone();
-			while ( time <= (endTime + .seconds()) ) {
+			// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
+			//                    but it produces strange results so I am going to remove it.
+			while ( time <= endTime ) {
 				string group = Date.localDate(time).format(.feriteFormat());
+				Console.printlnErr('(GROUP) ' + group);
 				if( not have.keyExists(group) ) {
 					list[] = group;
 					have[group] = true;
@@ -167,7 +163,7 @@ namespace Statistics {
 			array list = [];
 			list[] = "to_char((TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1 second'), '${.format()}') AS ${.groupName()}";
 			.fields().each() using ( field ) {
-				string name = Statistics.AbstractDateTimeGroup.nextOrderName();
+				string name = Statistics.nextOrderName();
 				._fields[] = name;
 				list[] = "extract(${field} from (TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1  second')) AS ${name}";
 			};
@@ -225,6 +221,8 @@ namespace Statistics {
 			if( .previousGroup )
 				.previousGroup.setNextGroup(group);
 			.previousGroup = group;
+			group.setStartTime(.startTime);
+			group.setEndTime(.endTime);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -297,55 +295,55 @@ namespace Statistics {
 				' ORDER BY ' + orderBy.join(', ');
 		}
 		
-		function run() {
-			string query = .buildQuery(.keys[0], .groups);
+		function valuesForKey( object key, array& extra ) {
+			string query;
 			number size;
-			array result;
-			//array groups;
+			array tempResult;
+			string name;
+
+			Statistics.resetGroupID();
+			Statistics.resetOrderID();
+
+			query = .buildQuery(key, .groups);
+
+			name = 'key_' + Regexp.replaceAll(' ', key.name(), '').toLower();
+
+			size = .result.size();
+			for( number i = 0; i < size; ++i )
+				.result[i][name] = 0;
+
+			tempResult = ObjRunObject.rawQuery(query);
+
+			size = tempResult.size();
+			for( number i = 0; i < size; ++i ) {
+				number value = (tempResult[i]['key'] isa string
+					? tempResult[i]['key'].toNumber()
+					: tempResult[i]['key']);
+				.result.setRow(tempResult[i], name, value, extra);
+			}
+		}
+
+		function run() {
 			array extra;
 
 			.groups.each() using ( group ) {
 				extra = extra.append(group.extra());
 			};
 
-			//.groups.each() using ( group ) {
-			//	groups[] = group.groupName();
-			//;
-
-			//Console.printlnErr('[DEBUG] -----------------------------------------------------');
 			.result = .firstGroup().build();
-			//Console.printlnErr('[DEBUG] -----------------------------------------------------');
 
-			size = .result.size();
-			for( number i = 0; i < size; ++i )
-				.result[i]['key'] = 0;
-			
+			.keys.each() using ( key ) {
+				.valuesForKey(key, extra);
+			};
+
 			Console.printlnErr('[DEBUG] -----------------------------------------------------');
 			Console.printlnErr('[DEBUG] ' + .result);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] ' + query);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-
-			result = ObjRunObject.rawQuery(query);
-
-			size = result.size();
-			for( number i = 0; i < size; ++i ) {
-				number value = (result[i]['key'] isa string
-					? result[i]['key'].toNumber()
-					: result[i]['key']);
-				.result.setRow(result[i], value, extra);
-			}
-
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] ' + result);
 			Console.printlnErr('[DEBUG] -----------------------------------------------------');
 		}
 
 		function toHTML() {
 			object formatter = new Statistics.HTMLFormatter();
-			return formatter.run(.groups.append([ .keys[0] ]), .result);
+			return formatter.run(.groups.append(.keys), .result);
 		}
 
 		function toJSON() {
@@ -500,7 +498,19 @@ namespace Statistics {
 		._nextGroupID++;
 		return name;
 	}
+
+	number _nextOrderID;
+	function nextOrderName() {
+		string name = 'order' + ._nextOrderID;
+		._nextOrderID++;
+		return name;
+	}
 	
+	function resetGroupID()
+		._nextGroupID = 0;
+	function resetOrderID()
+		._nextOrderID = 0;
+
 	/*
 	function groupRows( array& rows ) {
 		array report = [];
@@ -595,13 +605,13 @@ namespace Statistics {
 			report.each() using ( data ) {
 				object row = new Statistics.HTMLRow();
 				array values = [];
-				string keyValue;
+				array keyValues;
 				
 				for( number i = 0; i < data.size(); i++ ) {
 					if( data.getName(i).index('group') == 0 ) {
 						values[] = String.trim('' + data[i], ' ');
-					} else if( data.getName(i) == 'key' ) {
-						keyValue = String.trim('' + data[i], ' ');
+					} else if( data.getName(i).index('key') == 0 ) {
+						keyValues[] = String.trim('' + data[i], ' ');
 					}
 				}
 				
@@ -612,11 +622,11 @@ namespace Statistics {
 					row.addColumn(column);
 				};
 				
-				{
+				keyValues.each() using ( keyValue ) {
 					object column = new Statistics.HTMLColumn();
 					column.value = keyValue;
 					row.addColumn(column);
-				}
+				};
 				
 				rows[] = row;
 			};
