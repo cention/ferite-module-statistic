@@ -301,7 +301,7 @@ namespace Statistics {
 			array tempResult;
 			string name;
 
-			Statistics.resetGroupID();
+//			Statistics.resetGroupID();
 			Statistics.resetOrderID();
 
 			query = .buildQuery(key, .groups);
