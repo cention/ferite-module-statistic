@@ -33,8 +33,12 @@ namespace modifies Statistics {
 				rows = ObjRunObject.rawQuery(query);
 
 				rows.each() using ( row ) {
-					items[] = [ 'name' => I('Errand {0}').expand(row['workflow_errand_id']),
-					            'value' => formatDateTime(row[columnTime]) ];
+					items[] = [
+						'name' => I('Errand {0}').expand(row['workflow_errand_id']),
+						'value' => formatDateTime(row[columnTime]),
+						'errand' => true,
+						'id' => row['workflow_errand_id']
+					];
 				};
 
 				return [
@@ -52,6 +56,8 @@ namespace modifies Statistics {
 				object key = .getReport();
 				object group;
 				string nextGroupName;
+
+				array output;
 
 				switch( groupName ) {
 					case 'year':         group = new Reports.YearGroup(); nextGroupName = 'month'; break;
@@ -75,28 +81,80 @@ namespace modifies Statistics {
 
 				report.run();
 
-				return [
+				output = [
 					'group' => group.name(),
 					'key' => key.name(),
 					'next' => nextGroupName,
 					'items' => report.toDrillDownArray(),
 					'total' => report.getTotal(0)
 				];
+
+				Console.printlnErr("(DEBUG) " + output);
+
+				return output;
 			}
 
 			function loadData( string groupName, number startTime, number endTime, number channelID,
 				number organisationID, number areaID, number userID )
 			{
 				if( groupName == 'errands' )
-					return .loadErrands(groupName, startTime, endTime, channelID,
-						organisationID, areaID, userID);
-				return .loadStandard(groupName, startTime, endTime, channelID,
-					organisationID, areaID, userID);
+					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID);
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID);
 			}
 
 			function loadFirstData() {
 				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0);
 			}
+		}
+	}
+
+	class modifies Report {
+		function toDrillDownArray() {
+			number first = 0;
+			string keyName = 'key_' + .keys[first].identifier();
+			object group = .groups[first];
+			string groupName = group.groupName();
+			number size = .result.size();
+			array items = [];
+
+			for( number i = 0; i < size; ++i ) {
+				array item = [ 'name' => .result[i][groupName],
+				               'value' => .result[i][keyName],
+				               'start' => .startTime,
+				               'end' => .endTime ];
+
+				if( .channels ) item['channel'] = .channels[0];
+				if( .organisations ) item['organisation'] = .organisations[0];
+				if( .areas ) item['area'] = .areas[0];
+				if( .users ) item['user'] = .users[0];
+
+				if( group.getClass().conformsToProtocol(Statistics.DateTimeGroup) ) {
+					item['start'] = group.start(item['name']);
+					item['end'] = group.end(item['name']);
+				} else if( group instanceof Reports.ChannelGroup ) {
+					if( .result[i].keyExists('workflow_service_id') )
+						item['channel'] = .result[i]['workflow_service_id'];
+				} else if( group instanceof Reports.OrganisationGroup ) {
+					if( .result[i].keyExists('workflow_organisation_id') )
+						item['organisation'] = .result[i]['workflow_organisation_id'];
+				} else if( group instanceof Reports.AreaGroup ) {
+					if( .result[i].keyExists('workflow_area_id') )
+						item['area'] = .result[i]['workflow_area_id'];
+				} else if( group instanceof Reports.AgentGroup ) {
+					if( .result[i].keyExists('workflow_user_id') )
+						item['user'] = .result[i]['workflow_user_id'];
+				}
+
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				Console.printlnErr('[DEBUG] Row: ' + .result[i]);
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				Console.printlnErr('[DEBUG] Item: ' + item);
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+
+				items[] = item;
+			}
+
+			return items;
 		}
 	}
 }
