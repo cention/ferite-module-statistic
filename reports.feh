@@ -2,232 +2,746 @@ uses 'console';
 uses 'statistic';
 uses 'ObjRunSrv';
 uses 'objrunsrv-workflow';
-uses 'webframework/webframework';
 
 /**
  * @namespace Reports
  * @brief Contains all Cention Reports
  */
 namespace Reports {
-	class IncomingErrands implements Statistics.KeyFigure {
-		function name() return I('Incoming');
-		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return 'workflow_reporterranddatas';
-		function where() return '';
-		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
-		function columnArea() return 'workflow_reporterranddatas.area_id';
-		function columnUser() return 'workflow_reporterranddatas.user_id';
-		function columnChannel() return 'workflow_reporterranddatas.service_id';
-		function columnTime() return 'workflow_reporterranddatas.timestamp_arrive';
-	}
-
-	class ClosedErrands extends IncomingErrands {
-		function name() return I('Closed');
-		function where() return 'timestamp_close > 0';
-		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
-	}
-
-	class ClosedErrandsWithReplies extends ClosedErrands {
-		function name() return I('Replies');
-		function where() return 'timestamp_replied > 0';
-	}
-
-	abstract class AverageErrandResponseTime extends ClosedErrands {
-		function name() return I('Average response time');
-		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
-		function seconds() raise new Error('Function seconds() has not been implemented.');
-	}
-
-	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
-		function seconds() return 1;
-	}
-
-	class AverageErrandResponseTimeInMinutes extends AverageErrandResponseTime {
-		function seconds() return 60;
-	}
-
-	class AverageErrandResponseTimeInHours extends AverageErrandResponseTime {
-		function seconds() return 3600;
-	}
-
-	class AverageErrandResponseTimeInDays extends AverageErrandResponseTime {
-		function seconds() return 86400;
-	}
-
-	abstract class AverageErrandProcessTime implements Statistics.KeyFigure {
-		function name() return I('Average process time');
-		function select() return 'floor(avg(workflow_reportuserdatas.process_time) / ' + .seconds() + ') AS key';
-		function from() return 'workflow_reportuserdatas';
-		function where() return '';
-		function columnOrganisation() return 'workflow_reportuserdatas.organisation_id';
-		function columnArea() return 'workflow_reportuserdatas.area_id';
-		function columnUser() return 'workflow_reportuserdatas.user_id';
-		function columnChannel() return 'workflow_reportuserdatas.service_id';
-		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
-		function seconds() raise new Error('Function seconds() has not been implemented.');
-	}
-
-	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {
-		function seconds() return 1;
-	}
-
-	class AverageErrandProcessTimeInMinutes extends AverageErrandProcessTime {
-		function seconds() return 60;
-	}
-
-	class AverageErrandProcessTimeInHours extends AverageErrandProcessTime {
-		function seconds() return 3600;
-	}
-
-	class AverageErrandProcessTimeInDays extends AverageErrandProcessTime {
-		function seconds() return 86400;
-	}
-
-	abstract class ErrandClosureStatus implements Statistics.KeyFigure {
-		function name() raise new Error('Function name() has not been implemented.');
-		function select() return 'count(workflow_actions.workflow_action_id) AS key';
-		function from() return 'workflow_actions';
-		function where() raise new Error('Function where() has not been implemented.');
-		function columnOrganisation() return 'workflow_actions.organisation_fkey';
-		function columnArea() return 'workflow_actions.area_fkey';
-		function columnUser() return 'workflow_actions.origin_fkey';
-		function columnChannel() return 'workflow_actions.channel_fkey';
-		function columnTime() return 'return workflow_actions.timestampwhen';
-	}
-
-	class ErrandClosureStatusAnswered extends ErrandClosureStatus {
-		function name() return I('Answered');
-		function where() return 'workflow_actions.type IN (3, 19)'; // TODO: Add Resend
-	}
-
-	class ErrandClosureStatusDeleted extends ErrandClosureStatus {
-		function name() return I('Deleted');
-		function where() return 'workflow_actions.type = 7';
-	}
-
-	class ErrandClosureStatusReturned extends ErrandClosureStatus {
-		function name() return I('Deleted');
-		function where() return 'workflow_actions.type = 8';
-	}
-
-	class ErrandClosureStatusForwardedToArea extends ErrandClosureStatus {
-		function name() return I('Forwarded to area');
-		function where() return 'workflow_actions.type = 5';
-	}
-
-	class ErrandClosureStatusForwardedToAgent extends ErrandClosureStatus {
-		function name() return I('Forwarded to agent');
-		function where() return 'workflow_actions.type = 4';
-	}
-	
-	class ErrandClosureStatusMovedToFolder extends ErrandClosureStatus {
-		function name() return I('Moved to folder');
-		function where() return 'workflow_actions.type = 6';
-	}
-
-	class ErrandClosureStatusChatFinished extends ErrandClosureStatus {
-		function name() return I('Chat finished');
-		function where() return 'workflow_actions.type = 20';
-	}
-
-	class ErrandClosureStatusChatExpired extends ErrandClosureStatus {
-		function name() return I('Chat expired');
-		function where() return 'workflow_actions.type = 21';
-	}
-
-	class OrganisationGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		function build() return [];
-		function name() return I('Organisation');
-		function select( object key ) return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name AS ' + .groupName();
-		function from() return 'workflow_organisations';
-		function where( object key ) return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
-		function groupBy() return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name';
-		function orderBy() return 'workflow_organisations.name';
-		function extra() return [ 'workflow_organisation_id' ];
-	}
-	
-	class AreaGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		function build() return [];
-		function name() return I('Area');
-		function select( object key ) return 'workflow_areas.workflow_area_id, workflow_areas.name AS ' + .groupName();
-		function from() return 'workflow_areas';
-		function where( object key ) return key.columnArea() + ' = workflow_areas.workflow_area_id';
-		function groupBy() return 'workflow_areas.workflow_area_id, workflow_areas.name';
-		function orderBy() return 'workflow_areas.name';
-		function extra() return [ 'workflow_area_id' ];
-	}
-
-	class AgentGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		function build() return [];
-		function name() return I('Agent');
-		function select( object key ) return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
-		function from() return 'workflow_users';
-		function where( object key ) return key.columnUser() + ' = workflow_users.workflow_user_id';
-		function groupBy() return 'workflow_users.workflow_user_id, workflow_users.username';
-		function orderBy() return 'workflow_users.username';
-		function extra() return [ 'workflow_user_id' ];
-	}
-
-	class ChannelGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		function build() return .build([ 'Email', 'Manual', 'Chat', 'Facebook', 'Twitter' ]);
-		function name() return I('Channel');
-		function select( object key ) return 'workflow_services.workflow_service_id, workflow_services.name AS ' + .groupName();
-		function from() return 'workflow_services';
-		function where( object key ) return key.columnChannel() + ' = workflow_services.workflow_service_id';
-		function groupBy() return 'workflow_services.workflow_service_id, workflow_services.name';
-		function orderBy() return 'workflow_services.name';
-		function extra() return [ 'workflow_service_id' ];
-	}
-
-	class YearGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
-		function name() return I('Year');
-		function feriteFormat() return '%Y';
-		function format() return 'YYYY';
-		function fields() return [ 'year' ];
-		function seconds() return 31536000;
-		function start( string year ) return .localDateToGMTtimestamp("${year}-01-01 00:00:00");
-		function end( string year ) return .localDateToGMTtimestamp("${year}-12-31 23:59:59");
-	}
-	
-	class MonthGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
-		function name() return I('Month');
-		function feriteFormat() return '%B';
-		function format() return 'Month';
-		function fields() return [ 'month' ];
-		function seconds() return 2419200;
-		function start( string item ) {
-			string year = .localYearFromGMTtimestamp(.endTime());
-			string month = Date.localParse(item, '%B').format('%m');
-			return .localDateToGMTtimestamp("${year}-${month}-01 00:00:00");
+	/**
+	 * @class IncomingErrands
+	 * @extends Statistic.AbsoluteTimeView
+	 * @brief Handles data needed for incoming errands statistic view
+	 */
+	class IncomingErrands extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Incoming');
+			.workflow = true;
 		}
-		function end( string item ) {
-			string year = .localYearFromGMTtimestamp(.endTime());
-			string month = Date.localParse(item, '%B').format('%m');
-			number y = year.toNumber();
-			number m = month.toNumber();
-			number day = (m == 2
-				? (y % 4
-					? 28 :
-					(y % 100
-						? 29
-						: (y % 400
-							? 28
-							: 29)))
-				: ((m - 1) % 7 % 2
-					? 30
-					: 31));
-			return .localDateToGMTtimestamp("${year}-${month}-${day} 23:59:59");
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( object timeframe )
+		 * @brief Fetches data used by the getData() function
+		 * @param object timeframe The timeframe in which to fetch values
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(errand_id) AS y,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_arrive + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              ${.extractFunctionCalls('data.timestamp_arrive')}
+			              (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			              FROM workflow_reporterranddatas AS data
+			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			              WHERE data.timestamp_arrive >= ${timeframe.start}
+			              AND data.timestamp_arrive <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${.serviceWhereClause()}
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
 		}
 	}
-
-	class DayGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
-		function name() return I('Day');
-		function feriteFormat() return '%F';
-		function format() return 'YYYY-MM-DD';
-		function fields() return [ 'year', 'month', 'day' ];
-		function seconds() return 86400;
-		function start( string day ) return .localDateToGMTtimestamp("${day} 00:00:00");
-		function end( string day ) return .localDateToGMTtimestamp("${day} 23:59:59");
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ClosedErrands
+	 * @extends Statistic.AbsoluteTimeView
+	 * @brief Handles data needed for closed errands statistic view
+	 */
+	class ClosedErrands extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Closed');
+			.workflow = true;
+		}
+		
+		boolean showDeletedErrands = false;
+		function setShowDeletedErrands( boolean value ) {
+			.showDeletedErrands = value;
+		}
+		array deleteTags;
+		function setDeleteTags( array value ) {
+			.deleteTags = value;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
+				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
+				(.showDeletedErrands ? "" : "AND NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))" ));
+			string sql = "SELECT count(data.errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('data.timestamp_close')}
+						        (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_reporterranddatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id 
+						  WHERE data.timestamp_close > 0
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
+						  ${showDeletedErrandsWhereClause}
+						  GROUP BY x ${.orderingFields()} g
+						  ${.orderByStatement()}";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class PublishedErrands
+	 * @extends Statistic.AbsoluteTimeView
+	 * @brief Handles data needed for published errands statistic view
+	 */
+	class PublishedErrands extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Published');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND errands.owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(errands.workflow_errand_id) AS y,
+						         to_char((TIMESTAMP 'epoch' + (answers.timestampcreated + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+						         ${.extractFunctionCalls('answers.timestampcreated')}
+						         (CASE WHEN errands.service_fkey = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_answers AS answers
+						  INNER JOIN workflow_errands AS errands ON answers.workflow_answer_id = errands.answer_fkey
+						  LEFT JOIN workflow_services AS services ON errands.service_fkey = services.workflow_service_id
+						  INNER JOIN workflow_errand_tags_links AS errand_tags_links ON errands.workflow_errand_id = errand_tags_links.parent_workflow_errand_id
+						  INNER JOIN workflow_tags AS tags ON errand_tags_links.child_workflow_tag_id = tags.workflow_tag_id
+						  WHERE tags.name = 'system.errand.published.yes'
+						  AND answers.timestampcreated >= ${timeframe.start}
+						  AND answers.timestampcreated <= ${timeframe.end}
+						  AND errands.targetarea_fkey IN (${.areas.join(',')})
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause('errands', 'service_fkey')}
+						  GROUP BY x ${.orderingFields()} g
+						  ${.orderByStatement()}";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ClosedErrandsWithReplies
+	 * @extends Statistic.AbsoluteTimeView
+	 * @brief Handles data needed for closed errands with replies statistic view
+	 */
+	// Replies
+	class ClosedErrandsWithReplies extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Replies');
+			.workflow = true;
+		}
+		
+		boolean showDeletedErrands = false;
+		function setShowDeletedErrands( boolean value ) {
+			.showDeletedErrands = value;
+		}
+		array deleteTags;
+		function setDeleteTags( array value ) {
+			.deleteTags = value;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string showDeletedErrandsWhereClause = ( .showDeletedErrands and .deleteTags ?
+				"AND ((data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (${.deleteTags.join(',')}))) OR (NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))))" :
+				(.showDeletedErrands ? "" : "AND NOT (data.errand_id IN (SELECT parent_workflow_errand_id FROM workflow_errand_tags_links WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE name = 'system.errand.deleted')))" ));
+			string sql = "
+				SELECT
+					count(data.errand_id) AS y,
+					to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+					${.extractFunctionCalls('data.timestamp_close')}
+					(CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+				FROM workflow_reporterranddatas AS data
+				LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+				WHERE
+					data.timestamp_replied > 0 AND
+					data.timestamp_close >= ${timeframe.start} AND
+					data.timestamp_close <= ${timeframe.end} AND
+					data.area_id IN (${.areas.join(',')})
+					${agentsWhereClause}
+					${.serviceWhereClause()}
+					${showDeletedErrandsWhereClause}
+				GROUP BY x ${.orderingFields()} g
+				${.orderByStatement()}";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ErrandClosureStatus
+	 * @extends Statistic.AgentView
+	 * @brief Handles data needed for errand closure status statistic view
+	 */
+	class ErrandClosureStatus extends Statistic.AgentView {
+		constructor {
+			super();
+			.name = I('Closure status');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			array groups = [];
+			string agentsWhereClause = ( .agents ? "AND actions.origin_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(actions.workflow_action_id) AS y,
+			                     users.username AS x,
+			                     (CASE WHEN actions.type = 3 THEN 'Answered'
+			                           WHEN actions.type = 13 THEN 'Answered'
+			                           WHEN actions.type = 19 THEN 'Answered'
+			                           WHEN actions.type = 4 THEN 'Forwarded to agent'
+			                           WHEN actions.type = 8 THEN 'Returned'
+			                           WHEN actions.type = 7 THEN 'Deleted'
+						               WHEN actions.type = 5 THEN 'Forwarded to area'
+			                           WHEN actions.type = 6 THEN 'Moved to folder'
+			                           WHEN actions.type = 20 THEN 'Chat finished'
+			                           WHEN actions.type = 21 THEN 'Chat expired' END) AS g
+			              FROM workflow_errands AS errands
+			              INNER JOIN workflow_errand_actions_links ON parent_workflow_errand_id = errands.workflow_errand_id
+			              INNER JOIN workflow_actions AS actions ON child_workflow_action_id = actions.workflow_action_id
+			              INNER JOIN workflow_users AS users ON actions.origin_fkey = users.workflow_user_id
+			              WHERE actions.type IN (3, 4, 5, 6, 7, 8, 13, 19, 20, 21)
+			              AND (actions.type != 13
+			                   OR (actions.type = 13
+			                       AND errands.workflow_errand_id NOT IN
+			                           (SELECT parent_workflow_errand_id
+			                            FROM workflow_errand_actions_links
+			                            WHERE parent_workflow_errand_id = errands.workflow_errand_id
+			                            AND child_workflow_action_id IN
+			                                (SELECT workflow_action_id
+			                                 FROM workflow_actions
+			                                 WHERE type = 19
+			                                 AND workflow_action_id IN
+			                                     (SELECT child_workflow_action_id
+			                                      FROM workflow_errand_actions_links
+			                                      WHERE parent_workflow_errand_id = errands.workflow_errand_id
+			                                     )
+			                                )
+			                           )
+			                      )
+			                  )
+			              AND actions.timestampwhen >= ${timeframe.start}
+			              AND actions.timestampwhen <= ${timeframe.end}
+			              AND errands.targetarea_fkey IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause('errands', 'service_fkey')}
+			              GROUP BY x, g
+			              ORDER BY x";
+			groups = ['Answered'           => I('Answered'),
+			          'Forwarded to agent' => I('Forwarded to agent'),
+			          'Returned'           => I('Returned'),
+			          'Deleted'            => I('Deleted'),
+			          'Forwarded to area'  => I('Forwarded to area'),
+			          'Moved to folder'    => I('Moved to folder')];
+			if( F('chat') ) {
+				groups['Chat expired']  = I('Chat expired');
+				groups['Chat finished'] = I('Chat finished');
+			}
+			.setGroups(groups);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ErrandResponseTime
+	 * @extends Statistic.RelativeTimeView
+	 * @brief Handles data needed for response time statistic view
+	 */
+	class ErrandResponseTime extends Statistic.RelativeTimeView {
+		string key;
+		
+		constructor {
+			super();
+			.name = I('Response time');
+			.key = I('Response time');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     data.response_time / ${.outputTime.seconds} AS x,
+						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_reporterranddatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+						  WHERE timestamp_close > 0
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
+						  GROUP BY x, g
+						  ORDER BY x";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ErrandProcessTime
+	 * @extends Statistic.RelativeTimeView
+	 * @brief Handles data needed for errand process time statistic view
+	 */
+	class ErrandProcessTime extends Statistic.RelativeTimeView {
+		constructor {
+			super();
+			.name = I('Process time');
+			.key = I('Process time');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     data.process_time / ${.outputTime.seconds} AS x,
+						         (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+						  FROM workflow_reporterranddatas AS data
+						  LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+						  WHERE data.timestamp_close > 0
+						  AND data.timestamp_close >= ${timeframe.start}
+						  AND data.timestamp_close <= ${timeframe.end}
+						  AND data.area_id IN (${.areas.join(',')})
+						  ${agentsWhereClause}
+						  ${.serviceWhereClause()}
+						  GROUP BY x, g
+						  ORDER BY x";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AverageErrandResponseTime
+	 * @extendsStatistic.AreaRelativeTimeView
+	 * @brief Handles data needed for average errand response time statistic view
+	 */
+	class AverageErrandResponseTime extends Statistic.AreaRelativeTimeView {
+		constructor {
+			super();
+			.name = I('Average response time');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT areas.name AS x,
+			                     floor(avg(data.response_time) / ${.outputTime.seconds}) AS y,
+			                     'Average Time' AS g
+			              FROM workflow_reporterranddatas AS data
+			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
+			              WHERE data.timestamp_close > 0
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x
+			              ORDER BY x ASC;";
+			.setGroups(['Average Time' => I('Average Time')]);
+			.setCustomTotalCounter(closure( string group ) {
+				array rows = ObjRunObject.rawQuery(
+						"SELECT floor(avg(data.response_time) / ${.outputTime.seconds}) AS total
+						 FROM workflow_reporterranddatas AS data
+						 WHERE data.timestamp_close > 0
+						 AND data.timestamp_close >= ${timeframe.start}
+						 AND data.timestamp_close <= ${timeframe.end}
+						 AND data.area_id IN (${.areas.join(',')})
+						 ${agentsWhereClause}
+						 ${.serviceWhereClause()}"
+					);
+				if( rows and rows[0]['total'] ) {
+					return rows[0]['total'].toNumber();
+				}
+				return 0;
+			});
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AverageErrandProcessTime
+	 * @extends Statistic.AgentRelativeTimeView
+	 * @brief Handles data needed for average errand process time statistic view
+	 */
+	class AverageErrandProcessTime extends Statistic.AgentRelativeTimeView {
+		constructor {
+			super();
+			.name = I('Average process time');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( number timeframeStart, number timeframeEnd )
+		 * @brief Fetches data used by the getData() function
+		 * @param number timeframeStart the start timestamp for the timeframe
+		 * @param number timeframeEnd the end timestamp for the timeframe
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT users.username AS x,
+			                     floor(avg(data.process_time) / ${.outputTime.seconds}) AS y,
+			                     'Average Time' AS g
+			              FROM workflow_reportuserdatas AS data
+			              JOIN workflow_users AS users ON users.workflow_user_id = data.user_id
+			              WHERE data.timestamp_open >= ${timeframe.start}
+			              AND data.timestamp_open <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x
+			              ORDER BY x ASC";
+			.setGroups(['Average Time' => I('Average Time')]);
+			.setCustomTotalCounter(closure( string group ) {
+				array rows = ObjRunObject.rawQuery(
+						"SELECT floor(avg(data.process_time) / ${.outputTime.seconds}) AS total
+						 FROM workflow_reportuserdatas AS data
+						 WHERE data.timestamp_open >= ${timeframe.start}
+						 AND data.timestamp_open <= ${timeframe.end}
+						 AND data.area_id IN (${.areas.join(',')})
+						 ${agentsWhereClause}
+						 ${.serviceWhereClause()}"
+					);
+				if( rows and rows[0]['total'] ) {
+					return rows[0]['total'].toNumber();
+				}
+				return 0;
+			});
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	class ErrandSLATime extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('SLA time');
+			.workflow = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('data.timestamp_close')}
+			                     (CASE WHEN data.response_time <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
+			              FROM workflow_reporterranddatas AS data
+			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
+			              WHERE data.timestamp_close > 0
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups(['Responded according to SLA time' => I('Responded according to SLA time'), 'Responded after SLA time' => I('Responded after SLA time')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class ErrandClassification extends Statistic.ActionView {
+		constructor {
+			super();
+			.name = I('Classification');
+			.key = I('Classification');
+			.workflow = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			string agentsWhereClause = ( .agents ? "AND owner_fkey IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(child_workflow_tag_id) AS y,
+						         (SELECT display FROM workflow_tags WHERE workflow_tag_id=child_workflow_tag_id) AS x,
+						         (SELECT name FROM workflow_services WHERE workflow_service_id=(SELECT service_fkey FROM workflow_errands WHERE workflow_errand_id=parent_workflow_errand_id)) AS g
+						  FROM workflow_errand_tags_links
+						  WHERE child_workflow_tag_id IN (SELECT workflow_tag_id FROM workflow_tags WHERE substr(name, 1, 7) = 'client.')
+						  AND parent_workflow_errand_id IN (SELECT workflow_errand_id FROM workflow_errands
+						                                    WHERE targetarea_fkey IN (${.areas.join(',')})
+						                                    AND ((timestampClosed >= ${timeframe.start} AND timestampClosed <= ${timeframe.end}) OR
+						                                         (timestampLastAnswered >= ${timeframe.start} AND timestampLastAnswered <= ${timeframe.end}))
+						                                    ${agentsWhereClause}
+						                                    ${.serviceWhereClause('workflow_errands', 'service_fkey')})
+						  GROUP BY x, g
+						  ORDER BY x";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class DeletedErrands extends Statistic.ActionView {
+		constructor {
+			super();
+			.name = I('Deleted Errands');
+			.key = I('Deleted Errands');
+			.workflow = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			array rows;
+			string agentsWhereClause = ( .agents ? "AND data.user_id IN (${.agents.join(',')})" : '' );
+			string sql = "SELECT count(data.errand_id) AS y,
+			                     tags.display as x,
+			                     (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			              FROM workflow_tags AS tags
+			              INNER JOIN workflow_errand_tags_links AS errand_tags_links ON tags.workflow_tag_id = errand_tags_links.child_workflow_tag_id
+			              INNER JOIN workflow_reporterranddatas AS data ON errand_tags_links.parent_workflow_errand_id = data.errand_id
+			              LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			              WHERE tags.fordelete = true
+			              AND data.timestamp_close >= ${timeframe.start}
+			              AND data.timestamp_close <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              ${agentsWhereClause}
+			              ${.serviceWhereClause()}
+			              GROUP BY x, g
+			              ORDER BY x";
+			string untaggedsql = "SELECT count(data.errand_id) AS y,
+			                             '${I('Untagged')}' AS x,
+			                             (CASE WHEN data.service_id = 0 THEN 'Email' ELSE services.name END) AS g
+			                      FROM workflow_reporterranddatas AS data
+			                      LEFT JOIN workflow_services AS services ON data.service_id = services.workflow_service_id
+			                      WHERE data.errand_id IN (SELECT parent_workflow_errand_id
+			                                               FROM workflow_errand_tags_links
+			                                               WHERE child_workflow_tag_id = (SELECT workflow_tag_id
+			                                                                              FROM workflow_tags
+			                                                                              WHERE name = 'system.errand.deleted'))
+			                       /* ashish@06.12.2013  this block crashing the page*/
+			                      /*AND data.errand_id NOT IN (SELECT parent_workflow_errand_id
+			                                                 FROM workflow_errand_tags_links
+			                                                 WHERE child_workflow_tag_id IN (SELECT workflow_tag_id
+			                                                                                 FROM workflow_tags
+			                                                                                 WHERE fordelete = true))*/
+			                      AND data.timestamp_close >= ${timeframe.start}
+			                      AND data.timestamp_close <= ${timeframe.end}
+			                      AND data.area_id IN (${.areas.join(',')})
+			                      ${agentsWhereClause}
+			                      ${.serviceWhereClause()}
+			                      GROUP BY x, g
+			                      ORDER BY x";
+			.setGroups([
+				'Email' => I('Email'),
+				'Manual' => I('Manual'),
+				'Facebook' => I('Facebook'),
+				'Chat' => I('Chat')
+			]);
+			rows = ObjRunObject.rawQuery(sql);
+			return rows.append(ObjRunObject.rawQuery(untaggedsql));
+		}
+	}
+	
+	class QuickAskQuestions extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Quick Ask Questions');
+			.textEngine = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(distinct quickask_log_id) AS y,
+			                     to_char((TIMESTAMP 'epoch' + (logs.timestampwhen + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			                     ${.extractFunctionCalls('logs.timestampwhen')}
+			                     (CASE WHEN matchingtemplates.matchtype IN (1, 2) THEN 'Answered' ELSE 'Unanswered' END) AS g
+			              FROM quickask_logs AS logs
+			              LEFT JOIN quickask_log_matchingtemplates_links AS matchingtemplates_links ON logs.quickask_log_id = matchingtemplates_links.parent_quickask_log_id
+			              LEFT JOIN quickask_matchingtemplates AS matchingtemplates ON matchingtemplates_links.child_quickask_matchingtemplate_id = matchingtemplates.quickask_matchingtemplate_id
+			              LEFT JOIN quickask_questions AS questions ON matchingtemplates.question = questions.quickask_question_id
+			              WHERE logs.searchtype = 1
+			              AND logs.timestampwhen >= ${timeframe.start}
+			              AND logs.timestampwhen <= ${timeframe.end}
+			              AND logs.textEngine IN (${.textEngines.join(',')})
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups(['Answered' => I('Answered'), 'Unanswered' => I('Unanswered')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class QuickAskAnswers extends Statistic.ActionView {
+		constructor {
+			super();
+			.name = I('Quick Ask Answers');
+			.textEngine = true;
+		}
+		
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(logs.quickask_log_id) AS y,
+			                     questions.tag AS x,
+			                     (CASE WHEN matchingtemplates.matchtype = 1 THEN 'Close Answer' ELSE 'Related Answer' END) AS g
+			              FROM quickask_logs AS logs
+			              JOIN quickask_log_matchingtemplates_links AS matchingtemplates_links ON logs.quickask_log_id = matchingtemplates_links.parent_quickask_log_id
+			              JOIN quickask_matchingtemplates AS matchingtemplates ON matchingtemplates_links.child_quickask_matchingtemplate_id = matchingtemplates.quickask_matchingtemplate_id
+			              JOIN quickask_questions AS questions ON matchingtemplates.question = questions.quickask_question_id
+			              WHERE logs.searchtype = 1
+			              AND logs.timestampwhen >= ${timeframe.start}
+			              AND logs.timestampwhen <= ${timeframe.end}
+			              AND logs.textEngine IN (${.textEngines.join(',')})
+			              GROUP BY x, g
+			              ORDER BY x";
+			.setGroups(['Close Answer' => I('Close Answer'), 'Related Answer' => I('Related Answer')]);
+			return ObjRunObject.rawQuery(sql);
+		}
+	}
+	
+	class IncomingChatRequests extends Statistic.AbsoluteTimeView {
+		constructor {
+			super();
+			.name = I('Incoming Chat Requests');
+			.workflow = true;
+		}
+		
+		/**
+		 * @function fetchData
+		 * @declaration function fetchData( object timeframe )
+		 * @brief Fetches data used by the getData() function
+		 * @param object timeframe The timeframe in which to fetch values
+		 * @returns An array with the data
+		 */
+		function fetchData( object timeframe ) {
+			string sql = "SELECT count(*) AS y,
+			              to_char((TIMESTAMP 'epoch' + (data.timestamp_when + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
+			              ${.extractFunctionCalls('data.timestamp_when')}
+			              (CASE WHEN data.accepted = true THEN 'Accepted'
+			                    WHEN data.rejected_closed = true THEN 'Rejected (closed)'
+			                    WHEN data.rejected_unavailable = true THEN 'Rejected (unavailable)'
+			               END) AS g
+			              FROM workflow_reportchatdatas AS data
+			              WHERE data.timestamp_when >= ${timeframe.start}
+			              AND data.timestamp_when <= ${timeframe.end}
+			              AND data.area_id IN (${.areas.join(',')})
+			              GROUP BY x ${.orderingFields()} g
+			              ${.orderByStatement()}";
+			.setGroups([
+				'Accepted' => I('Accepted'),
+				'Rejected (closed)' => I('Rejected (closed)'),
+				'Rejected (unavailable)' => I('Rejected (unavailable)')
+			]);
+			return ObjRunObject.rawQuery(sql);
+		}
 	}
 }
 /**
