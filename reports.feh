@@ -10,6 +10,7 @@ uses 'webframework/webframework';
  */
 namespace Reports {
 	class IncomingErrands implements Statistics.KeyFigure {
+		function identifier() return 'incoming';
 		function name() return I('Incoming');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
 		function from() return 'workflow_reporterranddatas';
@@ -22,39 +23,47 @@ namespace Reports {
 	}
 
 	class ClosedErrands extends IncomingErrands {
+		function identifier() return 'closed';
 		function name() return I('Closed');
 		function where() return 'timestamp_close > 0';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
 
 	class ClosedErrandsWithReplies extends ClosedErrands {
+		function identifier() return 'replies';
 		function name() return I('Replies');
 		function where() return 'timestamp_replied > 0';
 	}
 
 	abstract class AverageErrandResponseTime extends ClosedErrands {
+		function identifier() raise new Error('Function identifier() has not been implemented.');
 		function name() return I('Average response time');
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
 		function seconds() raise new Error('Function seconds() has not been implemented.');
 	}
 
 	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
+		function identifier() return 'average_errand_response_time_in_seconds';
 		function seconds() return 1;
 	}
 
 	class AverageErrandResponseTimeInMinutes extends AverageErrandResponseTime {
+		function identifier() return 'average_errand_response_time_in_minutes';
 		function seconds() return 60;
 	}
 
 	class AverageErrandResponseTimeInHours extends AverageErrandResponseTime {
+		function identifier() return 'average_errand_response_time_in_hours';
 		function seconds() return 3600;
 	}
 
 	class AverageErrandResponseTimeInDays extends AverageErrandResponseTime {
+		function identifier() return 'average_errand_response_time_in_days';
 		function seconds() return 86400;
 	}
 
 	abstract class AverageErrandProcessTime implements Statistics.KeyFigure {
+		function identifier() return 'average_errand_process_time';
 		function name() return I('Average process time');
 		function select() return 'floor(avg(workflow_reportuserdatas.process_time) / ' + .seconds() + ') AS key';
 		function from() return 'workflow_reportuserdatas';
@@ -68,22 +77,27 @@ namespace Reports {
 	}
 
 	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {
+		function identifier() return 'average_errand_process_time_in_seconds';
 		function seconds() return 1;
 	}
 
 	class AverageErrandProcessTimeInMinutes extends AverageErrandProcessTime {
+		function identifier() return 'average_errand_process_time_in_minutes';
 		function seconds() return 60;
 	}
 
 	class AverageErrandProcessTimeInHours extends AverageErrandProcessTime {
+		function identifier() return 'average_errand_process_in_hours';
 		function seconds() return 3600;
 	}
 
 	class AverageErrandProcessTimeInDays extends AverageErrandProcessTime {
+		function identifier() return 'average_errand_process_in_days';
 		function seconds() return 86400;
 	}
 
 	abstract class ErrandClosureStatus implements Statistics.KeyFigure {
+		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
 		function select() return 'count(workflow_actions.workflow_action_id) AS key';
 		function from() return 'workflow_actions';
@@ -92,47 +106,81 @@ namespace Reports {
 		function columnArea() return 'workflow_actions.area_fkey';
 		function columnUser() return 'workflow_actions.origin_fkey';
 		function columnChannel() return 'workflow_actions.channel_fkey';
-		function columnTime() return 'return workflow_actions.timestampwhen';
+		function columnTime() return 'workflow_actions.timestampwhen';
 	}
 
 	class ErrandClosureStatusAnswered extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_answered';
 		function name() return I('Answered');
 		function where() return 'workflow_actions.type IN (3, 19)'; // TODO: Add Resend
 	}
 
 	class ErrandClosureStatusDeleted extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_deleted';
 		function name() return I('Deleted');
 		function where() return 'workflow_actions.type = 7';
 	}
 
 	class ErrandClosureStatusReturned extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_returned';
 		function name() return I('Deleted');
 		function where() return 'workflow_actions.type = 8';
 	}
 
 	class ErrandClosureStatusForwardedToArea extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_forward_to_area';
 		function name() return I('Forwarded to area');
 		function where() return 'workflow_actions.type = 5';
 	}
 
 	class ErrandClosureStatusForwardedToAgent extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_forward_to_agent';
 		function name() return I('Forwarded to agent');
 		function where() return 'workflow_actions.type = 4';
 	}
 	
 	class ErrandClosureStatusMovedToFolder extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_moved_to_folder';
 		function name() return I('Moved to folder');
 		function where() return 'workflow_actions.type = 6';
 	}
 
 	class ErrandClosureStatusChatFinished extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_chat_finished';
 		function name() return I('Chat finished');
 		function where() return 'workflow_actions.type = 20';
 	}
 
 	class ErrandClosureStatusChatExpired extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_chat_expired';
 		function name() return I('Chat expired');
 		function where() return 'workflow_actions.type = 21';
+	}
+
+	class ErrandsRespondedAccordingToSLATime implements Statistics.KeyFigure {
+		function identifier() return 'errands_responeded_according_to_sla_time';
+		function name() return I('Responded according to SLA time');
+		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function from() return 'workflow_reporterranddatas LEFT JOIN workflow_areas ON workflow_reporterranddatas.area_id = workflow_areas.workflow_area_id';
+		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.response_time <= (workflow_areas.generalalerttime * 60)';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+	}
+
+	class ErrandsRespondedAfterSLATime implements Statistics.KeyFigure {
+		function identifier() return 'errands_responeded_after_sla_time';
+		function name() return I('Responded after SLA time');
+		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function from() return 'workflow_reporterranddatas LEFT JOIN workflow_areas ON workflow_reporterranddatas.area_id = workflow_areas.workflow_area_id';
+		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.response_time > (workflow_areas.generalalerttime * 60)';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
 
 	class OrganisationGroup extends Statistics.AbstractGroup implements Statistics.Group {
@@ -187,6 +235,7 @@ namespace Reports {
 		function seconds() return 31536000;
 		function start( string year ) return .localDateToGMTtimestamp("${year}-01-01 00:00:00");
 		function end( string year ) return .localDateToGMTtimestamp("${year}-12-31 23:59:59");
+		function doInitialBuild() return false;
 	}
 	
 	class MonthGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
