@@ -141,10 +141,6 @@ namespace Statistics {
 		function setEndTime( number time ) ._endTime = time;
 		function endTime() return ._endTime;
 
-		object timeFormat;
-		function setTimeFormat( object format )
-			.timeFormat = format;
-
 		string groupName;
 		function groupName() {
 			if( not .groupName )
@@ -186,8 +182,8 @@ namespace Statistics {
 			if( .doInitialBuild() ) {
 				array list = [];
 				array have = [];
-				number time = .startTime() + Date.localDate(.startTime()).tm_gmtoff;
-				number endTime = .endTime() + Date.localDate(.endTime()).tm_gmtoff;
+				number time = .startTime() + Date.timezone();
+				number endTime = .endTime() + Date.timezone();
 				// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
 				//                    but it produces strange results so I am going to remove it.
 				while ( time <= endTime ) {
@@ -255,7 +251,6 @@ namespace Statistics {
 		object previousGroup;
 		number startTime;
 		number endTime;
-		object timeFormat;
 		array channels;
 		array organisations;
 		array areas;
@@ -268,7 +263,6 @@ namespace Statistics {
 			.previousGroup = group;
 			group.setStartTime(.startTime);
 			group.setEndTime(.endTime);
-			group.setTimeFormat(.timeFormat);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -295,13 +289,6 @@ namespace Statistics {
 			.endTime = time;
 			.groups.each() using ( group ) {
 				group.setEndTime(time);
-			};
-		}
-
-		function setTimeFormat( object format ) {
-			.timeFormat = format;
-			.groups.each() using ( group ) {
-				group.setTimeFormat(format);
 			};
 		}
 
