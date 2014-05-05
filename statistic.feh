@@ -1,738 +1,529 @@
-uses 'array';
 uses 'console';
 uses 'date';
-uses 'ObjRunSrv';
+uses 'reflection';
 
-namespace modifies Array {
-	function appendWithNames( array a, array b ) {
-		number size = b.size();
-		for( number i = 0; i < size; ++i )
-			a[b.getName(i)] = b[i];
-		return a;
-	}
-	function setRow( array& a, array& groups, string key, number value, array& extra ) {
-		number size = a.size();
-		number sizeGroups = groups.size();
-		boolean set = false;
-
-		//Console.printlnErr('[DEBUG) SetRow');
-
-		for( number i = 0; i < size; ++i ) {
-			boolean found = true;
-			//Console.printlnErr('[DEBUG] - Row: ' + i);
-			//Console.printlnErr('[DEBUG]  - Data: ' + a[i]);
-			for( number j = 0; j < sizeGroups; ++j ) {
-				string name;
-				//Console.printlnErr('[DEBUG]  - Group: ' + j);
-				name = groups.getName(j);
-				//Console.printlnErr('[DEBUG]  - Group Name: ' + name);
-				if( name.index('group') == 0 ) {
-					//Console.printlnErr('[DEBUG]  - Array Value: "' + a[i][name] + "'");
-					//Console.printlnErr('[DEBUG]  - Group Value: "' + groups[j] + "'");
-					if( a[i][name] != groups[j].trim(' ') ) {
-						found = false;
-						break;
-					}
-				}
-			}
-			if( found ) {
-				//Console.printlnErr('[DEBUG]  - Found!');
-				a[i][key] = value;
-				extra.each() using ( name ) {
-					a[i][name] = groups[name];
-				};
-				set = true;
-				break;
-			}
-		}
-
-		if( not set ) {
-			array row = [];
-			for( number j = 0; j < sizeGroups; ++j ) {
-				string name = groups.getName(j);
-				if( name.index('group') == 0 )
-					row[name] = groups[j];
-			}
-			row[key] = value;
-			extra.each() using ( name ) {
-				row[name] = groups[name];
-			};
-			a[] = row;
-		}
-	}
-}
-
-class modifies Date {
-	static function currentTime() {
-		number localNow = Date.now();
-		object localDate = Date.localDate(localNow);
-		return localDate.format("%H:%M");
-	}
-	static function currentHour() {
-		number localNow = Date.now();
-		object localDate = Date.localDate(localNow);
-		return localDate.format("%H").preTrim("0").toNumber();
-	}
-	static function currentMinute() {
-		number localNow = Date.now();
-		object localDate = Date.localDate(localNow);
-		return localDate.format("%M").preTrim("0").toNumber();
-	}
-	static function currentWeekday() {
-		number localNow = Date.now();
-		object localDate = Date.localDate(localNow);
-		string currentWeekday = localDate.format("%A");
-		return currentWeekday.toLower();
-	}
-	static function isBeginningOfMonth() {
-		number localNow = Date.now();
-		object localDate = Date.date(localNow);
-		string currentDayOfMonth = localDate.format("%d");
-		if( currentDayOfMonth == "01" )
-			return true;
-		return false;
-	}
-}
-
-namespace Statistics {
-	protocol KeyFigure {
-		function identifier();
-		function name();
-		function select();
-		function from();
-		function where();
-		function columnOrganisation();
-		function columnArea();
-		function columnUser();
-		function columnChannel();
-		function columnTime();
+/**
+ * @namespace Statistic
+ * @brief Contains classes for working with statistics especially the Cention Reports system
+ */
+namespace Statistic {
+	
+	final number SERVICE_ALL = 0;
+	final number SERVICE_EMAIL = 1;
+	final number SERVICE_MANUAL = 2;
+	
+	function timezoneOffset() {
+		/* return (Date.localDate(Date.now()).time() - Date.date(Date.now()).time()) + Date.timezone(); */
+		return 14400;
 	}
 	
-	protocol Group {
-		function name();
-		function build();
-		function select( object key );
-		function from();
-		function where( object key );
-		function groupBy();
-		function orderBy();
-	}
-
-	protocol DateTimeGroup {
-		function feriteFormat();
-		function format();
-		function fields();
-		function seconds();
-		function start( string item );
-		function end( string item );
-	}
-
-	abstract class AbstractGroup {
-		object _nextGroup;
-		number _startTime;
-		number _endTime;
-		array _values;
-
-		function values() return ._values;
-		function setNextGroup( object group ) ._nextGroup = group;
-		function nextGroup() return ._nextGroup;
-		function setStartTime( number time ) ._startTime = time;
-		function startTime() return ._startTime;
-		function setEndTime( number time ) ._endTime = time;
-		function endTime() return ._endTime;
-
-		object timeFormat;
-		function setTimeFormat( object format )
-			.timeFormat = format;
-
-		string groupName;
-		function groupName() {
-			if( not .groupName )
-				.groupName = Statistics.nextGroupName();
-			return .groupName;
-		}
-
-		function build( array list ) {
-			array rows = [];
-			string name = .groupName();
-			._values = list;
-			//Console.printlnErr('[DEBUG] BuildRows');
-			//Console.printlnErr('[DEBUG]  - Data: ' + list);
-			list.each() using ( value ) {
-				if( .nextGroup() ) {
-					//Console.printlnErr('[DEBUG]  - Got Next Group');
-					.nextGroup().build().each() using ( row ) {
-						array theRow = [ name => value ].appendWithNames(row);
-						//Console.printlnErr('[DEBUG]  - Row: ' + theRow);
-						rows[] = theRow;
-					};
-				} else {
-					//Console.printlnErr('[DEBUG  - No Next Row');
-					rows[] = [ name => value ];
-				}
-			};
-			return rows;
-		}
-
-		function doInitialBuild() {
-			return true;
-		}
-	} 
-
-	abstract class AbstractDateTimeGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		array _fields;
+	/**
+	 * @class Timeframe
+	 * @brief A timeframe with a start time and and an end time
+	 */
+	class Timeframe {
+		/**
+		 * @variable start
+		 * @type number
+		 * @brief The timestamp representing the start of the timeframe
+		 */
+		number start;
 		
-		function build() {
-			if( .doInitialBuild() ) {
-				array list = [];
-				array have = [];
-				number time = .startTime() + Date.localDate(.startTime()).tm_gmtoff;
-				number endTime = .endTime() + Date.localDate(.endTime()).tm_gmtoff;
-				// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
-				//                    but it produces strange results so I am going to remove it.
-				while ( time <= endTime ) {
-					string group = Date.localDate(time).format(.feriteFormat());
-					Console.printlnErr('(GROUP) ' + group);
-					if( not have.keyExists(group) ) {
-						list[] = group;
-						have[group] = true;
-					}
-					time += .seconds();
-				}
-				return .build(list);
-			}
-			return [];
-		}
-		function select( object key ) {
-			array list = [];
-			list[] = "to_char((TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1 second'), '${.format()}') AS ${.groupName()}";
-			.fields().each() using ( field ) {
-				string name = Statistics.nextOrderName();
-				._fields[] = name;
-				list[] = "extract(${field} from (TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1  second')) AS ${name}";
-			};
-			return list.join(', ');
-		}
-		function from() {
-			return '';
-		}
-		function where( object key ) {
-			return '';
-		}
-		function groupBy() {
-			array list = [];
-			list[] = .groupName();
-			list = list.append(._fields);
-			return list.join(', ');
-		}
-		function orderBy() {
-			return ._fields.join(', ');
-		}
-		function extra() {
-			return [];
+		/**
+		 * @variable end
+		 * @type number
+		 * @brief The timestamp object representing the end of the timeframe
+		 */
+		number end;
+		
+		/**
+		 * @function constructor
+		 * @declaration function constructor( number start, number end )
+		 * @brief Creates a new Timeframe object with a timestamp as start and a timestamp as end
+		 * @param number start unix timestamp that should be the start of the timeframe
+		 * @param number end unix timestamp that should be the end of the timeframe
+		 */
+		function constructor( number start, number end ) {
+			.start = start;
+			.end = end;
 		}
 		
-		function localYearFromGMTtimestamp( number timestamp ) {
-			object date = Date.localDate(timestamp + Date.timezone());
-			return date.format('%Y');
-		}
-		function localDateToGMTtimestamp( string date ) {
-			number now = Date.now();
-			number local = Date.localParse(date, '%F %T').time();
-			return local - (Date.localDate(now).time() - Date.date(now).time()) - 3600;
-		}
-
-		function name() {
-			raise new Error('Function name() has not been implemented.');
+		/**
+		 * @function constructor
+		 * @declaration function constructor( string start, string end )
+		 * @brief Creates a new Timeframe object with a string as start and a string as end
+		 * @param string start string looking like YEAR-MONTH-DAY
+		 * @param string end string looking like YEAR-MONTH-DAY
+		 */
+		function constructor( string start, string end ) {
+			.start = Date.parse( start, "%F %T" ).time();
+			.end = Date.parse( end, "%F %T" ).time();
 		}
 	}
+	/**
+	 * @end
+	 */
 	
-	class Report {
+	/**
+	 * @class Time
+	 * @brief Base class for all relative times
+	 */
+	class Time {
+		string name;
+		number seconds;
+		
+		function constructor( string name, number seconds ) {
+			.name = name;
+			.seconds = seconds;
+		}
+		
+		/**
+		 * @function length
+		 * @declaration function length( number seconds )
+		 * @brief Calculate how many this Time happened during seconds
+		 * @param number seconds the number of seconds
+		 * @return The number of this Time that are elapsed during the seconds
+		 */
+		function length( number seconds ) {
+			return ( seconds / .seconds );
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class view
+	 * @brief The base class for all statistic views
+	 */
+	abstract class View {
+		string name;
+		object timeframe;
 		array groups;
-		array keys;
-		array result;
-		array totals;
-		object previousGroup;
-		number startTime;
-		number endTime;
-		object timeFormat;
-		array channels;
-		array organisations;
 		array areas;
-		array users;
-
-		function addGroup( object group ) {
-			.groups[] = group;
-			if( .previousGroup )
-				.previousGroup.setNextGroup(group);
-			.previousGroup = group;
-			group.setStartTime(.startTime);
-			group.setEndTime(.endTime);
-			group.setTimeFormat(.timeFormat);
-		}
-		function addKey( object key ) {
-			.keys[] = key;
-		}
-		function firstKey() {
-			if( .keys )
-				return .keys[0];
-			return null;
-		}
-		function firstGroup() {
-			if( .groups )
-				return .groups[0];
-			return null;
-		}
-
-		function setStartTime( number time ) {
-			.startTime = time;
-			.groups.each() using ( group ) {
-				group.setStartTime(time);
-			};
-		}
-
-		function setEndTime( number time ) {
-			.endTime = time;
-			.groups.each() using ( group ) {
-				group.setEndTime(time);
-			};
-		}
-
-		function setTimeFormat( object format ) {
-			.timeFormat = format;
-			.groups.each() using ( group ) {
-				group.setTimeFormat(format);
-			};
-		}
-
-		function setChannels( array list )
-			.channels = list;
-
-		function setOrganisations( array list )
-			.organisations = list;
-
-		function setAreas( array list )
-			.areas = list;
-
-		function setUsers( array list )
-			.users = list;
-
-		function buildQuery( object key, array groups ) {
-			array select = [];
-			array from = [];
-			array where = [];
-			array groupBy = [];
-			array orderBy = [];
-			
-			from[] = key.from();
-			
-			if( key.where() ) where[] = key.where();
-			
-			where[] = key.columnTime() + ' >= ' + .startTime;
-			where[] = key.columnTime() + ' <= ' + .endTime;
-
-			if( .channels ) where[] = key.columnChannel() + ' in (' + .channels.join(',') + ')';
-			if( .organisations ) where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
-			if( .areas ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
-			if( .users ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
-
-			groups.each() using ( group ) {
-				select[] = group.select(key);
-				if( group.from() ) from[] = group.from();
-				if( group.where(key) ) where[] = group.where(key);
-				groupBy[] = group.groupBy();
-				orderBy[] = group.orderBy();
-			};
-			
-			select[] = key.select();
-			
-			return 'SELECT ' + select.join(', ') +
-				' FROM ' + from.join(', ') +
-				(where ? ' WHERE ' + where.join(' AND ') : '') +
-				' GROUP BY ' + groupBy.join(', ') +
-				' ORDER BY ' + orderBy.join(', ');
+		array agents;
+		array textEngines;
+		array services;
+		number systemGroup;
+		string language;
+		boolean workflow;
+		boolean textEngine;
+		object customTotalCounter;
+		
+		function setLanguage( string language )
+			.language = language;
+		
+		function setSystemGroup( number systemGroup )
+			.systemGroup = systemGroup;
+		
+		function setServices( array services )
+			.services = services;
+		
+		function setTextEngines( array textEngines ) {
+			.textEngines = textEngines;
 		}
 		
-		function valuesForKey( object key, array& extra ) {
-			string query;
-			number size;
-			array tempResult;
-			string name;
-
-//			Statistics.resetGroupID();
-			Statistics.resetOrderID();
-
-			query = .buildQuery(key, .groups);
-
-			name = 'key_' + key.identifier();
-
-			size = .result.size();
-			for( number i = 0; i < size; ++i )
-				.result[i][name] = 0;
-
-			tempResult = ObjRunObject.rawQuery(query);
-
-			size = tempResult.size();
-			for( number i = 0; i < size; ++i ) {
-				number value = (tempResult[i]['key'] isa string
-					? tempResult[i]['key'].toNumber()
-					: tempResult[i]['key']);
-				.result.setRow(tempResult[i], name, value, extra);
+		function serviceWhereClause( string table, string column ) {
+			string services = .services.join(',') using ( service_id ) {
+				if( service_id == 1 ) {
+					return '0,1';
+				}
+				return service_id;
+			};
+			if( services ) {
+				return "AND ${table}.${column} IN (${services})";
 			}
+			return "";
 		}
+		
+		function serviceWhereClause() {
+			return .serviceWhereClause('data', 'service_id');
+		}
+		
+		function setTimeframe( object timeframe )
+			.timeframe = timeframe;
+		
+		function setTimeframe( number start, number end )
+			.timeframe = new Statistic.Timeframe( start, end );
+		
+		function setGroups( array groups ) {
+			.groups = groups;
+		}
+		
+		function setAreas( array areas ) {
+			.areas = areas;
+		}
+		
+		function setAgents( array agents ) {
+			.agents = agents;
+		}
+		
+		function setCustomTotalCounter( object customCounter ) {
+			.customTotalCounter = customCounter;
+		}
+		
+		function name
+			return .name;
+		
+		function isTimeView
+			return false;
+		
+		function isWorkflowReport
+			return .workflow;
+		
+		function isLibraryReport
+			return false;
+		
+		function isTextEngineReport
+			return .textEngine;
+		
+		function makeData( string keyHeaderName, array rawData ) {
+			number rawRowCount = rawData.size();
+			array columnHeaders = [];
+			array totals = [ I('Total') ];
+			array rows = [];
+		
+			// +---------+-------+--------+
+			// | Time    | Email | Manual |
+			// +---------+-------+--------+
+			// | January | 234   | 23     |
+			// +---------+-------+--------+
+			// | October | 345   | 41     |
+			// +---------+-------+--------+
+		
+			// [ 'x' => 'January', 'y' => 234, 'group' => 'Email' ]
+			// [ 'x' => 'January', 'y' => 23', 'group' => 'Manual' ];
+		
+			// [ 'January', 234, 23 ]
+			// [ 'October', 235, 41 ]
 
-		function run() {
-			array extra;
-
-			.groups.each() using ( group ) {
-				extra = extra.append(group.extra());
+			columnHeaders[] = keyHeaderName;
+			
+			.groups.eachWithIndex() using ( name, index ) {
+				columnHeaders[] = name;
+				totals[.groups.getName(index)] = 0;
+				if( .customTotalCounter ) {
+					totals[.groups.getName(index)] = .customTotalCounter.invoke(.groups.getName(index));
+				}
 			};
-
-			.result = .firstGroup().build();
-
-			.keys.each() using ( key ) {
-				.valuesForKey(key, extra);
-			};
-
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] ' + .result);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-		}
-
-		function toHTML() {
-			object formatter = new Statistics.HTMLFormatter();
-			return formatter.run(.groups.append(.keys), .result);
-		}
-
-		function toJSON( boolean linesChart ) {
-			// [
-			// 		'labels' => [ 'May', 'June', 'July', 'August', 'September' ],
-			//		'data' => [
-			//			[ ], // Email
-			//			[ ]  // Manual
-			// 		]
-			// ]
-
-			number lastGroupIndex = .groups.size() - 1;
-			object lastGroup = .groups[lastGroupIndex];
-			string lastGroupName = lastGroup.groupName();
-			number nextToLastGroupIndex = lastGroupIndex - 1;
-			object nextToLastGroup = .groups[nextToLastGroupIndex];
-			string nextToLastGroupName = nextToLastGroup.groupName();
-
-			string groupName;
-			//array haveLabels = [];
-			array labels = [];
-			array data = [];
-			array dataNames = [];
-
-			number size;
-
-			//number size = .result.size();
-
-			//for( number i = 0; i < size; ++i ) {
-			//	string group = .result[i][nextToLastGroup];
-			//	if( not haveLabels.keyExists(group) ) {
-			//		labels[] = groups;
-			//		haveLabels[group] => true;
-			//	}
-			//}
-
-			//for( number i = 0; i < size; ++i ) {
-			//
-			//}
-
-			if( linesChart ) {
-				if( .groups.size() > 1 ) {
-
+			
+			for( number i = 0; i < rawRowCount; i++ ) {
+				array rawRow = rawData[i]; // Should this be avoided in this case?
+				array row = [];
+				string translation = I(rawRow['g']);
+				
+				if( not (.groups.keyExists(rawRow['g'])) ) {
+					.groups[rawRow['g']] = translation;
+					columnHeaders[] = translation;
+				}
+				
+				if( not rows.keyExists('' + rawRow['x']) ) {
+					row = [ '' + rawRow['x'], 0, 0, 0, 0, 0, 0, 0, 0 ];
 				} else {
-					labels = lastGroup.values();
-					data[] = [];
-					groupName = lastGroupName;
+					row = rows['' + rawRow['x']];
 				}
-			} else {
-				if( .groups.size() > 1 ) {
-					labels = nextToLastGroup.values();
-
-					lastGroup.values().each() using( value ) {
-						data[] = [];
-						dataNames[value] = true;
-					};
-
-					groupName = nextToLastGroupName;
+				
+				row[.groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				
+				if( rawRow['x'] != '' ) {
+					rows['' + rawRow['x']] = row;
 				} else {
-					labels = [ lastGroup.name() ];
-
-					lastGroup.values().each() using( value ) {
-						data[] = [];
-						dataNames[value] = true;
-					};
-
-					groupName = lastGroupName;
-				}
-			}
-
-			if( data.size() == 0 )
-				data[] = [];
-
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] data: ' + data);
-			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
-			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
-			
-			size = .result.size();
-			for( number i = 0; i < size; ++i ) {
-				number index = dataNames.getIndex(.result[i][groupName]);
-				Console.printlnErr('[DEBUG] index: ' + index);
-				Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
-				if( index >= 0 and index < data.size() ) {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[index][] = .result[i][j];
-					}
-				} else {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[0][] = .result[i][j];
-					}
-				}
-			}
-
-			/* data[] = [];
-			data[1][] = 873; */	
-
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-
-			return JSON.valueToJSON([
-					'labels' => labels,
-					'data' => data
-				]);
-		}
-
-		function getTotal( number index ) {
-			number total = 0;
-			number size = .result.size();
-			for( number i = 0; i < size; ++i ) {
-				for( number j = 0; j < .result[i].size(); j++ ) {
-					string name = .result[i].getName(j);
-					if( name.index('key_') == 0 ) {
-						total += .result[i][j];
-					}
-				}
-			}
-			return total;
-		}
-	}
-
-	number _nextGroupID;
-	function nextGroupName() {
-		string name = 'group' + ._nextGroupID;
-		._nextGroupID++;
-		return name;
-	}
-
-	number _nextOrderID;
-	function nextOrderName() {
-		string name = 'order' + ._nextOrderID;
-		._nextOrderID++;
-		return name;
-	}
-	
-	function resetGroupID()
-		._nextGroupID = 0;
-	function resetOrderID()
-		._nextOrderID = 0;
-
-	/*
-	function groupRows( array& rows ) {
-		array report = [];
-		rows.each() using ( row ) {
-			array path = [];
-			for( number i = 0; i < row.size(); i++ ) {
-				if( row.getName(i).index('group') == 0 )
-					path[] = row[i].trim(' ');
-			}
-			report.setPath(path, row['key']);
-		};
-		return report;
-	}
-	*/
-	
-	/*
-	<table>
-		<tr>
-			<td rowspan="4">Area 1</td>
-			<td rowspan="2">2012</td>
-			<td>November</td>
-			<td>15</td>
-		</tr>
-		<tr>
-			<td>December</td>
-			<td>24</td>
-		</tr>
-		<tr>
-			<td rowspan="2">2013</td>
-			<td>January</td>
-			<td>12</td>
-		</tr>
-		<tr>
-			<td>Februari</td>
-			<td>31</td>
-		</tr>
-	</table>
-	
-	[ 'Area 1' => [ '2012' => [ 'November' => 15,
-	                            'December' => 24
-	                          ],
-	                '2013' => [ 'January' => 12,
-	                            'Februari' => 31
-	                          ]
-	              ]
-	]
-	
-	
-	
-	*/
-	
-	class HTMLRow {
-		array columns;
-		function addColumn( object column ) {
-			if( not .columns )
-				column.first = true;
-			.columns[] = column;
-		}
-		function render() {
-			array html = [];
-			html[] = '<tr valign="top">';
-			.columns.each() using ( column ) {
-				if( column.render ) {
-					array cssClasses = [];
-					column.first and cssClasses[] = 'first';
-					column.group and cssClasses[] = 'group';
-					html[] = '<td' +
-						(cssClasses ? ' class="' + cssClasses.join(' ') + '"' : '') +
-						(column.rowspan > 1 ? ' rowspan="' + column.rowspan + '"' : '') +
-						'>' + column.value.trim(' ') + '</td>';
-				}
-			};
-			html[] = '</tr>';
-			return html.join('');
-		}
-	}
-	class HTMLColumn {
-		string value = '';
-		number rowspan = 1;
-		boolean first = false;
-		boolean group = false;
-		boolean render = false;
-	}
-	class HTMLFormatter {
-		function run( array headers, array& report ) {
-			array html;
-			array rows;
-			array list;
-			
-			object previousRow;
-			
-			report.each() using ( data ) {
-				object row = new Statistics.HTMLRow();
-				array values = [];
-				array keyValues;
-				
-				for( number i = 0; i < data.size(); i++ ) {
-					if( data.getName(i).index('group') == 0 ) {
-						values[] = String.trim('' + data[i], ' ');
-					} else if( data.getName(i).index('key') == 0 ) {
-						keyValues[] = String.trim('' + data[i], ' ');
-					}
+					rows['Row ' + i] = row;
 				}
 				
-				values.each() using ( value ) {
-					object column = new Statistics.HTMLColumn();
-					column.group = true;
-					column.value = value;
-					row.addColumn(column);
-				};
-				
-				keyValues.each() using ( keyValue ) {
-					object column = new Statistics.HTMLColumn();
-					column.value = keyValue;
-					row.addColumn(column);
-				};
-				
-				rows[] = row;
-			};
-			
-			rows.each() using ( row ) {
-				row.columns.eachWithIndex() using ( column, index ) {
-					//Console.println('---------------------------------------');
-					if( previousRow ) {
-						if( column.group ) {
-							//Console.println('Previous column: "' + previousRow.columns[index].value + '"');
-							//Console.println('         column: "' + column.value + '"');
-							//Console.println('Old: "' + previousRow.columns[index].value + '"');
-							//Console.println('New: "' + column.value + '"');
-							if( previousRow.columns[index].value == column.value ) {
-								//Console.println('Previous column: "' + previousRow.columns[index].value + '"');
-								//Console.println('         column: "' + column.value + '"');
-								if( not list.keyExists(column.value) ) {
-									//Console.println('Not found: ' + column.value);
-									list[column.value] = column;
-									column.render = true;
-								}
-								if( list[column.value] ) {
-									list[column.value].rowspan++;
-								} else {
-									list[column.value] = column;
-									column.render = true;
-								}
-								//Console.println(column.value + ': ' + list[column.value].rowspan);
-							} else {
-								//Console.println('Old: "' + previousRow.columns[index].value + '"');
-								//Console.println('New: "' + column.value + '"');
-								for( number i = index; i < previousRow.columns.size(); i++ ) {
-									if( previousRow.columns[i].group ) {
-										string value = previousRow.columns[i].value;
-										//Console.println("Deleting: '${value}'");
-										if( list.keyExists(value) ) {
-											//Console.println('Yes');
-											list.del(value);
-										} else {
-											//Console.println('No');
-										}
-										list[row.columns[i].value] = null;
-										//list[row.columns[i].value] = row.columns[i];
-										//list[row.columns[i].value].render = true;
-									}
-								}
-								column.render = true;
-								list[column.value] = column;
-							}
-						} else {
-							column.render = true;
-						}
+				if( not .customTotalCounter ) {
+					if( not totals.keyExists(rawRow['g']) ) {
+						totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 					} else {
-						if( column.group )
-							list[column.value] = column;
-						column.render = true;
+						totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 					}
-				};
-				previousRow = row;
-			};
+				}
+			}
 			
-			html[] = '<table border="0" cellpadding="0" cellspacing="0" class="ReportsTable">';
-			html[] = '<tr>';
-			headers.eachWithIndex() using ( item, index ) {
-				if( index == 0 ) html[] = '<th class="first">' + item.name() + '</th>';
-				else             html[] = '<th>' + item.name() + '</th>';
-			};
-			html[] = '</tr>';
-			rows.each() using ( row ) {
-				html[] = row.render();
-			};
-			html[] = '</table>';
-
-			return html.join("\n");
+			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}
 	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class TimeView
+	 * @extends Statistic.View
+	 * @brief Base class for a statistic options dealing with time
+	 */
+	abstract class TimeView extends View {
+		object outputTime;
+		
+		function setOutputTime( object outputTime )
+			.outputTime = outputTime;
+		
+		function isTimeView
+			return true;
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AbsoluteTimeView
+	 * @extends Statistic.TimeView
+	 * @brief Displays values based on at what time a timestamp occurred
+	 */
+	abstract class AbsoluteTimeView extends TimeView {
+		function isAbsoluteTimeView
+			return true;
+		
+		function translate( string text, string language ) {
+			array list = [];
+			if( language == 'sv' ) {
+				list = [ [ 'January'   => 'Januari',
+				         'February'  => 'Februari',
+				         'March'     => 'Mars',
+				         'April'     => 'April',
+				         'May'       => 'Maj',
+				         'June'      => 'Juni',
+				         'July'      => 'Juli',
+				         'August'    => 'Augusti',
+				         'September' => 'September',
+				         'October'   => 'Oktober',
+				         'November'  => 'November',
+				         'December'  => 'December',
+				         'Monday'    => 'Måndag',
+				         'Tuesday'   => 'Tisdag',
+				         'Wednesday' => 'Onsdag',
+				         'Thursday'  => 'Torsdag',
+				         'Friday'    => 'Fredag',
+				         'Saturday'  => 'Lördag',
+				         'Sunday'    => 'Söndag' ],
+				         [ 'Oct'       => 'Okt',
+				         'Mon'       => 'Mån',
+				         'Tue'       => 'Tis',
+				         'Wed'       => 'Ons',
+				         'Thu'       => 'Tor',
+				         'Fri'       => 'Fre',
+				         'Sat'       => 'Lör',
+				         'Sun'       => 'Sön' ] ];
+			}
+			list.each() using ( translations ) {
+				translations.map() using ( key, value ) {
+					text = text.replace( key, value );
+				};
+			};
+			return text;
+		}
+		
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
+		function getData() {
+			array data = [];
+			if( .timeframe and .outputTime ) {
+				data = .makeData( I(.outputTime.name), .fetchData( .timeframe ) );
+				if( .language != 'en' ) {
+					if( data.keyExists('Rows') ) {
+						for( number i = 0; i < data['Rows'].size(); i++ ) {
+							data['Rows'][i][0] = .translate( data['Rows'][i][0], .language );
+						};
+					}
+				}
+			}
+			return data;
+		}
+		array orderingFieldsList;
+		function extractFunctionCalls( string timestamp ) {
+			string functionCalls;
+			number fieldNumber = 1;
+			array items = .outputTime.items;
+			array fields = [];
+			.orderingFieldsList = [];
+			items.each() using ( item ) {
+				switch(item.pgsqlFormat) {
+					case 'Dy':
+					case 'Day':
+						fields[] = 'dow';
+						break;
+					case 'Mon':
+					case 'Month':
+					case 'MM':
+						fields[] = 'month';
+						break;
+					case 'DD':
+					case 'D':
+						fields[] = 'day';
+						break;
+					case 'YYYY-MM-DD':
+						fields[] = 'year';
+						fields[] = 'month';
+						fields[] = 'day';
+						break;
+					case 'HH24':
+						fields[] = 'hour';
+						break;
+					case 'MI':
+						fields[] = 'minute';
+						break;
+					case 'HH24:MI':
+						fields[] = 'hour';
+						fields[] = 'minute';
+						break;
+					case 'HH24:MI:SS':
+						fields[] = 'hour';
+						fields[] = 'minute';
+						fields[] = 'second';
+						break;
+					case 'SS':
+						fields[] = 'second';
+						break;
+					case 'IW':
+						fields[] = 'week';
+						break;
+					case 'YYYY':
+						fields[] = 'year';
+						break;
+				}
+			};
+			fields.eachWithIndex() using ( field, index ) {
+				functionCalls += "extract(${field} from (TIMESTAMP 'epoch' + (${timestamp} + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1  second')) AS ordering${index},";
+				.orderingFieldsList[] = "ordering${index}";
+			};
+			return functionCalls;
+		}
+		
+		function orderingFields() {
+			return ( .orderingFieldsList ? ',' : '' ) + .orderingFieldsList.join(',') + ',';
+		}
+		
+		function orderByStatement {
+			return ( .orderingFieldsList ? 'ORDER BY ' + .orderingFieldsList.join(',') : '' );
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class RelativeTimeView
+	 * @extends Statistic.TimeView
+	 * brief Displays values based on how long time a timestamp represents
+	 */
+	abstract class RelativeTimeView extends TimeView {
+		string key;
+		
+		function isAbsoluteTimeView
+			return false;
+		
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
+		function getData() {
+			array data = [];
+			if( .timeframe and .outputTime ) {
+				data = .makeData( .key, .fetchData( .timeframe ) );
+			}
+			return data;
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class ActionView
+	 * @extends Statistic.View
+	 * @brief Displays how many times a list of actions occurred
+	 */
+	abstract class ActionView extends View {
+		string key;
+		/**
+		 * @function getData
+		 * @declaration function getData()
+		 * @brief Get the data parsed, sorted and ready to be used
+		 * @return An array with the data
+		 */
+		function getData() {
+			array data = [];
+			if( .timeframe ) {
+				data = .makeData( .key, .fetchData( .timeframe ) );
+			}
+			return data;
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AreaView
+	 * @extends Statistic.View
+	 */
+	abstract class AreaView extends View {
+		string key;
+		
+		constructor {
+			super();
+			.key = I('Area');
+		}
+		
+		function getData() {
+			array data = [];
+			if( .timeframe ) {
+				data = .makeData( .key, .fetchData( .timeframe ) );
+			}
+			return data;
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AreaTimeView
+	 * @extends Statistic.TimeView
+	 */
+	abstract class AreaRelativeTimeView extends RelativeTimeView {
+		constructor {
+			super();
+			.key = I('Area');
+		}
+	}
+	
+	/**
+	 * @class AgentView
+	 * @extends Statistic.View
+	 * @brief Displays values divided into list of agents
+	 */
+	abstract class AgentView extends AreaView {
+		constructor {
+			super();
+			.key = I('Agent');
+		}
+	}
+	/**
+	 * @end
+	 */
+	
+	/**
+	 * @class AgentTimeView
+	 * @extends Statistic.AreaTimeView
+	 */
+	abstract class AgentRelativeTimeView extends AreaRelativeTimeView {
+		constructor {
+			super();
+			.key = I('Agent');
+		}
+	}
+	/**
+	 * @end
+	 */
 }
+/**
+ * @end
+ */
+
