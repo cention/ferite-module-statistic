@@ -64,7 +64,6 @@ namespace modifies Array {
 
 namespace Statistics {
 	protocol KeyFigure {
-		function identifier();
 		function name();
 		function select();
 		function from();
@@ -137,35 +136,28 @@ namespace Statistics {
 			};
 			return rows;
 		}
-
-		function doInitialBuild() {
-			return true;
-		}
 	} 
 
 	abstract class AbstractDateTimeGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		array _fields;
 		
 		function build() {
-			if( .doInitialBuild() ) {
-				array list = [];
-				array have = [];
-				number time = .startTime() + Date.timezone();
-				number endTime = .endTime() + Date.timezone();
-				// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
-				//                    but it produces strange results so I am going to remove it.
-				while ( time <= endTime ) {
-					string group = Date.localDate(time).format(.feriteFormat());
-					Console.printlnErr('(GROUP) ' + group);
-					if( not have.keyExists(group) ) {
-						list[] = group;
-						have[group] = true;
-					}
-					time += .seconds();
+			array list = [];
+			array have = [];
+			number time = .startTime() + Date.timezone();
+			number endTime = .endTime() + Date.timezone();
+			// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
+			//                    but it produces strange results so I am going to remove it.
+			while ( time <= endTime ) {
+				string group = Date.localDate(time).format(.feriteFormat());
+				Console.printlnErr('(GROUP) ' + group);
+				if( not have.keyExists(group) ) {
+					list[] = group;
+					have[group] = true;
 				}
-				return .build(list);
+				time += .seconds();
 			}
-			return [];
+			return .build(list);
 		}
 		function select( object key ) {
 			array list = [];
@@ -234,11 +226,6 @@ namespace Statistics {
 		}
 		function addKey( object key ) {
 			.keys[] = key;
-		}
-		function firstKey() {
-			if( .keys )
-				return .keys[0];
-			return null;
 		}
 		function firstGroup() {
 			if( .groups )
@@ -319,7 +306,7 @@ namespace Statistics {
 
 			query = .buildQuery(key, .groups);
 
-			name = 'key_' + key.identifier();
+			name = 'key_' + Regexp.replaceAll(' ', key.name(), '').toLower();
 
 			size = .result.size();
 			for( number i = 0; i < size; ++i )
@@ -359,7 +346,7 @@ namespace Statistics {
 			return formatter.run(.groups.append(.keys), .result);
 		}
 
-		function toJSON( boolean linesChart ) {
+		function toJSON() {
 			// [
 			// 		'labels' => [ 'May', 'June', 'July', 'August', 'September' ],
 			//		'data' => [
@@ -397,34 +384,24 @@ namespace Statistics {
 			//
 			//}
 
-			if( linesChart ) {
-				if( .groups.size() > 1 ) {
+			if( .groups.size() > 1 ) {
+				labels = nextToLastGroup.values();
 
-				} else {
-					labels = lastGroup.values();
+				lastGroup.values().each() using( value ) {
 					data[] = [];
-					groupName = lastGroupName;
-				}
+					dataNames[value] = true;
+				};
+
+				groupName = nextToLastGroupName;
 			} else {
-				if( .groups.size() > 1 ) {
-					labels = nextToLastGroup.values();
+				labels = [ lastGroup.name() ];
 
-					lastGroup.values().each() using( value ) {
-						data[] = [];
-						dataNames[value] = true;
-					};
+				lastGroup.values().each() using( value ) {
+					data[] = [];
+					dataNames[value] = true;
+				};
 
-					groupName = nextToLastGroupName;
-				} else {
-					labels = [ lastGroup.name() ];
-
-					lastGroup.values().each() using( value ) {
-						data[] = [];
-						dataNames[value] = true;
-					};
-
-					groupName = lastGroupName;
-				}
+				groupName = lastGroupName;
 			}
 
 			if( data.size() == 0 )
@@ -435,21 +412,15 @@ namespace Statistics {
 			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
 			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
 			
+
 			size = .result.size();
 			for( number i = 0; i < size; ++i ) {
 				number index = dataNames.getIndex(.result[i][groupName]);
 				Console.printlnErr('[DEBUG] index: ' + index);
-				Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
 				if( index >= 0 and index < data.size() ) {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[index][] = .result[i][j];
-					}
+					data[index][] = .result[i]['key'];
 				} else {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[0][] = .result[i][j];
-					}
+					data[0][] = .result[i]['key'];
 				}
 			}
 
@@ -464,16 +435,58 @@ namespace Statistics {
 				]);
 		}
 
+		function toDrillDownArray() {
+			number first = 0;
+			object group = .groups[first];
+			string groupName = group.groupName();
+			number size = .result.size();
+			array items = [];
+
+			for( number i = 0; i < size; ++i ) {
+				array item = [ 'name' => .result[i][groupName],
+				               'value' => .result[i]['key'],
+				               'start' => .startTime,
+				               'end' => .endTime ];
+
+				if( .channels ) item['channel'] = .channels[0];
+				if( .organisations ) item['organisation'] = .organisations[0];
+				if( .areas ) item['area'] = .areas[0];
+				if( .users ) item['user'] = .users[0];
+
+				if( group.getClass().conformsToProtocol(Statistics.DateTimeGroup) ) {
+					item['start'] = group.start(item['name']);
+					item['end'] = group.end(item['name']);
+				} else if( group instanceof Reports.ChannelGroup ) {
+					if( .result[i].keyExists('workflow_service_id') )
+						item['channel'] = .result[i]['workflow_service_id'];
+				} else if( group instanceof Reports.OrganisationGroup ) {
+					if( .result[i].keyExists('workflow_organisation_id') )
+						item['organisation'] = .result[i]['workflow_organisation_id'];
+				} else if( group instanceof Reports.AreaGroup ) {
+					if( .result[i].keyExists('workflow_area_id') )
+						item['area'] = .result[i]['workflow_area_id'];
+				} else if( group instanceof Reports.AgentGroup ) {
+					if( .result[i].keyExists('workflow_user_id') )
+						item['user'] = .result[i]['workflow_user_id'];
+				}
+
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				Console.printlnErr('[DEBUG] Row: ' + .result[i]);
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				Console.printlnErr('[DEBUG] Item: ' + item);
+				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+
+				items[] = item;
+			}
+
+			return items;
+		}
+
 		function getTotal( number index ) {
 			number total = 0;
 			number size = .result.size();
 			for( number i = 0; i < size; ++i ) {
-				for( number j = 0; j < .result[i].size(); j++ ) {
-					string name = .result[i].getName(j);
-					if( name.index('key_') == 0 ) {
-						total += .result[i][j];
-					}
-				}
+				total += .result[i]['key'];
 			}
 			return total;
 		}
