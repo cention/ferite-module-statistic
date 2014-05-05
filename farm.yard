@@ -10,7 +10,6 @@
 		<list type="source">
 			<file name="statistic.feh" />
 			<file name="reports.feh" />
-			<file name="drilldown.feh" />
 		</list>
 
 		<list type="package">
