@@ -171,5 +171,10 @@ namespace modifies Reports {
 				return new Reports.ClosedErrands();
 			}
 		}
+		class ClosedErrandsWithReplies extends Statistics.DrillDown.Report {
+			function getReport() {
+				return new Reports.ClosedErrandsWithReplies();
+			}
+		}
 	}
 }
