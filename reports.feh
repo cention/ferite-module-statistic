@@ -545,9 +545,8 @@ namespace Reports {
 			string sql = "SELECT count(data.errand_id) AS y,
 			                     to_char((TIMESTAMP 'epoch' + (data.timestamp_close + INTEGER '${Statistic.timezoneOffset()}') * INTERVAL '1 second'), '${.outputTime.pgsqlFormat()}') AS x,
 			                     ${.extractFunctionCalls('data.timestamp_close')}
-			                     (CASE WHEN data.response_time <= (areas.generalalerttime * 60) THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
+			                     (CASE WHEN data.responded_within_sla = true THEN 'Responded according to SLA time' ELSE 'Responded after SLA time' END) AS g
 			              FROM workflow_reporterranddatas AS data
-			              INNER JOIN workflow_areas AS areas ON data.area_id = areas.workflow_area_id
 			              WHERE data.timestamp_close > 0
 			              AND data.timestamp_close >= ${timeframe.start}
 			              AND data.timestamp_close <= ${timeframe.end}
