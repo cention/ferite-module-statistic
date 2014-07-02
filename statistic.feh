@@ -1,7 +1,8 @@
+uses '/cention/etc/webframework-config.feh';
+uses 'webframework/Core/Database';
 uses 'array';
 uses 'console';
 uses 'date';
-uses 'ObjRunSrv';
 
 namespace modifies Array {
 	function appendWithNames( array a, array b ) {
@@ -389,7 +390,7 @@ namespace Statistics {
 			for( number i = 0; i < size; ++i )
 				.result[i][name] = 0;
 
-			tempResult = ObjRunObject.rawQuery(query);
+			tempResult = Database.queryAllResults(query);
 
 			size = tempResult.size();
 			for( number i = 0; i < size; ++i ) {
