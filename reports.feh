@@ -44,21 +44,25 @@ namespace Reports {
 
 	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_seconds';
+		function name() return I('Average response time (seconds)');
 		function seconds() return 1;
 	}
 
 	class AverageErrandResponseTimeInMinutes extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_minutes';
+		function name() return I('Average response time (minutes)');
 		function seconds() return 60;
 	}
 
 	class AverageErrandResponseTimeInHours extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_hours';
+		function name() return I('Average response time (hours)');
 		function seconds() return 3600;
 	}
 
 	class AverageErrandResponseTimeInDays extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_days';
+		function name() return I('Average response time (days)');
 		function seconds() return 86400;
 	}
 
@@ -78,21 +82,25 @@ namespace Reports {
 
 	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_time_in_seconds';
+		function name() return I('Average process time (seconds)');
 		function seconds() return 1;
 	}
 
 	class AverageErrandProcessTimeInMinutes extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_time_in_minutes';
+		function name() return I('Average process time (minutes)');
 		function seconds() return 60;
 	}
 
 	class AverageErrandProcessTimeInHours extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_in_hours';
+		function name() return I('Average process time (hours)');
 		function seconds() return 3600;
 	}
 
 	class AverageErrandProcessTimeInDays extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_in_days';
+		function name() return I('Average process time (days)');
 		function seconds() return 86400;
 	}
 
