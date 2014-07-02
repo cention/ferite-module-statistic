@@ -213,12 +213,15 @@ namespace Statistics {
 			return [];
 		}
 		function select( object key ) {
+			string columnTime = key.columnTime();
+			string groupName = .groupName();
+			string format = .format();
 			array list = [];
-			list[] = "to_char((TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1 second'), '${.format()}') AS ${.groupName()}";
+			list[] = "to_char(to_timestamp(${columnTime})::timestamp at time zone 'UTC', '${format}') AS ${groupName}";
 			.fields().each() using ( field ) {
 				string name = Statistics.nextOrderName();
 				._fields[] = name;
-				list[] = "extract(${field} from (TIMESTAMP 'epoch' + (${key.columnTime()}) * INTERVAL '1  second')) AS ${name}";
+				list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp at time zone 'UTC')) AS ${name}";
 			};
 			return list.join(', ');
 		}
