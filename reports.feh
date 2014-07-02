@@ -9,7 +9,7 @@ uses 'webframework/webframework';
  * @brief Contains all Cention Reports
  */
 namespace Reports {
-	class IncomingErrands implements Statistics.KeyFigure {
+	class IncomingErrands extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'incoming';
 		function name() return I('Incoming');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
@@ -62,7 +62,7 @@ namespace Reports {
 		function seconds() return 86400;
 	}
 
-	abstract class AverageErrandProcessTime implements Statistics.KeyFigure {
+	abstract class AverageErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'average_errand_process_time';
 		function name() return I('Average process time');
 		function select() return 'floor(avg(workflow_reportuserdatas.process_time) / ' + .seconds() + ') AS key';
@@ -96,7 +96,7 @@ namespace Reports {
 		function seconds() return 86400;
 	}
 
-	abstract class ErrandClosureStatus implements Statistics.KeyFigure {
+	abstract class ErrandClosureStatus extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
 		function select() return 'count(workflow_actions.workflow_action_id) AS key';
@@ -157,7 +157,7 @@ namespace Reports {
 		function where() return 'workflow_actions.type = 21';
 	}
 
-	class ErrandsRespondedAccordingToSLATime implements Statistics.KeyFigure {
+	class ErrandsRespondedAccordingToSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_according_to_sla_time';
 		function name() return I('Responded according to SLA time');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
@@ -170,7 +170,7 @@ namespace Reports {
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
 
-	class ErrandsRespondedAfterSLATime implements Statistics.KeyFigure {
+	class ErrandsRespondedAfterSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_after_sla_time';
 		function name() return I('Responded after SLA time');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';

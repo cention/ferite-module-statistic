@@ -127,6 +127,12 @@ namespace Statistics {
 		function end( string item );
 	}
 
+	abstract class AbstractKeyFigure {
+		function isGroup() {
+			return false;
+		}
+	}
+
 	abstract class AbstractGroup {
 		object _nextGroup;
 		number _startTime;
@@ -175,6 +181,9 @@ namespace Statistics {
 		}
 
 		function doInitialBuild() {
+			return true;
+		}
+		function isGroup() {
 			return true;
 		}
 	} 
@@ -385,6 +394,10 @@ namespace Statistics {
 					? tempResult[i]['key'].toNumber()
 					: tempResult[i]['key']);
 				.result.setRow(tempResult[i], name, value, extra);
+
+				if( not .totals.keyExists(name) )
+					.totals[name] = 0;
+				.totals[name] += value;
 			}
 		}
 
@@ -408,7 +421,7 @@ namespace Statistics {
 
 		function toHTML() {
 			object formatter = new Statistics.HTMLFormatter();
-			return formatter.run(.groups.append(.keys), .result);
+			return formatter.run(.groups.append(.keys), .result, .totals);
 		}
 
 		function toJSON( boolean linesChart ) {
@@ -634,12 +647,13 @@ namespace Statistics {
 		boolean render = false;
 	}
 	class HTMLFormatter {
-		function run( array headers, array& report ) {
+		function run( array headers, array& report, array& totals ) {
 			array html;
 			array rows;
 			array list;
 			
 			object previousRow;
+			number groups;
 			
 			report.each() using ( data ) {
 				object row = new Statistics.HTMLRow();
@@ -732,11 +746,23 @@ namespace Statistics {
 			headers.eachWithIndex() using ( item, index ) {
 				if( index == 0 ) html[] = '<th class="first">' + item.name() + '</th>';
 				else             html[] = '<th>' + item.name() + '</th>';
+
+				if( item.isGroup() )
+					groups++;
 			};
 			html[] = '</tr>';
 			rows.each() using ( row ) {
 				html[] = row.render();
 			};
+			html[] = '<tr>';
+			html[] = '<td class="first group" colspan="' + groups + '">' + I('Total') + '</td>';
+			headers.each() using ( item ) {
+				if( not item.isGroup() ) {
+					string id = 'key_' + item.identifier();
+					html[] = '<td>' + totals[id] + '</td>';
+				}
+			};
+			html[] = '</tr>';
 			html[] = '</table>';
 
 			return html.join("\n");
