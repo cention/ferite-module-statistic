@@ -3,6 +3,7 @@ uses 'webframework/Core/Database';
 uses 'array';
 uses 'console';
 uses 'date';
+uses 'ObjRunSrv';
 
 namespace modifies Array {
 	function appendWithNames( array a, array b ) {
@@ -60,6 +61,19 @@ namespace modifies Array {
 			};
 			a[] = row;
 		}
+	}
+	function uniq (array a) {
+		array result;
+		array hash;
+		
+		a.each() using (val) {
+			if ( hash[''+val] != 1 ) {
+				hash[''+val] = 1;
+				result.push(val);
+			}
+		};
+		
+		return result;
 	}
 }
 
@@ -360,7 +374,6 @@ namespace Statistics {
 			if( .organisations ) where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
 			if( .areas ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
 			if( .users ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
-
 			if( buildReport ) {
 				select[] = key.select();
 			} else {
@@ -375,12 +388,13 @@ namespace Statistics {
 				groupBy[] = group.groupBy();
 				orderBy[] = group.orderBy();
 			};
-
-			return 'SELECT ' + select.join(', ') +
-				' FROM ' + from.join(', ') +
-				(where ? ' WHERE ' + where.join(' AND ') : '') +
-				(buildReport ? ' GROUP BY ' + groupBy.join(', ') : '') +
-				' ORDER BY ' + orderBy.join(', ');
+			
+			
+			return 'SELECT ' + select.uniq().join(', ') +
+				' FROM ' + from.uniq().join(', ') +
+				(where ? ' WHERE ' + where.uniq().join(' AND ') : '') +
+				(buildReport ? ' GROUP BY ' + groupBy.uniq().join(', ') : '') +
+				' ORDER BY ' + orderBy.uniq().join(', ');
 		}
 		
 		function valuesForKey( object key, array& extra, boolean buildReport ) {
