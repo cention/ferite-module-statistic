@@ -202,7 +202,7 @@ namespace Statistics {
 				//                    but it produces strange results so I am going to remove it.
 				while ( time <= endTime ) {
 					string group = Date.localDate(time).format(.feriteFormat());
-					Console.printlnErr('(GROUP) ' + group);
+//					Console.printlnErr('(GROUP) ' + group);
 					if( not have.keyExists(group) ) {
 						list[] = group;
 						have[group] = true;
@@ -336,7 +336,7 @@ namespace Statistics {
 		function setUsers( array list )
 			.users = list;
 
-		function buildQuery( object key, array groups ) {
+		function buildQuery( object key, array groups, boolean buildReport ) {
 			array select = [];
 			array from = [];
 			array where = [];
@@ -355,6 +355,13 @@ namespace Statistics {
 			if( .areas ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
 			if( .users ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
 
+			if( buildReport ) {
+				select[] = key.select();
+			} else {
+				select[] = key.columnData() + ' AS key';
+				orderBy[] = key.columnData();
+			}
+
 			groups.each() using ( group ) {
 				select[] = group.select(key);
 				if( group.from() ) from[] = group.from();
@@ -362,27 +369,24 @@ namespace Statistics {
 				groupBy[] = group.groupBy();
 				orderBy[] = group.orderBy();
 			};
-			
-			select[] = key.select();
-			
+
 			return 'SELECT ' + select.join(', ') +
 				' FROM ' + from.join(', ') +
 				(where ? ' WHERE ' + where.join(' AND ') : '') +
-				' GROUP BY ' + groupBy.join(', ') +
+				(buildReport ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				' ORDER BY ' + orderBy.join(', ');
 		}
 		
-		function valuesForKey( object key, array& extra ) {
+		function valuesForKey( object key, array& extra, boolean buildReport ) {
 			string query;
 			number size;
 			array tempResult;
 			string name;
 
-//			Statistics.resetGroupID();
 			Statistics.resetOrderID();
 
-			query = .buildQuery(key, .groups);
-			Console.printlnErr("(DEBUG) ${query}");
+			query = .buildQuery(key, .groups, buildReport);
+			Console.printlnErr("(debug) ${query}");
 
 			name = 'key_' + key.identifier();
 
@@ -392,20 +396,24 @@ namespace Statistics {
 
 			tempResult = Database.queryAllResults(query);
 
-			size = tempResult.size();
-			for( number i = 0; i < size; ++i ) {
-				number value = (tempResult[i]['key'] isa string
-					? tempResult[i]['key'].toNumber()
-					: tempResult[i]['key']);
-				.result.setRow(tempResult[i], name, value, extra);
+			if( buildReport ) {
+				size = tempResult.size();
+				for( number i = 0; i < size; ++i ) {
+					number value = (tempResult[i]['key'] isa string
+						? tempResult[i]['key'].toNumber()
+						: tempResult[i]['key']);
+					.result.setRow(tempResult[i], name, value, extra);
 
-				if( not .totals.keyExists(name) )
-					.totals[name] = 0;
-				.totals[name] += value;
+					if( not .totals.keyExists(name) )
+						.totals[name] = 0;
+					.totals[name] += value;
+				}
+			} else {
+				.result = tempResult;
 			}
 		}
 
-		function run() {
+		function build( boolean buildReport ) {
 			array extra;
 
 			.groups.each() using ( group ) {
@@ -415,12 +423,24 @@ namespace Statistics {
 			.result = .firstGroup().build();
 
 			.keys.each() using ( key ) {
-				.valuesForKey(key, extra);
+				.valuesForKey(key, extra, buildReport);
 			};
 
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] ' + .result);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+//			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
+//			Console.printlnErr('[DEBUG] ' + .result);
+//			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+		}
+
+		function buildReport() {
+			.build(true);
+		}
+
+		function buildData() {
+			.build(false);
+		}
+
+		function run() {
+			.buildReport();
 		}
 
 		function toHTML() {
@@ -499,16 +519,16 @@ namespace Statistics {
 			if( data.size() == 0 )
 				data[] = [];
 
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] data: ' + data);
-			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
-			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
+//			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+//			Console.printlnErr('[DEBUG] data: ' + data);
+//			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
+//			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
 			
 			size = .result.size();
 			for( number i = 0; i < size; ++i ) {
 				number index = dataNames.getIndex(.result[i][groupName]);
-				Console.printlnErr('[DEBUG] index: ' + index);
-				Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
+//				Console.printlnErr('[DEBUG] index: ' + index);
+//				Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
 				if( index >= 0 and index < data.size() ) {
 					for( number j = 0; j < .result[i].size(); j++ ) {
 						if( .result[i].getName(j).index('key_') == 0 )
@@ -525,7 +545,7 @@ namespace Statistics {
 			/* data[] = [];
 			data[1][] = 873; */	
 
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+//			Console.printlnErr('[DEBUG] -----------------------------------------------------');
 
 			return JSON.valueToJSON([
 					'labels' => labels,
