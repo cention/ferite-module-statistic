@@ -184,6 +184,9 @@ namespace Statistics {
 		function doInitialBuild() {
 			return true;
 		}
+		function needTranslation() {
+			return false;
+		}
 		function isGroup() {
 			return true;
 		}
@@ -192,6 +195,9 @@ namespace Statistics {
 	abstract class AbstractDateTimeGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		array _fields;
 		
+		function needTranslation() {
+			return true;
+		}
 		function build() {
 			if( .doInitialBuild() ) {
 				array list = [];
@@ -424,6 +430,15 @@ namespace Statistics {
 
 			.keys.each() using ( key ) {
 				.valuesForKey(key, extra, buildReport);
+			};
+
+			for( number i = 0; i < .result.size(); i++ ) {
+				.groups.each() using ( group ) {
+					if( group.needTranslation() ) {
+						string name = group.groupName();
+						.result[i][name] = I(.result[i][name]);
+					}
+				};
 			};
 
 //			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');

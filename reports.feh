@@ -234,6 +234,7 @@ namespace Reports {
 		function groupBy() return 'workflow_services.workflow_service_id, workflow_services.name';
 		function orderBy() return 'workflow_services.name';
 		function extra() return [ 'workflow_service_id' ];
+		function needTranslation() return true;
 	}
 
 	class YearGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
