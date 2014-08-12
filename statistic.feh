@@ -433,15 +433,16 @@ namespace Statistics {
 						.totals[name] += value;
 					}
 				}
+				/* The else if statement is here because how Database.queryAllResults() works */
 				else if (size == 1) {
-						number value = (tempResult[i] isa string
-							? tempResult[i].toNumber()
-							: tempResult[i]);
-						.result.setRow([tempResult[i]], name, value, extra);
-	
-						if( not .totals.keyExists(name) )
-							.totals[name] = 0;
-						.totals[name] += value;
+					number value = (tempResult[0] isa string
+						? tempResult[0].toNumber()
+						: tempResult[0]);
+					.result.setRow([tempResult[0]], name, value, extra);
+
+					if( not .totals.keyExists(name) )
+						.totals[name] = 0;
+					.totals[name] += value;
 				}
 			} else {
 				.result = tempResult;
