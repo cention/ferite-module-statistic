@@ -61,6 +61,19 @@ namespace modifies Array {
 			a[] = row;
 		}
 	}
+	function uniq (array a) {
+		array result;
+		array hash;
+		
+		a.each() using (val) {
+			if ( hash[''+val] != 1 ) {
+				hash[''+val] = 1;
+				result.push(val);
+			}
+		};
+		
+		return result;
+	}
 }
 
 class modifies Date {
@@ -348,6 +361,7 @@ namespace Statistics {
 			array where = [];
 			array groupBy = [];
 			array orderBy = [];
+			string querystring;
 			
 			from[] = key.from();
 			
@@ -376,11 +390,14 @@ namespace Statistics {
 				orderBy[] = group.orderBy();
 			};
 
-			return 'SELECT ' + select.join(', ') +
+			querystring = 'SELECT ' + select.join(', ') +
 				' FROM ' + from.join(', ') +
 				(where ? ' WHERE ' + where.join(' AND ') : '') +
-				(buildReport ? ' GROUP BY ' + groupBy.join(', ') : '') +
-				' ORDER BY ' + orderBy.join(', ');
+				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
+				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
+
+			// Console.printlnErr("=========================================< Query >===\n" + querystring);
+			return querystring;
 		}
 		
 		function valuesForKey( object key, array& extra, boolean buildReport ) {
@@ -404,15 +421,27 @@ namespace Statistics {
 
 			if( buildReport ) {
 				size = tempResult.size();
-				for( number i = 0; i < size; ++i ) {
-					number value = (tempResult[i]['key'] isa string
-						? tempResult[i]['key'].toNumber()
-						: tempResult[i]['key']);
-					.result.setRow(tempResult[i], name, value, extra);
-
-					if( not .totals.keyExists(name) )
-						.totals[name] = 0;
-					.totals[name] += value;
+				if (size > 1) {
+					for( number i = 0; i < size; ++i ) {
+						number value = (tempResult[i]['key'] isa string
+							? tempResult[i]['key'].toNumber()
+							: tempResult[i]['key']);
+						.result.setRow(tempResult[i], name, value, extra);
+	
+						if( not .totals.keyExists(name) )
+							.totals[name] = 0;
+						.totals[name] += value;
+					}
+				}
+				else if (size == 1) {
+						number value = tempResult[i] isa string
+							? tempResult[i].toNumber()
+							: tempResult[i]);
+						.result.setRow([tempResult[i]], name, value, extra);
+	
+						if( not .totals.keyExists(name) )
+							.totals[name] = 0;
+						.totals[name] += value;
 				}
 			} else {
 				.result = tempResult;
@@ -426,24 +455,28 @@ namespace Statistics {
 				extra = extra.append(group.extra());
 			};
 
-			.result = .firstGroup().build();
+			if ( .firstGroup() )
+				.result = .firstGroup().build();
 
 			.keys.each() using ( key ) {
-				.valuesForKey(key, extra, buildReport);
+				if (key)
+					.valuesForKey(key, extra, buildReport);
 			};
 
 			for( number i = 0; i < .result.size(); i++ ) {
 				.groups.each() using ( group ) {
-					if( group.needTranslation() ) {
-						string name = group.groupName();
-						.result[i][name] = I(.result[i][name]);
+					if ( group ) {
+						if( group.needTranslation() ) {
+							string name = group.groupName();
+							.result[i][name] = I(.result[i][name]);
+						}
 					}
 				};
 			};
 
-//			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
-//			Console.printlnErr('[DEBUG] ' + .result);
-//			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
+			Console.printlnErr('[DEBUG] ' + .result);
+			Console.printlnErr('[DEBUG] -----------------------------------------------------');
 		}
 
 		function buildReport() {

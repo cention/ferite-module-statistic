@@ -109,12 +109,12 @@ namespace Reports {
 		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
 		function select() return 'count(workflow_actions.workflow_action_id) AS key';
-		function from() return 'workflow_actions';
+		function from() return 'workflow_actions JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_actions.context_fkey';
 		function where() raise new Error('Function where() has not been implemented.');
-		function columnOrganisation() return 'workflow_actions.organisation_fkey';
-		function columnArea() return 'workflow_actions.area_fkey';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_actions.origin_fkey';
-		function columnChannel() return 'workflow_actions.channel_fkey';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_actions.timestampwhen';
 	}
 
