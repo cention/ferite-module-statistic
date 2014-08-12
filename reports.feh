@@ -33,7 +33,7 @@ namespace Reports {
 	class ClosedErrandsWithReplies extends ClosedErrands {
 		function identifier() return 'replies';
 		function name() return I('Replies');
-		function where() return 'timestamp_replied > 0';
+		function where() return 'timestamp_close > 0 AND timestamp_replied > 0';
 	}
 
 	abstract class AverageErrandResponseTime extends ClosedErrands {
