@@ -417,28 +417,15 @@ namespace Statistics {
 			for( number i = 0; i < size; ++i )
 				.result[i][name] = 0;
 
-			tempResult = Database.queryAllResults(query);
+			tempResult = Database.queryToArray(query);
 
 			if( buildReport ) {
 				size = tempResult.size();
-				if (size > 1) {
-					for( number i = 0; i < size; ++i ) {
-						number value = (tempResult[i]['key'] isa string
-							? tempResult[i]['key'].toNumber()
-							: tempResult[i]['key']);
-						.result.setRow(tempResult[i], name, value, extra);
-	
-						if( not .totals.keyExists(name) )
-							.totals[name] = 0;
-						.totals[name] += value;
-					}
-				}
-				/* The else if statement is here because how Database.queryAllResults() works */
-				else if (size == 1) {
-					number value = (tempResult[0] isa string
-						? tempResult[0].toNumber()
-						: tempResult[0]);
-					.result.setRow([tempResult[0]], name, value, extra);
+				for( number i = 0; i < size; ++i ) {
+					number value = (tempResult[i]['key'] isa string
+						? tempResult[i]['key'].toNumber()
+						: tempResult[i]['key']);
+					.result.setRow(tempResult[i], name, value, extra);
 
 					if( not .totals.keyExists(name) )
 						.totals[name] = 0;
