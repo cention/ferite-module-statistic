@@ -27,6 +27,7 @@ namespace Reports {
 		function identifier() return 'closed';
 		function name() return I('Closed');
 		function where() return 'timestamp_close > 0';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
 
@@ -103,6 +104,36 @@ namespace Reports {
 		function identifier() return 'average_errand_process_in_days';
 		function name() return I('Average process time (days)');
 		function seconds() return 86400;
+	}
+	
+	class ErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'errand_process_time';
+		function name() return I('Process time');
+		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
+		function from() return 'workflow_reporterranddatas';
+		function where() return '';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnDuration () return 'workflow_reporterranddatas.process_time';
+		function seconds() raise new Error('Function seconds() has not been implemented.');
+	}
+	
+	class ErrandResponseTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'errand_response_time';
+		function name() return I('Response time');
+		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
+		function from() return 'workflow_reporterranddatas';
+		function where() return '';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnDuration () return 'workflow_reporterranddatas.response_time';
+		function seconds() raise new Error('Function seconds() has not been implemented.');
 	}
 
 	abstract class ErrandClosureStatus extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -235,6 +266,28 @@ namespace Reports {
 		function orderBy() return 'workflow_services.name';
 		function extra() return [ 'workflow_service_id' ];
 		function needTranslation() return true;
+	}
+	
+	class CloseTagGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];
+		function name() return I('Classification');
+		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
+		function from() return 'workflow_tags';
+		function where( object key ) return key.columnTag() + ' = workflow_tags.workflow_tag_id';
+		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
+		function orderBy() return 'workflow_tags.display';
+		function needTranslation() return true;
+	}
+	
+	class DurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];	
+		function name() return I('Duration in minutes');
+		function select( object key ) return 'cast(' + key.columnDuration() + ' / 60 AS integer) AS ' + .groupName();
+		function from() return '';
+		function where( object key ) return '';
+		function groupBy() return .groupName();
+		function orderBy() return .groupName();
+		function extra() return [];
 	}
 
 	class YearGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {

@@ -30,9 +30,17 @@ namespace modifies Array {
 				if( name.index('group') == 0 ) {
 					//Console.printlnErr('[DEBUG]  - Array Value: "' + a[i][name] + "'");
 					//Console.printlnErr('[DEBUG]  - Group Value: "' + groups[j] + "'");
-					if( a[i][name] != groups[j].trim(' ') ) {
-						found = false;
-						break;
+					if ( groups[j] isa string ) {
+						if( a[i][name] != groups[j].trim(' ') ) {
+							found = false;
+							break;
+						}
+					}
+					else {
+						if( a[i][name] != groups[j] ) {
+							found = false;
+							break;
+						}
 					}
 				}
 			}
@@ -203,7 +211,7 @@ namespace Statistics {
 		function isGroup() {
 			return true;
 		}
-	} 
+	}
 
 	abstract class AbstractDateTimeGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		array _fields;
@@ -396,7 +404,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			// Console.printlnErr("=========================================< Query >===\n" + querystring);
+			//Console.printlnErr("=========================================< Query >===\n" + querystring);
 			return querystring;
 		}
 		
@@ -409,7 +417,7 @@ namespace Statistics {
 			Statistics.resetOrderID();
 
 			query = .buildQuery(key, .groups, buildReport);
-			Console.printlnErr("(debug) ${query}");
+			//Console.printlnErr("(debug) ${query}");
 
 			name = 'key_' + key.identifier();
 
@@ -462,9 +470,9 @@ namespace Statistics {
 				};
 			};
 
-			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
-			Console.printlnErr('[DEBUG] ' + .result);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			// Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
+			// Console.printlnErr('[DEBUG] ' + .result);
+			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
 		}
 
 		function buildReport() {
@@ -505,6 +513,7 @@ namespace Statistics {
 			array labels = [];
 			array data = [];
 			array dataNames = [];
+			array result = .result;
 
 			number size;
 
@@ -524,22 +533,31 @@ namespace Statistics {
 
 			if( linesChart ) {
 				if( .groups.size() > 1 ) {
-
+				
 				} else {
 					labels = lastGroup.values();
 					data[] = [];
 					groupName = lastGroupName;
 				}
 			} else {
+				//Console.printlnErr('lastGroup.values:' + lastGroup.values());
+			
 				if( .groups.size() > 1 ) {
 					labels = nextToLastGroup.values();
-
 					lastGroup.values().each() using( value ) {
 						data[] = [];
 						dataNames[value] = true;
 					};
 
 					groupName = nextToLastGroupName;
+				} else if (lastGroup.name() == I('Duration in minutes')) {
+					labels = lastGroup.values();
+					lastGroup.values().each() using( value ) {
+						data[] = [];
+						dataNames[value] = true;
+					};
+
+					groupName = lastGroupName;
 				} else {
 					labels = [ lastGroup.name() ];
 
@@ -555,25 +573,33 @@ namespace Statistics {
 			if( data.size() == 0 )
 				data[] = [];
 
-//			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-//			Console.printlnErr('[DEBUG] data: ' + data);
-//			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
-//			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
+			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			// Console.printlnErr('[DEBUG] data: ' + data);
+			// Console.printlnErr('[DEBUG] data.size(): ' + data.size());
+			// Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
+			// Console.printlnErr('[DEBUG] groupName: ' + groupName);
+			
 			
 			size = .result.size();
-			for( number i = 0; i < size; ++i ) {
-				number index = dataNames.getIndex(.result[i][groupName]);
-//				Console.printlnErr('[DEBUG] index: ' + index);
-//				Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
-				if( index >= 0 and index < data.size() ) {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[index][] = .result[i][j];
-					}
-				} else {
-					for( number j = 0; j < .result[i].size(); j++ ) {
-						if( .result[i].getName(j).index('key_') == 0 )
-							data[0][] = .result[i][j];
+			
+			if ( size > 0 ) {
+				for( number i = 0; i < size; ++i ) {
+					number index = dataNames.getIndex('' + .result[i][groupName]);
+					// Console.printlnErr('[DEBUG] index: ' + index);
+					// Console.printlnErr("[DEBUG] Result (${i}): " + .result[i]);
+					if( index >= 0 and index < data.size() ) {
+						for( number j = 0; j < .result[i].size(); j++ ) {
+							if( .result[i].getName(j).index('key_') == 0 )
+								data[index][] = .result[i][j];
+						}
+					} else {
+						for( number j = 0; j < .result[i].size(); j++ ) {
+							if( .result[i].getName(j).index('key_') == 0 )
+								data[0][] = .result[i][j];
+							if(lastGroup.name() == I('Duration in minutes')) {
+								labels[] = .result[i][groupName];
+							}
+						}
 					}
 				}
 			}
