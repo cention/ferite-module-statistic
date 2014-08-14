@@ -479,9 +479,17 @@ namespace Statistics {
 			.buildReport();
 		}
 
-		function toHTML() {
-			object formatter = new Statistics.HTMLFormatter();
-			return formatter.run(.groups.append(.keys), .result, .totals);
+		static final number HTML_CENTION_CHART = 1;
+		static final number HTML_HORIZONTAL_TABLE = 2;
+
+		function toHTML( number type ) {
+			object formatter;
+			if( type == Statistics.Report.HTML_CENTION_CHART ) {
+				formatter = new Statistics.CentionChartHTMLFormatter();
+			} else {
+				formatter = new Statistics.HorizontalTableHTMLFormatter();
+			}
+			return formatter.run(self);
 		}
 
 		function toJSON( boolean linesChart ) {
@@ -706,8 +714,10 @@ namespace Statistics {
 		boolean group = false;
 		boolean render = false;
 	}
-	class HTMLFormatter {
-		function run( array headers, array& report, array& totals ) {
+
+	class HorizontalTableHTMLFormatter {
+		function run( object report ) {
+			array headers = report.groups.append(report.keys);
 			array html;
 			array rows;
 			array list;
@@ -715,7 +725,7 @@ namespace Statistics {
 			object previousRow;
 			number groups;
 			
-			report.each() using ( data ) {
+			report.result.each() using ( data ) {
 				object row = new Statistics.HTMLRow();
 				array values = [];
 				array keyValues;
@@ -819,13 +829,26 @@ namespace Statistics {
 			headers.each() using ( item ) {
 				if( not item.isGroup() ) {
 					string id = 'key_' + item.identifier();
-					html[] = '<td>' + totals[id] + '</td>';
+					html[] = '<td>' + report.totals[id] + '</td>';
 				}
 			};
 			html[] = '</tr>';
 			html[] = '</table>';
 
 			return html.join("\n");
+		}
+	}
+
+	class CentionChartHTMLFormatter {
+		function run( object report ) {
+			object chart;
+			GUIKit.loadComponent('Chart');
+			chart = new GUIKit.CChart();
+			chart.id = 'CentionChart';
+			chart.initialiseComponent();
+			chart.setWidth('715px');
+			chart.setDataSource([ 'Rows' => report.result, 'ColumnHeaders' => [], 'Totals' => report.totals ]);
+			return chart.render();
 		}
 	}
 }
