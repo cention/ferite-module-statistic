@@ -108,7 +108,7 @@ namespace Reports {
 	
 	class ErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_process_time';
-		function name() return I('Process time');
+		function name() return I('Number of errands processed');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
 		function from() return 'workflow_reporterranddatas';
 		function where() return '';
@@ -123,7 +123,7 @@ namespace Reports {
 	
 	class ErrandResponseTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_response_time';
-		function name() return I('Response time');
+		function name() return I('Number of errands responded to');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
 		function from() return 'workflow_reporterranddatas';
 		function where() return '';
