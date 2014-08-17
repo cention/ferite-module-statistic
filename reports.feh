@@ -288,6 +288,7 @@ namespace Reports {
 		function groupBy() return .groupName();
 		function orderBy() return .groupName();
 		function extra() return [];
+		function valuesAsLabels() return true;
 	}
 
 	class YearGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
