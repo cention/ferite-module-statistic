@@ -405,7 +405,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			Console.printlnErr("=========================================< Query >===\n" + querystring);
+			// Console.printlnErr("=========================================< Query >===\n" + querystring);
 			return querystring;
 		}
 		
@@ -454,7 +454,7 @@ namespace Statistics {
 			if ( .firstGroup() )
 				.result = .firstGroup().build();
 
-			Console.printlnErr('Keys : ' + .keys);
+			// Console.printlnErr('Keys : ' + .keys);
 			
 			.keys.each() using ( key ) {
 				if (key)
@@ -472,9 +472,9 @@ namespace Statistics {
 				};
 			};
 
-			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
-			Console.printlnErr('[DEBUG] ' + .result);
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			// Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
+			// Console.printlnErr('[DEBUG] ' + .result);
+			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
 		}
 
 		function buildReport() {
@@ -752,6 +752,8 @@ namespace Statistics {
 			object previousRow;
 			number groups;
 			
+			// Console.printlnErr('HEADERS: ' + headers );
+			
 			report.result.each() using ( data ) {
 				object row = new Statistics.HTMLRow();
 				array values = [];
@@ -760,9 +762,10 @@ namespace Statistics {
 				for( number i = 0; i < data.size(); i++ ) {
 					if( data.getName(i).index('group') == 0 ) {
 						values[] = String.trim('' + data[i], ' ');
-					} else if( data.getName(i).index('key') == 0 ) {
-						keyValues[] = String.trim('' + data[i], ' ');
 					}
+					// else if( data.getName(i).index('key') == 0 ) {
+					// 	keyValues[] = String.trim('' + data[i], ' ');
+					// }
 				}
 				
 				values.each() using ( value ) {
@@ -772,10 +775,23 @@ namespace Statistics {
 					row.addColumn(column);
 				};
 				
-				keyValues.each() using ( keyValue ) {
-					object column = new Statistics.HTMLColumn();
-					column.value = keyValue;
-					row.addColumn(column);
+				headers.eachWithIndex() using ( dataColumn, i ) {
+					if( data.getName(i).index('group') != 0 ) {
+						object column = new Statistics.HTMLColumn();
+						string identifier = 'key_' + dataColumn.identifier();
+						
+						// Console.printlnErr('>> datacolumn: ' + dataColumn);
+						// Console.printlnErr('>> identifier: ' + identifier);
+						// Console.printlnErr('>> data : ' + data[identifier]);
+						
+						if ( data[identifier] ) {
+							column.value = String.trim('' + data[identifier], ' ');
+						}
+						else {
+							column.value = '0';
+						}
+						row.addColumn(column);
+					}
 				};
 				
 				rows[] = row;
@@ -847,6 +863,9 @@ namespace Statistics {
 
 					if( item.isGroup() )
 						groups++;
+				}
+				else {
+					raise new Error('Key is null in headers. Check key definitions in reports.feh and basic-install.fe.');
 				}
 			};
 			html[] = '</tr>';
