@@ -892,57 +892,82 @@ namespace Statistics {
 	}
 
 	class CentionChartHTMLFormatter {
-		function reportToDataSource( object report, object key ) {
-			array dataSource;
-			array groupValues;
+		function reportToDataSource( object report ) {
+			array source;
+			array groups;
 			array rows;
+			object header;
 
-			string g;
-			string x;
-			string y;
+			if( report.keys.size() == 1 ) {
+				string g;
+				string x;
+				string y;
 
-			number sizeGroups;
-			number lastGroupIndex;
-			number nextToLastGroupIndex;
+				number sizeResult;
 
-			object lastGroup;
-			object nextToLastGroup;
+				number sizeGroups = report.groups.size();
+				number lastGroupIndex = sizeGroups - 1;
+				number nextToLastGroupIndex = lastGroupIndex - 1;
 
-			number sizeResult;
+				object lastGroup = report.groups[lastGroupIndex];
+				object nextToLastGroup = report.groups[nextToLastGroupIndex];
 
-			sizeGroups = report.groups.size();
-			lastGroupIndex = sizeGroups - 1;
-			nextToLastGroupIndex = lastGroupIndex - 1;
+				g = lastGroup.groupName();
+				x = nextToLastGroup.groupName();
+				y = 'key_' + report.keys[0].identifier();
 
-			lastGroup = report.groups[lastGroupIndex];
-			nextToLastGroup = report.groups[nextToLastGroupIndex];
+				sizeResult = report.result.size();
+				for( number i = 0; i < sizeResult; i++ ) {
+					string group = report.result[i][g];
+					groups[group] = group;
+					rows[] = [
+						'x' => report.result[i][x],
+						'y' => report.result[i][y],
+						'g' => report.result[i][g]
+					];
+				}
 
-			g = lastGroup.groupName();
-			x = nextToLastGroup.groupName();
-			y = 'key_' + key.identifier();
+				header = report.keys[0];
+			} else {
+				number sizeResult;
 
-			sizeResult = report.result.size();
-			for( number i = 0; i < sizeResult; i++ ) {
-				string group = report.result[i][g];
-				groupValues[group] = group;
-				rows[] = [
-					'x' => report.result[i][x],
-					'y' => report.result[i][y],
-					'g' => report.result[i][g]
-				];
+				number sizeGroups = report.groups.size();
+				number lastGroupIndex = sizeGroups - 1;
+				object lastGroup = report.groups[lastGroupIndex];
+
+				string x = lastGroup.groupName();
+
+				report.keys.each() using ( key ) {
+					groups[key.name()] = key.name();
+				};
+
+				sizeResult = report.result.size();
+				for( number i = 0; i < sizeResult; i++ ) {
+					report.keys.each() using ( key ) {
+						string y = 'key_' + key.identifier();
+						array row = [
+							'x' => report.result[i][x],
+							'y' => (report.result[i].keyExists(y) ? report.result[i][y] : 0),
+							'g' => key.name()
+						];
+						rows[] = row;
+						Console.printlnErr('(chart) ' + row);
+					};
+				}
+
+				header = lastGroup;
 			}
 
-			dataSource = .makeData(report, key, groupValues, rows);
-
-			return dataSource;
+			source = .makeData(report, header, groups, rows);
+			return source;
 		}
-		function makeData( object report, object key, array groups, array rawData ) {
+		function makeData( object report, object header, array groups, array rawData ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
 			array totals = [ I('Total') ];
 			array rows = [];
 
-			columnHeaders[] = key.name();
+			columnHeaders[] = header.name();
 
 			groups.eachWithIndex() using ( name, index ) {
 				columnHeaders[] = name;
@@ -962,6 +987,7 @@ namespace Statistics {
 					row = rows['' + rawRow['x']];
 				}
 
+				Console.printlnErr('(chart) (raw) ' + rawRow);
 				row[groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 
 				if( rawRow['x'] != '' ) {
@@ -988,7 +1014,7 @@ namespace Statistics {
 			chart.id = 'CentionChart';
 			chart.initialiseComponent();
 			chart.setWidth('715px');
-			chart.setDataSource(.reportToDataSource(report, report.keys[0]));
+			chart.setDataSource(.reportToDataSource(report));
 			return chart.render();
 		}
 	}
