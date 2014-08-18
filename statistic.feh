@@ -866,6 +866,95 @@ namespace Statistics {
 	}
 
 	class CentionChartHTMLFormatter {
+		function reportToDataSource( object report, object key ) {
+			array dataSource;
+			array groupValues;
+			array rows;
+
+			string g;
+			string x;
+			string y;
+
+			number sizeGroups;
+			number lastGroupIndex;
+			number nextToLastGroupIndex;
+
+			object lastGroup;
+			object nextToLastGroup;
+
+			number sizeResult;
+
+			sizeGroups = report.groups.size();
+			lastGroupIndex = sizeGroups - 1;
+			nextToLastGroupIndex = lastGroupIndex - 1;
+
+			lastGroup = report.groups[lastGroupIndex];
+			nextToLastGroup = report.groups[nextToLastGroupIndex];
+
+			g = lastGroup.groupName();
+			x = nextToLastGroup.groupName();
+			y = 'key_' + key.identifier();
+
+			sizeResult = report.result.size();
+			for( number i = 0; i < sizeResult; i++ ) {
+				string group = report.result[i][g];
+				groupValues[group] = group;
+				rows[] = [
+					'x' => report.result[i][x],
+					'y' => report.result[i][y],
+					'g' => report.result[i][g]
+				];
+			}
+
+			dataSource = .makeData(report, key, groupValues, rows);
+
+			return dataSource;
+		}
+		function makeData( object report, object key, array groups, array rawData ) {
+			number rawRowCount = rawData.size();
+			array columnHeaders = [];
+			array totals = [ I('Total') ];
+			array rows = [];
+
+			columnHeaders[] = key.name();
+
+			groups.eachWithIndex() using ( name, index ) {
+				columnHeaders[] = name;
+				totals[groups.getName(index)] = 0;
+//				if( .customTotalCounter ) {
+//					totals[.groups.getName(index)] = .customTotalCounter.invoke(.groups.getName(index));
+//				}
+			};
+
+			for( number i = 0; i < rawRowCount; i++ ) {
+				array rawRow = rawData[i]; // Should this be avoided in this case?
+				array row = [];
+
+				if( not rows.keyExists('' + rawRow['x']) ) {
+					row = [ '' + rawRow['x'], 0, 0, 0, 0, 0, 0, 0, 0 ];
+				} else {
+					row = rows['' + rawRow['x']];
+				}
+
+				row[groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+
+				if( rawRow['x'] != '' ) {
+					rows['' + rawRow['x']] = row;
+				} else {
+					rows['Row ' + i] = row;
+				}
+
+//				if( not .customTotalCounter ) {
+					if( not totals.keyExists(rawRow['g']) ) {
+						totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+					} else {
+						totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+					}
+//				}
+			}
+
+			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
+		}
 		function run( object report ) {
 			object chart;
 			GUIKit.loadComponent('Chart');
@@ -873,7 +962,7 @@ namespace Statistics {
 			chart.id = 'CentionChart';
 			chart.initialiseComponent();
 			chart.setWidth('715px');
-			chart.setDataSource([ 'Rows' => report.result, 'ColumnHeaders' => [], 'Totals' => report.totals ]);
+			chart.setDataSource(.reportToDataSource(report, report.keys[0]));
 			return chart.render();
 		}
 	}
