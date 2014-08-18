@@ -108,7 +108,7 @@ namespace Reports {
 	
 	class ErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_process_time';
-		function name() return I('Number of errands processed');
+		function name() return I('Processed');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
 		function from() return 'workflow_reporterranddatas';
 		function where() return '';
@@ -123,7 +123,7 @@ namespace Reports {
 	
 	class ErrandResponseTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_response_time';
-		function name() return I('Number of errands responded to');
+		function name() return I('Responded');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
 		function from() return 'workflow_reporterranddatas';
 		function where() return '';
@@ -135,17 +135,42 @@ namespace Reports {
 		function columnDuration () return 'workflow_reporterranddatas.response_time';
 		function seconds() raise new Error('Function seconds() has not been implemented.');
 	}
+	
+	class ErrandClassification extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'errand_classification';
+		function name() return 'Errands';
+		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
+		function from() {
+			return 'workflow_reporterranddatas ' + 
+				'JOIN workflow_errand_tags_links ' +
+					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
+		}
+		function where() return '';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
+	}
 
 	abstract class ErrandClosureStatus extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
 		function select() return 'count(workflow_actions.workflow_action_id) AS key';
-		function from() return 'workflow_actions JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_actions.context_fkey';
+		function from() {
+			return 'workflow_actions ' + 
+				'JOIN workflow_reporterranddatas ' +
+					'ON workflow_reporterranddatas.errand_id = workflow_actions.context_fkey ' +
+				'JOIN workflow_errand_tags_links ' +
+					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
+		}
 		function where() raise new Error('Function where() has not been implemented.');
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_actions.origin_fkey';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnTime() return 'workflow_actions.timestampwhen';
 	}
 
@@ -270,13 +295,15 @@ namespace Reports {
 	
 	class CloseTagGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
-		function name() return I('Classification');
+		function name() return I('Tags');
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
 		function from() return 'workflow_tags';
 		function where( object key ) return key.columnTag() + ' = workflow_tags.workflow_tag_id';
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
 		function needTranslation() return true;
+		function extra return [];
+		function valuesAsLabels() return true;
 	}
 	
 	class DurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
