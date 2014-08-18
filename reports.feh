@@ -188,7 +188,7 @@ namespace Reports {
 
 	class ErrandClosureStatusReturned extends ErrandClosureStatus {
 		function identifier() return 'errand_closure_status_returned';
-		function name() return I('Deleted');
+		function name() return I('Returned');
 		function where() return 'workflow_actions.type = 8';
 	}
 
