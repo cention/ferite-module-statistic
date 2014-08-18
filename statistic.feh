@@ -405,7 +405,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			//Console.printlnErr("=========================================< Query >===\n" + querystring);
+			Console.printlnErr("=========================================< Query >===\n" + querystring);
 			return querystring;
 		}
 		
@@ -454,7 +454,7 @@ namespace Statistics {
 			if ( .firstGroup() )
 				.result = .firstGroup().build();
 
-			// Console.printlnErr('Keys : ' + .keys);
+			Console.printlnErr('Keys : ' + .keys);
 			
 			.keys.each() using ( key ) {
 				if (key)
@@ -472,9 +472,9 @@ namespace Statistics {
 				};
 			};
 
-			// Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
-			// Console.printlnErr('[DEBUG] ' + .result);
-			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			Console.printlnErr('[DEBUG] ------------------- RESULT --------------------------');
+			Console.printlnErr('[DEBUG] ' + .result);
+			Console.printlnErr('[DEBUG] -----------------------------------------------------');
 		}
 
 		function buildReport() {
@@ -841,22 +841,28 @@ namespace Statistics {
 			html[] = '<table border="0" cellpadding="0" cellspacing="0" class="ReportsTable">';
 			html[] = '<tr>';
 			headers.eachWithIndex() using ( item, index ) {
-				if( index == 0 ) html[] = '<th class="first">' + item.name() + '</th>';
-				else             html[] = '<th>' + item.name() + '</th>';
+				if ( item ) {
+					if( index == 0 ) html[] = '<th class="first">' + item.name() + '</th>';
+					else             html[] = '<th>' + item.name() + '</th>';
 
-				if( item.isGroup() )
-					groups++;
+					if( item.isGroup() )
+						groups++;
+				}
 			};
 			html[] = '</tr>';
+			
 			rows.each() using ( row ) {
 				html[] = row.render();
 			};
+			
 			html[] = '<tr>';
 			html[] = '<td class="first group" colspan="' + groups + '">' + I('Total') + '</td>';
 			headers.each() using ( item ) {
-				if( not item.isGroup() ) {
-					string id = 'key_' + item.identifier();
-					html[] = '<td>' + report.totals[id] + '</td>';
+				if ( item ) {
+					if( not item.isGroup() ) {
+						string id = 'key_' + item.identifier();
+						html[] = '<td>' + report.totals[id] + '</td>';
+					}
 				}
 			};
 			html[] = '</tr>';
