@@ -379,10 +379,10 @@ namespace Statistics {
 			where[] = key.columnTime() + ' >= ' + .startTime;
 			where[] = key.columnTime() + ' <= ' + .endTime;
 
-			if( .channels ) where[] = key.columnChannel() + ' in (' + .channels.join(',') + ')';
-			if( .organisations ) where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
-			if( .areas ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
-			if( .users ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
+			if( .channels and key.columnChannel() ) where[] = key.columnChannel() + ' in (' + .channels.join(',') + ')';
+			if( .organisations and key.columnOrganisation() ) where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
+			if( .areas and key.columnArea() ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
+			if( .users and key.columnUser() ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
 
 			if( buildReport ) {
 				select[] = key.select();
