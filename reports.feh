@@ -157,11 +157,13 @@ namespace Reports {
 	abstract class ErrandClosureStatus extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
-		function select() return 'count(workflow_actions.workflow_action_id) AS key';
+		function select() return 'count(distinct(workflow_actions.workflow_action_id)) AS key';
 		function from() {
 			return 'workflow_actions ' + 
+				'JOIN workflow_errand_actions_links ' +
+					'ON workflow_actions.workflow_action_id = workflow_errand_actions_links.child_workflow_action_id ' +
 				'JOIN workflow_reporterranddatas ' +
-					'ON workflow_reporterranddatas.errand_id = workflow_actions.context_fkey ' +
+					'ON workflow_reporterranddatas.errand_id = workflow_errand_actions_links.parent_workflow_errand_id ' +
 				'JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
