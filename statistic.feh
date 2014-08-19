@@ -951,7 +951,6 @@ namespace Statistics {
 							'g' => key.name()
 						];
 						rows[] = row;
-						Console.printlnErr('(chart) ' + row);
 					};
 				}
 
@@ -987,7 +986,6 @@ namespace Statistics {
 					row = rows['' + rawRow['x']];
 				}
 
-				Console.printlnErr('(chart) (raw) ' + rawRow);
 				row[groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 
 				if( rawRow['x'] != '' ) {
