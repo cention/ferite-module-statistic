@@ -89,7 +89,7 @@ namespace modifies Statistics {
 					'total' => report.getTotal(0)
 				];
 
-//				Console.printlnErr("(DEBUG) " + output);
+				// Console.printlnErr("(DEBUG) " + output);
 
 				return output;
 			}
@@ -145,11 +145,11 @@ namespace modifies Statistics {
 						item['user'] = .result[i]['workflow_user_id'];
 				}
 
-//				Console.printlnErr('[DEBUG] -----------------------------------------------------');
-//				Console.printlnErr('[DEBUG] Row: ' + .result[i]);
-//				Console.printlnErr('[DEBUG] -----------------------------------------------------');
-//				Console.printlnErr('[DEBUG] Item: ' + item);
-//				Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				// Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				// Console.printlnErr('[DEBUG] Row: ' + .result[i]);
+				// Console.printlnErr('[DEBUG] -----------------------------------------------------');
+				// Console.printlnErr('[DEBUG] Item: ' + item);
+				// Console.printlnErr('[DEBUG] -----------------------------------------------------');
 
 				items[] = item;
 			}

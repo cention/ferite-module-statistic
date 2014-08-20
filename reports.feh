@@ -377,12 +377,16 @@ namespace Reports {
 		function fields() return [ 'month' ];
 		function seconds() return 2419200;
 		function start( string item ) {
-			string year = .localYearFromGMTtimestamp(.endTime());
+			// Calculate year based on middle of the year to avoid GMT rollover bug:
+			string year = .localYearFromGMTtimestamp((.startTime()+.endTime())/2);
+			
 			string month = Date.localParse(item, '%B').format('%m');
 			return .localDateToGMTtimestamp("${year}-${month}-01 00:00:00");
 		}
 		function end( string item ) {
-			string year = .localYearFromGMTtimestamp(.endTime());
+			// Calculate year based on middle of the year to avoid GMT rollover bug:
+			string year = .localYearFromGMTtimestamp((.startTime()+.endTime())/2);
+			
 			string month = Date.localParse(item, '%B').format('%m');
 			number y = year.toNumber();
 			number m = month.toNumber();
