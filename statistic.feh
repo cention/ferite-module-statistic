@@ -220,23 +220,43 @@ namespace Statistics {
 		function needTranslation() {
 			return true;
 		}
+		function feriteSortFormat() {
+			string format = .feriteFormat();
+			format = Regexp.replaceAll('%a', format, '%u');
+			format = Regexp.replaceAll('%A', format, '%u');
+			format = Regexp.replaceAll('%b', format, '%m');
+			format = Regexp.replaceAll('%B', format, '%m');
+			return format;
+		}
 		function build() {
 			if( .doInitialBuild() ) {
 				array list = [];
 				array have = [];
+				array timestamps = [];
 				number time = .startTime() + Date.localDate(.startTime()).tm_gmtoff;
 				number endTime = .endTime() + Date.localDate(.endTime()).tm_gmtoff;
 				// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
 				//                    but it produces strange results so I am going to remove it.
 				while ( time <= endTime ) {
-					string group = Date.localDate(time).format(.feriteFormat());
+					string group = Date.localDate(time).format(.feriteSortFormat());
 //					Console.printlnErr('(GROUP) ' + group);
 					if( not have.keyExists(group) ) {
 						list[] = group;
 						have[group] = true;
+						timestamps[group] = time;
 					}
 					time += .seconds();
 				}
+
+				list = list.sort() using( a, b ) {
+					return String.orderedCompare(a, b);
+				};
+				for( number i = 0; i < list.size(); i++ ) {
+					string group = list[i];
+					number time = timestamps[group];
+					list[i] = Date.localDate(time).format(.feriteFormat());
+				}
+
 				return .build(list);
 			}
 			return [];
