@@ -156,6 +156,16 @@ namespace Statistics {
 		function isTimeType() {
 			return false;
 		}
+		function total ( array values, object report ) {
+			number t = 0;
+			
+			Console.printlnErr('CALLING DEFAULT TOTAL!!');
+			
+			values.each() using (x) {
+				t += x;
+			};
+			return t;
+		}
 	}
 
 	abstract class AbstractGroup {
@@ -339,6 +349,16 @@ namespace Statistics {
 		array users;
 		number timeFormat;
 
+		function formatTime( number t ) {
+			switch ( .timeFormat ) {
+				case 2: return t/60;      // minutes
+				case 3: return t/(60*60); // hours
+			}
+			// Note we ignore undefined (default) and 1
+			// since they're both seconds.
+			
+			return t;
+		}
 		function addGroup( object group ) {
 			.groups[] = group;
 			if( .previousGroup )
@@ -459,27 +479,22 @@ namespace Statistics {
 			tempResult = Database.queryToArray(query);
 
 			if( buildReport ) {
+				array totalizer;
+			
 				size = tempResult.size();
 				for( number i = 0; i < size; ++i ) {
 					number value = (tempResult[i]['key'] isa string
 						? tempResult[i]['key'].toNumber()
 						: tempResult[i]['key']);
 					
-					if ( key.isTimeType() ) {
-						switch ( .timeFormat ) {
-							case 2: value /= 60; break;      // minutes
-							case 3: value /= (60*60); break; // hours
-						}
-						// Note we ignore undefined (default) and 1
-						// since they're both seconds.
-					}
-						
+					if ( key.isTimeType() ) value = .formatTime(value);
+					
 					.result.setRow(tempResult[i], name, value, extra);
-
-					if( not .totals.keyExists(name) )
-						.totals[name] = 0;
-					.totals[name] += value;
+					
+					totalizer.push(value);
 				}
+
+				.totals[name] = key.total(totalizer,self);
 			} else {
 				.result = tempResult;
 			}

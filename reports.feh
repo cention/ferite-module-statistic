@@ -8,7 +8,34 @@ uses 'webframework/webframework';
  * @namespace Reports
  * @brief Contains all Cention Reports
  */
+
+ 
 namespace Reports {
+	function totalAverageTimes (string col, object report) {
+		string channels = '';
+		string areas = '';
+		string users = '';
+		array rows;
+		
+		if( report.channels ) channels = "AND data.service_id IN (${report.channels.join(',')}) ";
+		if( report.areas ) areas = "AND data.area_id IN (${report.areas.join(',')}) ";
+		if( report.users ) users = "AND data.user_id IN (${report.users.join(',')}) ";
+	
+		rows = Database.queryToArray(
+				"SELECT floor(avg(data.${col})) AS total
+				 FROM workflow_reportuserdatas AS data
+				 WHERE data.timestamp_open > 0
+				 AND data.timestamp_open >= ${report.startTime}
+				 AND data.timestamp_open <= ${report.endTime}
+				 $areas $users $channels"
+			);
+		
+		if( rows and rows[0]['total'] ) {
+			return report.formatTime(rows[0]['total'].toNumber());
+		}
+		return 0;
+	}
+
 	class IncomingErrands extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'incoming';
 		function name() return I('Incoming');
@@ -43,6 +70,9 @@ namespace Reports {
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
 		function seconds() return 1;
 		function isTimeType() return true;
+		function total (array values, object report) {
+			return Replies.totalAverageTimes('response_time',report);
+		}
 	}
 
 	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
@@ -82,6 +112,9 @@ namespace Reports {
 		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
 		function seconds() return 1;
 		function isTimeType() return true;
+		function total (array values, object report) {
+			return Reports.totalAverageTimes('process_time',report);
+		}
 	}
 
 	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {
