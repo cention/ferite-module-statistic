@@ -37,11 +37,12 @@ namespace Reports {
 		function where() return 'timestamp_close > 0 AND timestamp_replied > 0';
 	}
 
-	abstract class AverageErrandResponseTime extends ClosedErrands {
-		function identifier() raise new Error('Function identifier() has not been implemented.');
+	class AverageErrandResponseTime extends ClosedErrands {
+		function identifier() return 'average_errand_response_time';
 		function name() return I('Average response time');
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
-		function seconds() raise new Error('Function seconds() has not been implemented.');
+		function seconds() return 1;
+		function isTimeType() return true;
 	}
 
 	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
@@ -68,7 +69,7 @@ namespace Reports {
 		function seconds() return 86400;
 	}
 
-	abstract class AverageErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+	class AverageErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'average_errand_process_time';
 		function name() return I('Average process time');
 		function select() return 'floor(avg(workflow_reportuserdatas.process_time) / ' + .seconds() + ') AS key';
@@ -79,7 +80,8 @@ namespace Reports {
 		function columnUser() return 'workflow_reportuserdatas.user_id';
 		function columnChannel() return 'workflow_reportuserdatas.service_id';
 		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
-		function seconds() raise new Error('Function seconds() has not been implemented.');
+		function seconds() return 1;
+		function isTimeType() return true;
 	}
 
 	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {
@@ -417,15 +419,15 @@ namespace Reports {
 
 	class CustomAbsoluteTimeGroup extends Statistics.AbstractDateTimeGroup implements Statistics.DateTimeGroup {
 		function build() {
-			if( .timeFormat ) {
-				if( .timeFormat.items.size() == 1 ) {
-					if( .timeFormat.seconds() <= 60 ) {
+			if( .timeGroupFormat ) {
+				if( .timeGroupFormat.items.size() == 1 ) {
+					if( .timeGroupFormat.seconds() <= 60 ) {
 						return .build([ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
 						                '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23',
 						                '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35',
 						                '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47',
 						                '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59' ]);
-					} else if( .timeFormat.seconds() == 3600 ) {
+					} else if( .timeGroupFormat.seconds() == 3600 ) {
 						return .build([ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
 						                '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23' ]);
 					}
@@ -433,11 +435,11 @@ namespace Reports {
 			}
 			return super.build();
 		}
-		function name() return (.timeFormat ? I(.timeFormat.name) : I('Day'));
-		function feriteFormat() return (.timeFormat ? .timeFormat.format() : '%F');
-		function format() return (.timeFormat ? .timeFormat.pgsqlFormat() : 'YYYY-MM-DD');
-		function fields() return (.timeFormat ? .timeFormat.pgsqlFields() : [ 'year', 'month', 'day' ]);
-		function seconds() return (.timeFormat ? .timeFormat.seconds() : 86400);
+		function name() return (.timeGroupFormat ? I(.timeGroupFormat.name) : I('Day'));
+		function feriteFormat() return (.timeGroupFormat ? .timeGroupFormat.format() : '%F');
+		function format() return (.timeGroupFormat ? .timeGroupFormat.pgsqlFormat() : 'YYYY-MM-DD');
+		function fields() return (.timeGroupFormat ? .timeGroupFormat.pgsqlFields() : [ 'year', 'month', 'day' ]);
+		function seconds() return (.timeGroupFormat ? .timeGroupFormat.seconds() : 86400);
 		function start( string item ) return 0;
 		function end( string item ) return 0;
 	}

@@ -153,6 +153,9 @@ namespace Statistics {
 		function isGroup() {
 			return false;
 		}
+		function isTimeType() {
+			return false;
+		}
 	}
 
 	abstract class AbstractGroup {
@@ -170,9 +173,9 @@ namespace Statistics {
 		function endTime() return ._endTime;
 		function valuesAsLabels() return false;
 
-		object timeFormat;
-		function setTimeFormat( object format )
-			.timeFormat = format;
+		object timeGroupFormat;
+		function setTimeGroupFormat( object format )
+			.timeGroupFormat = format;
 
 		string groupName;
 		function groupName() {
@@ -329,11 +332,12 @@ namespace Statistics {
 		object previousGroup;
 		number startTime;
 		number endTime;
-		object timeFormat;
+		object timeGroupFormat;
 		array channels;
 		array organisations;
 		array areas;
 		array users;
+		number timeFormat;
 
 		function addGroup( object group ) {
 			.groups[] = group;
@@ -342,7 +346,7 @@ namespace Statistics {
 			.previousGroup = group;
 			group.setStartTime(.startTime);
 			group.setEndTime(.endTime);
-			group.setTimeFormat(.timeFormat);
+			group.setTimeGroupFormat(.timeGroupFormat);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -372,10 +376,10 @@ namespace Statistics {
 			};
 		}
 
-		function setTimeFormat( object format ) {
-			.timeFormat = format;
+		function setTimeGroupFormat( object format ) {
+			.timeGroupFormat = format;
 			.groups.each() using ( group ) {
-				group.setTimeFormat(format);
+				group.setTimeGroupFormat(format);
 			};
 		}
 
@@ -460,6 +464,16 @@ namespace Statistics {
 					number value = (tempResult[i]['key'] isa string
 						? tempResult[i]['key'].toNumber()
 						: tempResult[i]['key']);
+					
+					if ( key.isTimeType() ) {
+						switch ( .timeFormat ) {
+							case 2: value /= 60; break;      // minutes
+							case 3: value /= (60*60); break; // hours
+						}
+						// Note we ignore undefined (default) and 1
+						// since they're both seconds.
+					}
+						
 					.result.setRow(tempResult[i], name, value, extra);
 
 					if( not .totals.keyExists(name) )
