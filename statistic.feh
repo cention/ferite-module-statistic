@@ -599,7 +599,7 @@ namespace Statistics {
 
 			if( linesChart ) {
 				if( .groups.size() > 1 ) {
-				
+					groupName = nextToLastGroupName;
 				} else {
 					labels = lastGroup.values();
 					data[] = [];
@@ -639,11 +639,11 @@ namespace Statistics {
 			if( data.size() == 0 )
 				data[] = [];
 
-			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			// Console.printlnErr('[DEBUG] data: ' + data);
-			// Console.printlnErr('[DEBUG] data.size(): ' + data.size());
-			// Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
-			// Console.printlnErr('[DEBUG] groupName: ' + groupName);
+			Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			Console.printlnErr('[DEBUG] data: ' + data);
+			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
+			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
+			Console.printlnErr('[DEBUG] groupName: ' + groupName);
 			
 			
 			size = .result.size();
