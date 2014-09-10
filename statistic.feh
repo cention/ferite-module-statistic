@@ -974,7 +974,7 @@ namespace Statistics {
 
 				sizeResult = report.result.size();
 				for( number i = 0; i < sizeResult; i++ ) {
-					string group = report.result[i][g];
+					string group = '' + report.result[i][g];
 					groups[group] = group;
 					rows[] = [
 						'x' => report.result[i][x],
@@ -1037,12 +1037,24 @@ namespace Statistics {
 				array row = [];
 
 				if( not rows.keyExists('' + rawRow['x']) ) {
-					row = [ '' + rawRow['x'], 0, 0, 0, 0, 0, 0, 0, 0 ];
+					/* This eval is here in order to construct a mixed type array.
+					 * The original code generated a number array that has a string as the first element.
+					 * Ferite doesn't allow this. There is a bug in Ferite that makes this possible
+					 * using the array literal syntax. So in order to construct such an array
+					 * with dynamic size we first construct the string which declares such an array
+					 * then eval it.
+					 * 
+					 * TODO: Remove the necessity for such an illegal data structure since if Ferite
+					 * fixes this bug in the future we can't do this anymore. One option is to use the
+					 * following data structure instead:
+					 *     [ 'label' => rawRow['x'], 'values' => [0,0,0,0 ...] ]
+					 */
+					row = eval('return ["' + rawRow['x'] + '"' + ',0'.repeat(groups.size()) + '];');
 				} else {
 					row = rows['' + rawRow['x']];
 				}
 
-				row[groups.getIndex(rawRow['g'])+1] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+				row[ groups.getIndex('' + rawRow['g']) +1 ] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 
 				if( rawRow['x'] != '' ) {
 					rows['' + rawRow['x']] = row;
@@ -1051,14 +1063,13 @@ namespace Statistics {
 				}
 
 //				if( not .customTotalCounter ) {
-					if( not totals.keyExists(rawRow['g']) ) {
-						totals[rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+					if( not totals.keyExists( '' + rawRow['g']) ) {
+						totals[ '' + rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 					} else {
-						totals[rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
+						totals[ '' + rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 					}
 //				}
 			}
-
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}
 		function run( object report ) {
