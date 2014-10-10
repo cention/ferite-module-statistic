@@ -11,7 +11,7 @@ uses 'webframework/webframework';
 
  
 namespace Reports {
-	function totalAverageTimes (string col, object report) {
+	function totalAverageTimes (string datacol, string timecol, string tbl, object report) {
 		string channels = '';
 		string areas = '';
 		string users = '';
@@ -22,11 +22,10 @@ namespace Reports {
 		if( report.users ) users = "AND data.user_id IN (${report.users.join(',')}) ";
 	
 		rows = Database.queryToArray(
-				"SELECT floor(avg(data.${col})) AS total
-				 FROM workflow_reportuserdatas AS data
-				 WHERE data.timestamp_open > 0
-				 AND data.timestamp_open >= ${report.startTime}
-				 AND data.timestamp_open <= ${report.endTime}
+				"SELECT floor(avg(data.${datacol})) AS total
+				 FROM ${tbl} AS data
+				 WHERE data.${timecol} >= ${report.startTime}
+				 AND data.${timecol} <= ${report.endTime}
 				 $areas $users $channels"
 			);
 		
@@ -72,7 +71,7 @@ namespace Reports {
 		function seconds() return 1;
 		function isTimeType() return true;
 		function total (array values, object report) {
-			return Replies.totalAverageTimes('response_time',report);
+			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report);
 		}
 	}
 
@@ -114,7 +113,7 @@ namespace Reports {
 		function seconds() return 1;
 		function isTimeType() return true;
 		function total (array values, object report) {
-			return Reports.totalAverageTimes('process_time',report);
+			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report);
 		}
 	}
 
