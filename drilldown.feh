@@ -111,7 +111,7 @@ namespace modifies Statistics {
 			}
 
 			function loadFirstData() {
-				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0);
+				return .loadData('year', 0, Date.now(), 0, 0, 0, 0);
 			}
 		}
 	}
