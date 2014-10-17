@@ -103,7 +103,6 @@ namespace modifies Statistics {
 
 				if( not organisationID ) report.setOrganisations([]);
 				if( not areaID ) report.setAreas([]);
-
 				output = [
 					'group' => group.name(),
 					'key' => key.name(),
@@ -182,6 +181,7 @@ namespace modifies Statistics {
 					if( .result[i].keyExists('workflow_user_id') )
 						item['user'] = .result[i]['workflow_user_id'];
 				}
+
 				else if( group instanceof Reports.AnswerGroup ) {
 					if( .result[i].keyExists('feedback') )
 						item['answerOption'] = .result[i]['feedback'];
