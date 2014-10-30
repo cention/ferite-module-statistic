@@ -326,7 +326,7 @@ namespace Reports {
 
 	class OrganisationGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
-		function name() return I('Organisation');
+		function name() return I('Organization');
 		function select( object key ) return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name AS ' + .groupName();
 		function from() return 'workflow_organisations';
 		function where( object key ) return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
