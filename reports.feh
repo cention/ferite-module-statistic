@@ -173,7 +173,7 @@ namespace Reports {
 	
 	class ErrandClassification extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_classification';
-		function name() return 'Errands';
+		function name() return I('Tags');
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() {
 			return 'workflow_reporterranddatas ' + 
