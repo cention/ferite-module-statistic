@@ -374,7 +374,7 @@ namespace Reports {
 		function name() return I('Tags');
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
 		function from() return 'workflow_tags';
-		function where( object key ) return key.columnTag() + ' = workflow_tags.workflow_tag_id';
+		function where( object key ) return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
 		function needTranslation() return true;
