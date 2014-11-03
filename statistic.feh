@@ -522,7 +522,7 @@ namespace Statistics {
 					if ( group ) {
 						if( group.needTranslation() ) {
 							string name = group.groupName();
-							.result[i][name + '_original'] = .result[i][name];
+							.result[i]['original_ ' + name] = .result[i][name];
 							.result[i][name] = I(.result[i][name]);
 						}
 					}
