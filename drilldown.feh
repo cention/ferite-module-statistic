@@ -129,8 +129,8 @@ namespace modifies Statistics {
 				if( .users ) item['user'] = .users[0];
 
 				if( group.getClass().conformsToProtocol(Statistics.DateTimeGroup) ) {
-					item['start'] = group.start(.result[i][groupName + '_original']);
-					item['end'] = group.end(.result[i][groupName + '_original']);
+					item['start'] = group.start(.result[i]['original_' + groupName]);
+					item['end'] = group.end(.result[i]['original_' + groupName]);
 				} else if( group instanceof Reports.ChannelGroup ) {
 					if( .result[i].keyExists('workflow_service_id') )
 						item['channel'] = .result[i]['workflow_service_id'];
