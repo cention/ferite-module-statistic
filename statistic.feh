@@ -969,6 +969,8 @@ namespace Statistics {
 			array totals;
 			object header;
 
+			totals['g'] = [];
+
 			if( report.keys.size() == 1 ) {
 				string g;
 				string x;
@@ -982,8 +984,6 @@ namespace Statistics {
 
 				object lastGroup = report.groups[lastGroupIndex];
 				object nextToLastGroup = report.groups[nextToLastGroupIndex];
-
-				totals['g'] = [];
 
 				g = lastGroup.groupName();
 				x = nextToLastGroup.groupName();
@@ -1027,6 +1027,10 @@ namespace Statistics {
 							'g' => key.name()
 						];
 						rows[] = row;
+
+						totals['g'][key.name()] = 0;
+						if( report.totals[y] )
+							totals['g'][key.name()] = report.totals[y]['total'];
 					};
 				}
 
