@@ -11,28 +11,55 @@ uses 'webframework/webframework';
 
  
 namespace Reports {
-	function totalAverageTimes (string datacol, string timecol, string tbl, object report) {
+	function totalAverageTimes( string datacol, string timecol, string tbl, object report, object key ) {
 		string channels = '';
 		string areas = '';
 		string users = '';
 		array rows;
-		
-		if( report.channels ) channels = "AND data.service_id IN (${report.channels.join(',')}) ";
-		if( report.areas ) areas = "AND data.area_id IN (${report.areas.join(',')}) ";
-		if( report.users ) users = "AND data.user_id IN (${report.users.join(',')}) ";
-	
+		array totals = [];
+
+		totals['total'] = 0;
+
+		if( report.channels ) channels = "AND ${tbl}.service_id IN (${report.channels.join(',')}) ";
+		if( report.areas ) areas = "AND ${tbl}.area_id IN (${report.areas.join(',')}) ";
+		if( report.users ) users = "AND ${tbl}.user_id IN (${report.users.join(',')}) ";
+
 		rows = Database.queryToArray(
-				"SELECT floor(avg(data.${datacol})) AS total
-				 FROM ${tbl} AS data
-				 WHERE data.${timecol} >= ${report.startTime}
-				 AND data.${timecol} <= ${report.endTime}
-				 $areas $users $channels"
-			);
-		
+			"SELECT floor(avg(${tbl}.${datacol})) AS total " +
+			"FROM ${tbl} " +
+			"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+			"AND ${tbl}.${timecol} <= ${report.endTime} " +
+			"$areas $users $channels"
+		);
+
 		if( rows and rows[0]['total'] ) {
-			return report.formatTime(rows[0]['total'].toNumber());
+			totals['total'] = report.formatTime(rows[0]['total'].toNumber());
 		}
-		return 0;
+
+		report.groups.each() using ( group ) {
+			string name = group.groupName();
+			totals[name] = [];
+
+			Statistics.resetOrderID();
+
+			rows = Database.queryToArray(
+				"SELECT floor(avg(${tbl}.${datacol})) AS total, " + group.select(key) + " " +
+				"FROM ${tbl} " + (group.from() ? ", " +  group.from() + " " : "") +
+				"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+				"AND ${tbl}.${timecol} <= ${report.endTime} " +
+				"$areas $users $channels " + (group.where(key) ? " AND " + group.where(key) + " " : "") +
+				"GROUP BY " + group.groupBy()
+			);
+
+			rows.each() using ( row ) {
+				string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
+				totals[name][n] = report.formatTime(row['total'].toNumber());
+			};
+		};
+
+		Console.printlnErr('(tobias-debug) total: ' + totals);
+
+		return totals;
 	}
 
 	class IncomingErrands extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -70,8 +97,8 @@ namespace Reports {
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
 		function seconds() return 1;
 		function isTimeType() return true;
-		function total (array values, object report) {
-			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report);
+		function total( array& values, object report ) {
+			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report, self);
 		}
 	}
 
@@ -112,8 +139,8 @@ namespace Reports {
 		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
 		function seconds() return 1;
 		function isTimeType() return true;
-		function total (array values, object report) {
-			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report);
+		function total( array& values, object report ) {
+			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report, self);
 		}
 	}
 
