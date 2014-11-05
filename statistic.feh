@@ -206,6 +206,10 @@ namespace Statistics {
 		function setTimeGroupFormat( object format )
 			.timeGroupFormat = format;
 
+		object timeFormat;
+		function setTimeFormat( object format )
+			.timeFormat = format;
+
 		string groupName;
 		function groupName() {
 			if( not .groupName )
@@ -362,20 +366,16 @@ namespace Statistics {
 		number startTime;
 		number endTime;
 		object timeGroupFormat;
+		object timeFormat;
 		array channels;
 		array organisations;
 		array areas;
 		array users;
-		number timeFormat;
 
 		function formatTime( number t ) {
-			switch ( .timeFormat ) {
-				case 2: return t/60;      // minutes
-				case 3: return t/(60*60); // hours
+			if( .timeFormat ) {
+				return t / .timeFormat.seconds;
 			}
-			// Note we ignore undefined (default) and 1
-			// since they're both seconds.
-			
 			return t;
 		}
 		function addGroup( object group ) {
@@ -386,6 +386,7 @@ namespace Statistics {
 			group.setStartTime(.startTime);
 			group.setEndTime(.endTime);
 			group.setTimeGroupFormat(.timeGroupFormat);
+			group.setTimeFormat(.timeFormat);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -419,6 +420,13 @@ namespace Statistics {
 			.timeGroupFormat = format;
 			.groups.each() using ( group ) {
 				group.setTimeGroupFormat(format);
+			};
+		}
+
+		function setTimeFormat( object format ) {
+			.timeFormat = format;
+			.groups.each() using ( group ) {
+				group.setTimeFormat(format);
 			};
 		}
 
