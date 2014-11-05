@@ -192,6 +192,7 @@ namespace Statistics {
 		number _startTime;
 		number _endTime;
 		array _values;
+		string _timeZoneName;
 
 		function values() return ._values;
 		function setNextGroup( object group ) ._nextGroup = group;
@@ -201,6 +202,8 @@ namespace Statistics {
 		function setEndTime( number time ) ._endTime = time;
 		function endTime() return ._endTime;
 		function valuesAsLabels() return false;
+		function setTimeZone(string zoneName) ._timeZoneName = zoneName;
+		function getTimeZone() return ._timeZoneName;
 
 		object timeGroupFormat;
 		function setTimeGroupFormat( object format )
@@ -305,13 +308,24 @@ namespace Statistics {
 			string columnTime = key.columnTime();
 			string groupName = .groupName();
 			string format = .format();
+			string timeZone = .getTimeZone();
 			array list = [];
-			list[] = "to_char(to_timestamp(${columnTime}), '${format}') AS ${groupName}";
-			.fields().each() using ( field ) {
-				string name = Statistics.nextOrderName();
-				._fields[] = name;
-				list[] = "extract(${field} from (to_timestamp(${columnTime}))) AS ${name}";
-			};
+			if(timeZone.length() > 0){
+				list[] = "to_char(to_timestamp(${columnTime})::timestamp at time zone '${timeZone}', '${format}') AS ${groupName}";
+				.fields().each() using ( field ) {
+					string name = Statistics.nextOrderName();
+					._fields[] = name;
+					list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp at time zone '${timeZone}')) AS ${name}";
+				};
+			}
+			else{
+				list[] = "to_char(to_timestamp(${columnTime}), '${format}') AS ${groupName}";
+				.fields().each() using ( field ) {
+					string name = Statistics.nextOrderName();
+					._fields[] = name;
+					list[] = "extract(${field} from (to_timestamp(${columnTime}))) AS ${name}";
+				};
+			}
 			return list.join(', ');
 		}
 		function from() {
@@ -374,6 +388,7 @@ namespace Statistics {
 		array organisations;
 		array areas;
 		array users;
+		string zoneName;
 
 		function formatTime( number t ) {
 			if( .timeFormat and .timeFormat.interval > 0 ) {
@@ -391,6 +406,7 @@ namespace Statistics {
 			group.setTimeGroupFormat(.timeGroupFormat);
 			group.setTimeFormat(.timeFormat);
 			group.setChannels(.channels);
+			group.setTimeZone(.zoneName);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -404,6 +420,12 @@ namespace Statistics {
 			if( .groups )
 				return .groups[0];
 			return null;
+		}
+		function setTimeZone(string timeZoneName){
+			.zoneName = timeZoneName;
+		}
+		function getTimeZone(){
+			return .zoneName;
 		}
 
 		function setStartTime( number time ) {
