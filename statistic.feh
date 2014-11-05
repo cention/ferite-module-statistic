@@ -171,7 +171,9 @@ namespace Statistics {
 			for( number i = 0; i < size; i++ ) {
 				report.groups.each() using ( group ) {
 					string name = group.groupName();
-					string n = (group.needTranslation() ? I(result[i][name]) : result[i][name]);
+					string n = '' + (group.needTranslation() and result[i][name] isa string
+						? I(result[i][name])
+						: result[i][name]);
 					if( not totals.keyExists(name) )
 						totals[name] = [];
 					if( not totals[name].keyExists(n) )
