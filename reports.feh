@@ -409,10 +409,22 @@ namespace Reports {
 		function valuesAsLabels() return true;
 	}
 	
-	class DurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
+	class DurationInMinutesGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];	
 		function name() return I('Duration in minutes');
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / 60 AS integer) AS ' + .groupName();
+		function from() return '';
+		function where( object key ) return '';
+		function groupBy() return .groupName();
+		function orderBy() return .groupName();
+		function extra() return [];
+		function valuesAsLabels() return true;
+	}
+
+	class CustomDurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];
+		function name() return .timeFormat.name;
+		function select( object key ) return 'cast(' + key.columnDuration() + ' / ' + .timeFormat.seconds + ' AS integer) AS ' + .groupName();
 		function from() return '';
 		function where( object key ) return '';
 		function groupBy() return .groupName();
