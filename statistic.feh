@@ -377,6 +377,7 @@ namespace Statistics {
 		array organisations;
 		array areas;
 		array users;
+
 		string zoneName;
 		array answerOption;
 		
@@ -461,6 +462,7 @@ namespace Statistics {
 
 		function setUsers( array list )
 			.users = list;
+
 		
 		function setAnswerOption( array list )
 			 .answerOption = list;
