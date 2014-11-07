@@ -58,11 +58,11 @@ object closureStatus;
 
 incoming = new Reports.IncomingErrands();
 incoming.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
-incoming.setTimeFormat( new Statistic.WeekdayFormat() );
+incoming.setTimeGroupFormat( new Statistic.WeekdayFormat() );
 
 processTime = new Reports.ErrandProcessTime();
 processTime.addTimeframe( new Statistic.Timeframe( "2008-01-01", "2008-01-15" ) );
-processTime.setTimeFormat( new Statistic.MinuteFormat() );
+processTime.setTimeGroupFormat( new Statistic.MinuteFormat() );
 
 closureStatus = new Reports.ErrandClosureStatus();
 

@@ -19,25 +19,25 @@ namespace modifies Statistics {
 				array items;
 
 				if( key instanceof Reports.IncomingErrands ) {
-				    columnTime = 'timestamparrive';
+				    columnTime = 'timestamp_arrive';
 				    columnTimeName = I('Arrived');
 				} else if( key instanceof Reports.ClosedErrands ) {
-					columnTime = 'timestampclosed';
+					columnTime = 'timestamp_close';
 					columnTimeName = I('Closed');
 				}
 
-				query = "SELECT workflow_errand_id, ${columnTime} FROM workflow_errands " +
+				query = "SELECT errand_id, ${columnTime} FROM workflow_reporterranddatas " +
 					"WHERE ${columnTime} >= ${startTime} AND ${columnTime} <= ${endTime} " +
-					"AND service_fkey = ${channelID} AND organisation_fkey = ${organisationID} " +
-					"AND targetarea_fkey = ${areaID}" + (userID ? " AND owner_fkey = ${userID}" : "");
+					"AND service_id = ${channelID} AND organisation_id = ${organisationID} " +
+					"AND area_id = ${areaID}" + (userID ? " AND user_id = ${userID}" : "");
 				rows = ObjRunObject.rawQuery(query);
 
 				rows.each() using ( row ) {
 					items[] = [
-						'name' => I('Errand {0}').expand(row['workflow_errand_id']),
+						'name' => I('Errand {0}').expand(row['errand_id']),
 						'value' => formatDateTime(row[columnTime]),
 						'errand' => true,
-						'id' => row['workflow_errand_id']
+						'id' => row['errand_id']
 					];
 				};
 
@@ -129,8 +129,8 @@ namespace modifies Statistics {
 				if( .users ) item['user'] = .users[0];
 
 				if( group.getClass().conformsToProtocol(Statistics.DateTimeGroup) ) {
-					item['start'] = group.start(item['name']);
-					item['end'] = group.end(item['name']);
+					item['start'] = group.start(.result[i]['original_' + groupName]);
+					item['end'] = group.end(.result[i]['original_' + groupName]);
 				} else if( group instanceof Reports.ChannelGroup ) {
 					if( .result[i].keyExists('workflow_service_id') )
 						item['channel'] = .result[i]['workflow_service_id'];

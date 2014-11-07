@@ -156,15 +156,34 @@ namespace Statistics {
 		function isTimeType() {
 			return false;
 		}
-		function total ( array values, object report ) {
-			number t = 0;
+		function total( array& result, object report ) {
+			number size;
+			string key;
+			array totals = [];
 			
 			Console.printlnErr('CALLING DEFAULT TOTAL!!');
-			
-			values.each() using (x) {
-				t += x;
-			};
-			return t;
+
+			totals['total'] = 0;
+
+			key = 'key_' + .identifier();
+
+			size = result.size();
+			for( number i = 0; i < size; i++ ) {
+				report.groups.each() using ( group ) {
+					string name = group.groupName();
+					string n = '' + (group.needTranslation() and result[i][name] isa string
+						? I(result[i][name])
+						: result[i][name]);
+					if( not totals.keyExists(name) )
+						totals[name] = [];
+					if( not totals[name].keyExists(n) )
+						totals[name][n] = 0;
+					totals[name][n] += result[i][key];
+				};
+				totals['total'] += result[i][key];
+			}
+
+			return totals;
 		}
 	}
 
@@ -186,6 +205,10 @@ namespace Statistics {
 		object timeGroupFormat;
 		function setTimeGroupFormat( object format )
 			.timeGroupFormat = format;
+
+		object timeFormat;
+		function setTimeFormat( object format )
+			.timeFormat = format;
 
 		string groupName;
 		function groupName() {
@@ -343,20 +366,16 @@ namespace Statistics {
 		number startTime;
 		number endTime;
 		object timeGroupFormat;
+		object timeFormat;
 		array channels;
 		array organisations;
 		array areas;
 		array users;
-		number timeFormat;
 
 		function formatTime( number t ) {
-			switch ( .timeFormat ) {
-				case 2: return t/60;      // minutes
-				case 3: return t/(60*60); // hours
+			if( .timeFormat ) {
+				return t / .timeFormat.seconds;
 			}
-			// Note we ignore undefined (default) and 1
-			// since they're both seconds.
-			
 			return t;
 		}
 		function addGroup( object group ) {
@@ -367,6 +386,7 @@ namespace Statistics {
 			group.setStartTime(.startTime);
 			group.setEndTime(.endTime);
 			group.setTimeGroupFormat(.timeGroupFormat);
+			group.setTimeFormat(.timeFormat);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -400,6 +420,13 @@ namespace Statistics {
 			.timeGroupFormat = format;
 			.groups.each() using ( group ) {
 				group.setTimeGroupFormat(format);
+			};
+		}
+
+		function setTimeFormat( object format ) {
+			.timeFormat = format;
+			.groups.each() using ( group ) {
+				group.setTimeFormat(format);
 			};
 		}
 
@@ -479,8 +506,6 @@ namespace Statistics {
 			tempResult = Database.queryToArray(query);
 
 			if( buildReport ) {
-				array totalizer;
-			
 				size = tempResult.size();
 				for( number i = 0; i < size; ++i ) {
 					number value = (tempResult[i]['key'] isa string
@@ -490,11 +515,9 @@ namespace Statistics {
 					if ( key.isTimeType() ) value = .formatTime(value);
 					
 					.result.setRow(tempResult[i], name, value, extra);
-					
-					totalizer.push(value);
 				}
 
-				.totals[name] = key.total(totalizer,self);
+				.totals[name] = key.total(.result, self);
 			} else {
 				.result = tempResult;
 			}
@@ -522,6 +545,7 @@ namespace Statistics {
 					if ( group ) {
 						if( group.needTranslation() ) {
 							string name = group.groupName();
+							.result[i]['original_' + name] = .result[i][name];
 							.result[i][name] = I(.result[i][name]);
 						}
 					}
@@ -936,7 +960,7 @@ namespace Statistics {
 				if ( item ) {
 					if( not item.isGroup() ) {
 						string id = 'key_' + item.identifier();
-						html[] = '<td>' + report.totals[id] + '</td>';
+						html[] = '<td>' + report.totals[id]['total'] + '</td>';
 					}
 				}
 			};
@@ -952,7 +976,10 @@ namespace Statistics {
 			array source;
 			array groups;
 			array rows;
+			array totals;
 			object header;
+
+			totals['g'] = [];
 
 			if( report.keys.size() == 1 ) {
 				string g;
@@ -981,6 +1008,9 @@ namespace Statistics {
 						'y' => report.result[i][y],
 						'g' => report.result[i][g]
 					];
+					totals['g'][group] = 0;
+					if( report.totals[y].keyExists(g) and report.totals[y][g].keyExists(group) )
+						totals['g'][group] = report.totals[y][g][group];
 				}
 
 				header = report.keys[0];
@@ -1007,16 +1037,20 @@ namespace Statistics {
 							'g' => key.name()
 						];
 						rows[] = row;
+
+						totals['g'][key.name()] = 0;
+						if( report.totals[y] )
+							totals['g'][key.name()] = report.totals[y]['total'];
 					};
 				}
 
 				header = lastGroup;
 			}
 
-			source = .makeData(report, header, groups, rows);
+			source = .makeData(report, header, groups, rows, totals);
 			return source;
 		}
-		function makeData( object report, object header, array groups, array rawData ) {
+		function makeData( object report, object header, array groups, array& rawData, array rawTotals ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
 			array totals = [ I('Total') ];
@@ -1026,10 +1060,7 @@ namespace Statistics {
 
 			groups.eachWithIndex() using ( name, index ) {
 				columnHeaders[] = name;
-				totals[groups.getName(index)] = 0;
-//				if( .customTotalCounter ) {
-//					totals[.groups.getName(index)] = .customTotalCounter.invoke(.groups.getName(index));
-//				}
+				totals[groups.getName(index)] = rawTotals['g'][name];
 			};
 
 			for( number i = 0; i < rawRowCount; i++ ) {
@@ -1061,14 +1092,6 @@ namespace Statistics {
 				} else {
 					rows['Row ' + i] = row;
 				}
-
-//				if( not .customTotalCounter ) {
-					if( not totals.keyExists( '' + rawRow['g']) ) {
-						totals[ '' + rawRow['g']] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
-					} else {
-						totals[ '' + rawRow['g']] += (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
-					}
-//				}
 			}
 			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
 		}

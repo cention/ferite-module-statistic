@@ -11,28 +11,55 @@ uses 'webframework/webframework';
 
  
 namespace Reports {
-	function totalAverageTimes (string datacol, string timecol, string tbl, object report) {
+	function totalAverageTimes( string datacol, string timecol, string tbl, object report, object key ) {
 		string channels = '';
 		string areas = '';
 		string users = '';
 		array rows;
-		
-		if( report.channels ) channels = "AND data.service_id IN (${report.channels.join(',')}) ";
-		if( report.areas ) areas = "AND data.area_id IN (${report.areas.join(',')}) ";
-		if( report.users ) users = "AND data.user_id IN (${report.users.join(',')}) ";
-	
+		array totals = [];
+
+		totals['total'] = 0;
+
+		if( report.channels ) channels = "AND ${tbl}.service_id IN (${report.channels.join(',')}) ";
+		if( report.areas ) areas = "AND ${tbl}.area_id IN (${report.areas.join(',')}) ";
+		if( report.users ) users = "AND ${tbl}.user_id IN (${report.users.join(',')}) ";
+
 		rows = Database.queryToArray(
-				"SELECT floor(avg(data.${datacol})) AS total
-				 FROM ${tbl} AS data
-				 WHERE data.${timecol} >= ${report.startTime}
-				 AND data.${timecol} <= ${report.endTime}
-				 $areas $users $channels"
-			);
-		
+			"SELECT floor(avg(${tbl}.${datacol})) AS total " +
+			"FROM ${tbl} " +
+			"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+			"AND ${tbl}.${timecol} <= ${report.endTime} " +
+			"$areas $users $channels"
+		);
+
 		if( rows and rows[0]['total'] ) {
-			return report.formatTime(rows[0]['total'].toNumber());
+			totals['total'] = report.formatTime(rows[0]['total'].toNumber());
 		}
-		return 0;
+
+		report.groups.each() using ( group ) {
+			string name = group.groupName();
+			totals[name] = [];
+
+			Statistics.resetOrderID();
+
+			rows = Database.queryToArray(
+				"SELECT floor(avg(${tbl}.${datacol})) AS total, " + group.select(key) + " " +
+				"FROM ${tbl} " + (group.from() ? ", " +  group.from() + " " : "") +
+				"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+				"AND ${tbl}.${timecol} <= ${report.endTime} " +
+				"$areas $users $channels " + (group.where(key) ? " AND " + group.where(key) + " " : "") +
+				"GROUP BY " + group.groupBy()
+			);
+
+			rows.each() using ( row ) {
+				string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
+				totals[name][n] = report.formatTime(row['total'].toNumber());
+			};
+		};
+
+		Console.printlnErr('(tobias-debug) total: ' + totals);
+
+		return totals;
 	}
 
 	class IncomingErrands extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -52,7 +79,7 @@ namespace Reports {
 	class ClosedErrands extends IncomingErrands {
 		function identifier() return 'closed';
 		function name() return I('Closed');
-		function where() return 'timestamp_close > 0';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19)';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
@@ -70,8 +97,8 @@ namespace Reports {
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
 		function seconds() return 1;
 		function isTimeType() return true;
-		function total (array values, object report) {
-			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report);
+		function total( array& values, object report ) {
+			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report, self);
 		}
 	}
 
@@ -112,8 +139,8 @@ namespace Reports {
 		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
 		function seconds() return 1;
 		function isTimeType() return true;
-		function total (array values, object report) {
-			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report);
+		function total( array& values, object report ) {
+			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report, self);
 		}
 	}
 
@@ -173,7 +200,7 @@ namespace Reports {
 	
 	class ErrandClassification extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errand_classification';
-		function name() return 'Errands';
+		function name() return I('Tags');
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() {
 			return 'workflow_reporterranddatas ' + 
@@ -374,7 +401,7 @@ namespace Reports {
 		function name() return I('Tags');
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
 		function from() return 'workflow_tags';
-		function where( object key ) return key.columnTag() + ' = workflow_tags.workflow_tag_id';
+		function where( object key ) return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
 		function needTranslation() return true;
@@ -382,10 +409,22 @@ namespace Reports {
 		function valuesAsLabels() return true;
 	}
 	
-	class DurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
+	class DurationInMinutesGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];	
 		function name() return I('Duration in minutes');
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / 60 AS integer) AS ' + .groupName();
+		function from() return '';
+		function where( object key ) return '';
+		function groupBy() return .groupName();
+		function orderBy() return .groupName();
+		function extra() return [];
+		function valuesAsLabels() return true;
+	}
+
+	class CustomDurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];
+		function name() return .timeFormat.name;
+		function select( object key ) return 'cast(' + key.columnDuration() + ' / ' + .timeFormat.seconds + ' AS integer) AS ' + .groupName();
 		function from() return '';
 		function where( object key ) return '';
 		function groupBy() return .groupName();
