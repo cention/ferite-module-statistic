@@ -385,7 +385,16 @@ namespace Reports {
 	}
 
 	class ChannelGroup extends Statistics.AbstractGroup implements Statistics.Group {
-		function build() return .build([ 'Email', 'Manual', 'Chat', 'Facebook', 'Twitter' ]);
+		function build() {
+			array list = [];
+			.channels.each() using ( id ) {
+				object service = Workflow.Service.load(id);
+				if( service ) {
+					list[] = service.name;
+				}
+			};
+			return .build(list);
+		}
 		function name() return I('Channel');
 		function select( object key ) return 'workflow_services.workflow_service_id, workflow_services.name AS ' + .groupName();
 		function from() return 'workflow_services';
