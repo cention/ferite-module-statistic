@@ -79,6 +79,9 @@ namespace modifies Statistics {
 				if( areaID ) report.setAreas([ areaID ]);
 				if( userID ) report.setUsers([ userID ]);
 
+				if( not report.organisations ) report.setOrganisations(Workflow.SystemGroup.organisationsFromCache(Workflow.SystemGroup.current()));
+				if( not report.areas ) report.setAreas(Workflow.SystemGroup.areasFromCache(Workflow.SystemGroup.current()));
+
 				report.run();
 
 				output = [
