@@ -210,6 +210,10 @@ namespace Statistics {
 		function setTimeFormat( object format )
 			.timeFormat = format;
 
+		array channels;
+		function setChannels( array list )
+			.channels = list;
+
 		string groupName;
 		function groupName() {
 			if( not .groupName )
@@ -387,6 +391,7 @@ namespace Statistics {
 			group.setEndTime(.endTime);
 			group.setTimeGroupFormat(.timeGroupFormat);
 			group.setTimeFormat(.timeFormat);
+			group.setChannels(.channels);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -430,8 +435,12 @@ namespace Statistics {
 			};
 		}
 
-		function setChannels( array list )
+		function setChannels( array list ) {
 			.channels = list;
+			.groups.each() using ( group ) {
+				group.setChannels(list);
+			};
+		}
 
 		function setOrganisations( array list )
 			.organisations = list;
