@@ -57,8 +57,6 @@ namespace Reports {
 			};
 		};
 
-		Console.printlnErr('(tobias-debug) total: ' + totals);
-
 		return totals;
 	}
 

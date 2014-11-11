@@ -988,6 +988,7 @@ namespace Statistics {
 			array totals;
 			object header;
 
+			totals['x'] = [];
 			totals['g'] = [];
 
 			if( report.keys.size() == 1 ) {
@@ -1007,6 +1008,8 @@ namespace Statistics {
 				g = lastGroup.groupName();
 				x = nextToLastGroup.groupName();
 				y = 'key_' + report.keys[0].identifier();
+
+				totals['x'] = report.totals[y][x];
 
 				sizeResult = report.result.size();
 				for( number i = 0; i < sizeResult; i++ ) {
@@ -1062,14 +1065,15 @@ namespace Statistics {
 		function makeData( object report, object header, array groups, array& rawData, array rawTotals ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
-			array totals = [ I('Total') ];
+			array columnHeaderTotals = [ I('Total') ];
+			array totals = rawTotals['x'];
 			array rows = [];
 
 			columnHeaders[] = header.name();
 
 			groups.eachWithIndex() using ( name, index ) {
 				columnHeaders[] = name;
-				totals[groups.getName(index)] = rawTotals['g'][name];
+				columnHeaderTotals[groups.getName(index)] = rawTotals['g'][name];
 			};
 
 			for( number i = 0; i < rawRowCount; i++ ) {
@@ -1102,7 +1106,7 @@ namespace Statistics {
 					rows['Row ' + i] = row;
 				}
 			}
-			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
+			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
 		}
 		function run( object report ) {
 			object chart;
