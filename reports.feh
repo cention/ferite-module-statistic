@@ -387,7 +387,8 @@ namespace Reports {
 	class ChannelGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() {
 			array list = [];
-			.channels.each() using ( id ) {
+			.channels.each() using ( _id ) {
+				number id = (_id isa string ? _id.toNumber() : _id);
 				object service = Workflow.Service.load(id);
 				if( service ) {
 					list[] = service.name;
