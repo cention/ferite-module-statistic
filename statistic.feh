@@ -376,8 +376,8 @@ namespace Statistics {
 		array users;
 
 		function formatTime( number t ) {
-			if( .timeFormat ) {
-				return t / .timeFormat.seconds;
+			if( .timeFormat and .timeFormat.interval > 0 ) {
+				return t / .timeFormat.interval;
 			}
 			return t;
 		}
