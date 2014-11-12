@@ -63,7 +63,7 @@ namespace Reports {
 	class IncomingErrands extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'incoming';
 		function name() return I('Incoming');
-		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() return 'workflow_reporterranddatas';
 		function where() return '';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
@@ -86,7 +86,13 @@ namespace Reports {
 	class ClosedErrandsWithReplies extends ClosedErrands {
 		function identifier() return 'replies';
 		function name() return I('Replies');
-		function where() return 'timestamp_close > 0 AND timestamp_replied > 0';
+		function from() return 'workflow_reporterranddatas ' +
+			'JOIN workflow_reporterranddatas AS data2 ' +
+				'ON workflow_reporterranddatas.errand_id=data2.parent_id';
+		function where() return
+			'workflow_reporterranddatas.timestamp_close > 0 AND ' +
+			'workflow_reporterranddatas.timestamp_replied > 0 AND ' +
+			'data2.close_type != 7';
 	}
 
 	class AverageErrandResponseTime extends ClosedErrands {
