@@ -21,15 +21,20 @@ namespace modifies Statistics {
 				if( key instanceof Reports.IncomingErrands ) {
 				    columnTime = 'timestamp_arrive';
 				    columnTimeName = I('Arrived');
-				} else if( key instanceof Reports.ClosedErrands ) {
+				} else if( key instanceof Reports.ClosedErrands or key instanceof Reports.ClosedErrandsWithReplies ) {
 					columnTime = 'timestamp_close';
 					columnTimeName = I('Closed');
 				}
 
-				query = "SELECT errand_id, ${columnTime} FROM workflow_reporterranddatas " +
-					"WHERE ${columnTime} >= ${startTime} AND ${columnTime} <= ${endTime} " +
-					"AND service_id = ${channelID} AND organisation_id = ${organisationID} " +
-					"AND area_id = ${areaID}" + (userID ? " AND user_id = ${userID}" : "");
+				query = "SELECT distinct(workflow_reporterranddatas.errand_id), workflow_reporterranddatas.${columnTime} " +
+					"FROM " + key.from() + " " +
+					"WHERE workflow_reporterranddatas.${columnTime} >= ${startTime} " +
+					"AND workflow_reporterranddatas.${columnTime} <= ${endTime} " +
+					"AND workflow_reporterranddatas.service_id = ${channelID} " +
+					"AND workflow_reporterranddatas.organisation_id = ${organisationID} " +
+					"AND workflow_reporterranddatas.area_id = ${areaID}" +
+					(userID ? " AND workflow_reporterranddatas.user_id = ${userID}" : "") +
+					(key.where() ? " AND " + key.where() : "");
 				rows = ObjRunObject.rawQuery(query);
 
 				rows.each() using ( row ) {
