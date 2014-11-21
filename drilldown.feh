@@ -9,7 +9,8 @@ namespace modifies Statistics {
 			}
 
 			function loadErrands( string groupName, number startTime, number endTime, number channelID,
-				number organisationID, number areaID, number userID )
+				number organisationID, number areaID, number userID,
+				string timeZoneName )
 			{
 				object key = .getReport();
 				string query;
@@ -21,21 +22,27 @@ namespace modifies Statistics {
 				if( key instanceof Reports.IncomingErrands ) {
 				    columnTime = 'timestamp_arrive';
 				    columnTimeName = I('Arrived');
-				} else if( key instanceof Reports.ClosedErrands ) {
+				} else if( key instanceof Reports.ClosedErrands or key instanceof Reports.ClosedErrandsWithReplies ) {
 					columnTime = 'timestamp_close';
 					columnTimeName = I('Closed');
 				}
 
-				query = "SELECT errand_id, ${columnTime} FROM workflow_reporterranddatas " +
-					"WHERE ${columnTime} >= ${startTime} AND ${columnTime} <= ${endTime} " +
-					"AND service_id = ${channelID} AND organisation_id = ${organisationID} " +
-					"AND area_id = ${areaID}" + (userID ? " AND user_id = ${userID}" : "");
+				query = "SELECT distinct(workflow_reporterranddatas.errand_id), workflow_reporterranddatas.${columnTime} " +
+					"FROM " + key.from() + " " +
+					"WHERE workflow_reporterranddatas.${columnTime} >= ${startTime} " +
+					"AND workflow_reporterranddatas.${columnTime} <= ${endTime} " +
+					"AND workflow_reporterranddatas.service_id = ${channelID} " +
+					"AND workflow_reporterranddatas.organisation_id = ${organisationID} " +
+					"AND workflow_reporterranddatas.area_id = ${areaID}" +
+					(userID ? " AND workflow_reporterranddatas.user_id = ${userID}" : "") +
+					(key.where() ? " AND " + key.where() : "");
 				rows = ObjRunObject.rawQuery(query);
 
 				rows.each() using ( row ) {
 					items[] = [
 						'name' => I('Errand {0}').expand(row['errand_id']),
-						'value' => formatDateTime(row[columnTime]),
+						'value' => formatDateTimeTZ(row[columnTime],
+									timeZoneName),
 						'errand' => true,
 						'id' => row['errand_id']
 					];
@@ -49,8 +56,10 @@ namespace modifies Statistics {
 				];
 			}
 
-			function loadStandard( string groupName, number startTime, number endTime, number channelID,
-				number organisationID, number areaID, number userID )
+			function loadStandard( string groupName, number startTime, 
+				number endTime, number channelID,
+				number organisationID, number areaID, number userID,
+				string timeZoneName )
 			{
 				object report = new Statistics.Report();
 				object key = .getReport();
@@ -69,6 +78,9 @@ namespace modifies Statistics {
 					case 'agent':        group = new Reports.AgentGroup(); nextGroupName = 'errands'; break;
 				}
 
+				if(timeZoneName.length() > 0){
+					report.setTimeZone(timeZoneName);
+				}
 				report.addKey(key);
 				report.addGroup(group);
 				report.setStartTime(startTime);
@@ -78,6 +90,9 @@ namespace modifies Statistics {
 				if( organisationID ) report.setOrganisations([ organisationID ]);
 				if( areaID ) report.setAreas([ areaID ]);
 				if( userID ) report.setUsers([ userID ]);
+
+				if( not report.organisations ) report.setOrganisations(Workflow.SystemGroup.organisationsFromCache(Workflow.SystemGroup.current()));
+				if( not report.areas ) report.setAreas(Workflow.SystemGroup.areasFromCache(Workflow.SystemGroup.current()));
 
 				report.run();
 
@@ -98,12 +113,26 @@ namespace modifies Statistics {
 				number organisationID, number areaID, number userID )
 			{
 				if( groupName == 'errands' )
-					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID);
-				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID);
+					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID,'');
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID,'');
+			}
+
+			function loadData( string groupName, number startTime, 
+							number endTime, number channelID,
+							number organisationID, number areaID, 
+							number userID, string timeZoneName )
+			{
+				if( groupName == 'errands' )
+					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID, timeZoneName);
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, timeZoneName);
 			}
 
 			function loadFirstData() {
-				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0);
+				return .loadData('year', 0, Date.now(), 0, 0, 0, 0);
+			}
+
+			function loadFirstData(string timeZone) {
+				return .loadData('year', 0, Date.now(), 0, 0, 0, 0,timeZone);
 			}
 		}
 	}

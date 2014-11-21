@@ -192,6 +192,7 @@ namespace Statistics {
 		number _startTime;
 		number _endTime;
 		array _values;
+		string _timeZoneName;
 
 		function values() return ._values;
 		function setNextGroup( object group ) ._nextGroup = group;
@@ -201,6 +202,8 @@ namespace Statistics {
 		function setEndTime( number time ) ._endTime = time;
 		function endTime() return ._endTime;
 		function valuesAsLabels() return false;
+		function setTimeZone(string zoneName) ._timeZoneName = zoneName;
+		function getTimeZone() return ._timeZoneName;
 
 		object timeGroupFormat;
 		function setTimeGroupFormat( object format )
@@ -209,6 +212,10 @@ namespace Statistics {
 		object timeFormat;
 		function setTimeFormat( object format )
 			.timeFormat = format;
+
+		array channels;
+		function setChannels( array list )
+			.channels = list;
 
 		string groupName;
 		function groupName() {
@@ -269,8 +276,8 @@ namespace Statistics {
 				array list = [];
 				array have = [];
 				array timestamps = [];
-				number time = .startTime() + Date.localDate(.startTime()).tm_gmtoff;
-				number endTime = .endTime() + Date.localDate(.endTime()).tm_gmtoff;
+				number time = .startTime();
+				number endTime = .endTime();
 				// Tobias 2014-01-20: I don't remember why .seconds() was added to endTime here
 				//                    but it produces strange results so I am going to remove it.
 				while ( time <= endTime ) {
@@ -301,13 +308,24 @@ namespace Statistics {
 			string columnTime = key.columnTime();
 			string groupName = .groupName();
 			string format = .format();
+			string timeZone = .getTimeZone();
 			array list = [];
-			list[] = "to_char(to_timestamp(${columnTime})::timestamp at time zone 'UTC', '${format}') AS ${groupName}";
-			.fields().each() using ( field ) {
-				string name = Statistics.nextOrderName();
-				._fields[] = name;
-				list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp at time zone 'UTC')) AS ${name}";
-			};
+			if(timeZone.length() > 0){
+				list[] = "to_char(to_timestamp(${columnTime})::timestamp with time zone at time zone '${timeZone}', '${format}') AS ${groupName}";
+				.fields().each() using ( field ) {
+					string name = Statistics.nextOrderName();
+					._fields[] = name;
+					list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp with time zone at time zone '${timeZone}')) AS ${name}";
+				};
+			}
+			else{
+				list[] = "to_char(to_timestamp(${columnTime}), '${format}') AS ${groupName}";
+				.fields().each() using ( field ) {
+					string name = Statistics.nextOrderName();
+					._fields[] = name;
+					list[] = "extract(${field} from (to_timestamp(${columnTime}))) AS ${name}";
+				};
+			}
 			return list.join(', ');
 		}
 		function from() {
@@ -330,8 +348,7 @@ namespace Statistics {
 		}
 		
 		function localYearFromGMTtimestamp( number timestamp ) {
-			number localDate = timestamp + Date.localDate(timestamp).tm_gmtoff;
-			string year = Date.localDate(localDate).format('%Y');
+			string year = Date.localDate(timestamp).format('%Y');
 			
 			// Console.printlnErr('localYearFromGMTtimestamp: ' + timestamp + '->' + year);
 			
@@ -371,10 +388,11 @@ namespace Statistics {
 		array organisations;
 		array areas;
 		array users;
+		string zoneName;
 
 		function formatTime( number t ) {
-			if( .timeFormat ) {
-				return t / .timeFormat.seconds;
+			if( .timeFormat and .timeFormat.interval > 0 ) {
+				return t / .timeFormat.interval;
 			}
 			return t;
 		}
@@ -387,6 +405,8 @@ namespace Statistics {
 			group.setEndTime(.endTime);
 			group.setTimeGroupFormat(.timeGroupFormat);
 			group.setTimeFormat(.timeFormat);
+			group.setChannels(.channels);
+			group.setTimeZone(.zoneName);
 		}
 		function addKey( object key ) {
 			.keys[] = key;
@@ -400,6 +420,12 @@ namespace Statistics {
 			if( .groups )
 				return .groups[0];
 			return null;
+		}
+		function setTimeZone(string timeZoneName){
+			.zoneName = timeZoneName;
+		}
+		function getTimeZone(){
+			return .zoneName;
 		}
 
 		function setStartTime( number time ) {
@@ -430,8 +456,12 @@ namespace Statistics {
 			};
 		}
 
-		function setChannels( array list )
+		function setChannels( array list ) {
 			.channels = list;
+			.groups.each() using ( group ) {
+				group.setChannels(list);
+			};
+		}
 
 		function setOrganisations( array list )
 			.organisations = list;
@@ -979,6 +1009,7 @@ namespace Statistics {
 			array totals;
 			object header;
 
+			totals['x'] = [];
 			totals['g'] = [];
 
 			if( report.keys.size() == 1 ) {
@@ -998,6 +1029,8 @@ namespace Statistics {
 				g = lastGroup.groupName();
 				x = nextToLastGroup.groupName();
 				y = 'key_' + report.keys[0].identifier();
+
+				totals['x'] = report.totals[y][x];
 
 				sizeResult = report.result.size();
 				for( number i = 0; i < sizeResult; i++ ) {
@@ -1053,14 +1086,15 @@ namespace Statistics {
 		function makeData( object report, object header, array groups, array& rawData, array rawTotals ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
-			array totals = [ I('Total') ];
+			array columnHeaderTotals = [ I('Total') ];
+			array totals = rawTotals['x'];
 			array rows = [];
 
 			columnHeaders[] = header.name();
 
 			groups.eachWithIndex() using ( name, index ) {
 				columnHeaders[] = name;
-				totals[groups.getName(index)] = rawTotals['g'][name];
+				columnHeaderTotals[groups.getName(index)] = rawTotals['g'][name];
 			};
 
 			for( number i = 0; i < rawRowCount; i++ ) {
@@ -1093,7 +1127,7 @@ namespace Statistics {
 					rows['Row ' + i] = row;
 				}
 			}
-			return [ 'ColumnHeaders' => columnHeaders, 'Rows' => rows, 'Totals' => totals ];
+			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
 		}
 		function run( object report ) {
 			object chart;
