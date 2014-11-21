@@ -377,8 +377,8 @@ namespace Statistics {
 		array organisations;
 		array areas;
 		array users;
-
 		string zoneName;
+
 		array answerOption;
 		
 		function formatTime( number t ) {
