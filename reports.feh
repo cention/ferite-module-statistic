@@ -382,7 +382,12 @@ namespace Reports {
 		function name() return I('Agent');
 		function select( object key ) return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
 		function from() return 'workflow_users';
-		function where( object key ) return key.columnUser() + ' = workflow_users.workflow_user_id';
+		function where( object key ) {
+			if(key.columnUser())
+				return key.columnUser() + ' = workflow_users.workflow_user_id';
+			else
+				return '';
+		}
 		function groupBy() return 'workflow_users.workflow_user_id, workflow_users.username';
 		function orderBy() return 'workflow_users.username';
 		function extra() return [ 'workflow_user_id' ];
