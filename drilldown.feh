@@ -9,7 +9,7 @@ namespace modifies Statistics {
 			}
 
 			function loadErrands( string groupName, number startTime, number endTime, number channelID,
-				number organisationID, number areaID, number userID,
+				number organisationID, number areaID, number userID, number answerOption,
 				string timeZoneName )
 			{
 				object key = .getReport();
@@ -22,7 +22,8 @@ namespace modifies Statistics {
 				if( key instanceof Reports.IncomingErrands ) {
 				    columnTime = 'timestamp_arrive';
 				    columnTimeName = I('Arrived');
-				} else if( key instanceof Reports.ClosedErrands or key instanceof Reports.ClosedErrandsWithReplies ) {
+				} else if( key instanceof Reports.ClosedErrands or key instanceof Reports.ClosedErrandsWithReplies 
+				or key instanceof Reports.SatisfactionMeter ) {
 					columnTime = 'timestamp_close';
 					columnTimeName = I('Closed');
 				}
@@ -34,6 +35,7 @@ namespace modifies Statistics {
 					"AND workflow_reporterranddatas.service_id = ${channelID} " +
 					"AND workflow_reporterranddatas.organisation_id = ${organisationID} " +
 					"AND workflow_reporterranddatas.area_id = ${areaID}" +
+					(key instanceof Reports.SatisfactionMeter ? " AND workflow_feedbacks.feedback = ${answerOption}" : "") +
 					(userID ? " AND workflow_reporterranddatas.user_id = ${userID}" : "") +
 					(key.where() ? " AND " + key.where() : "");
 				rows = ObjRunObject.rawQuery(query);
@@ -44,7 +46,8 @@ namespace modifies Statistics {
 						'value' => formatDateTimeTZ(row[columnTime],
 									timeZoneName),
 						'errand' => true,
-						'id' => row['errand_id']
+						'id' => row['errand_id'],
+						'answerOption' => answerOption
 					];
 				};
 
@@ -58,7 +61,7 @@ namespace modifies Statistics {
 
 			function loadStandard( string groupName, number startTime, 
 				number endTime, number channelID,
-				number organisationID, number areaID, number userID,
+				number organisationID, number areaID, number userID, number answerOption,
 				string timeZoneName )
 			{
 				object report = new Statistics.Report();
@@ -75,7 +78,8 @@ namespace modifies Statistics {
 					case 'channel':      group = new Reports.ChannelGroup(); nextGroupName = 'organisation'; break;
 					case 'organisation': group = new Reports.OrganisationGroup(); nextGroupName = 'area'; break;
 					case 'area':         group = new Reports.AreaGroup(); nextGroupName = (key instanceof Reports.IncomingErrands ? 'errands' : 'agent'); break;
-					case 'agent':        group = new Reports.AgentGroup(); nextGroupName = 'errands'; break;
+					case 'agent':        group = new Reports.AgentGroup(); nextGroupName = (key instanceof Reports.SatisfactionMeter ? 'meter' : 'errands'); break;
+					case 'meter':        group = new Reports.AnswerGroup(); nextGroupName = 'errands'; break;
 				}
 
 				if(timeZoneName.length() > 0){
@@ -90,6 +94,7 @@ namespace modifies Statistics {
 				if( organisationID ) report.setOrganisations([ organisationID ]);
 				if( areaID ) report.setAreas([ areaID ]);
 				if( userID ) report.setUsers([ userID ]);
+				if( answerOption ) report.setAnswerOption([ answerOption ]);
 
 				if( not report.organisations ) report.setOrganisations(Workflow.SystemGroup.organisationsFromCache(Workflow.SystemGroup.current()));
 				if( not report.areas ) report.setAreas(Workflow.SystemGroup.areasFromCache(Workflow.SystemGroup.current()));
@@ -110,29 +115,29 @@ namespace modifies Statistics {
 			}
 
 			function loadData( string groupName, number startTime, number endTime, number channelID,
-				number organisationID, number areaID, number userID )
+				number organisationID, number areaID, number userID, number answerOption)
 			{
 				if( groupName == 'errands' )
-					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID,'');
-				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID,'');
+					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, '');
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, '');
 			}
 
 			function loadData( string groupName, number startTime, 
 							number endTime, number channelID,
 							number organisationID, number areaID, 
-							number userID, string timeZoneName )
+							number userID, number answerOption, string timeZoneName )
 			{
 				if( groupName == 'errands' )
-					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID, timeZoneName);
-				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, timeZoneName);
+					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, timeZoneName);
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, timeZoneName);
 			}
 
 			function loadFirstData() {
-				return .loadData('year', 0, Date.now(), 0, 0, 0, 0);
+				return .loadData('year', 0, Date.now(), 0, 0, 0, 0,0);
 			}
 
 			function loadFirstData(string timeZone) {
-				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0,timeZone);
+				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0,0,timeZone);
 			}
 		}
 	}
@@ -156,6 +161,7 @@ namespace modifies Statistics {
 				if( .organisations ) item['organisation'] = .organisations[0];
 				if( .areas ) item['area'] = .areas[0];
 				if( .users ) item['user'] = .users[0];
+				if( .answerOption ) item['answerOption'] = .answerOption[0];
 
 				if( group.getClass().conformsToProtocol(Statistics.DateTimeGroup) ) {
 					item['start'] = group.start(.result[i]['original_' + groupName]);
@@ -173,7 +179,10 @@ namespace modifies Statistics {
 					if( .result[i].keyExists('workflow_user_id') )
 						item['user'] = .result[i]['workflow_user_id'];
 				}
-
+				else if( group instanceof Reports.AnswerGroup ) {
+					if( .result[i].keyExists('feedback') )
+						item['answerOption'] = .result[i]['feedback'];
+				}
 				// Console.printlnErr('[DEBUG] -----------------------------------------------------');
 				// Console.printlnErr('[DEBUG] Row: ' + .result[i]);
 				// Console.printlnErr('[DEBUG] -----------------------------------------------------');
@@ -203,6 +212,11 @@ namespace modifies Reports {
 		class ClosedErrandsWithReplies extends Statistics.DrillDown.Report {
 			function getReport() {
 				return new Reports.ClosedErrandsWithReplies();
+			}
+		}
+		class SatisfactionMeter extends Statistics.DrillDown.Report {
+			function getReport() {
+				return new Reports.SatisfactionMeter();
 			}
 		}
 	}

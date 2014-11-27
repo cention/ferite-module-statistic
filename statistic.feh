@@ -389,7 +389,8 @@ namespace Statistics {
 		array areas;
 		array users;
 		string zoneName;
-
+		array answerOption;
+		
 		function formatTime( number t ) {
 			if( .timeFormat and .timeFormat.interval > 0 ) {
 				return t / .timeFormat.interval;
@@ -471,7 +472,10 @@ namespace Statistics {
 
 		function setUsers( array list )
 			.users = list;
-
+		
+		function setAnswerOption( array list )
+			 .answerOption = list;
+			 
 		function buildQuery( object key, array groups, boolean buildReport ) {
 			array select = [];
 			array from = [];
