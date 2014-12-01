@@ -101,6 +101,9 @@ namespace modifies Statistics {
 
 				report.run();
 
+				if( not organisationID ) report.setOrganisations([]);
+				if( not areaID ) report.setAreas([]);
+
 				output = [
 					'group' => group.name(),
 					'key' => key.name(),
