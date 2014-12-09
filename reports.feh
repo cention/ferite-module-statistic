@@ -94,7 +94,21 @@ namespace Reports {
 			'workflow_reporterranddatas.timestamp_replied > 0 AND ' +
 			'data2.close_type != 7';
 	}
-
+	
+	class SatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'answer';
+		function name() return I('answer');
+		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function from() return 'workflow_reporterranddatas, workflow_feedbacks';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnData() return 'workflow_reporterranddatas.errand_id';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+	}
+	
 	class AverageErrandResponseTime extends ClosedErrands {
 		function identifier() return 'average_errand_response_time';
 		function name() return I('Average response time');
@@ -354,7 +368,91 @@ namespace Reports {
 		function columnChannel() return '';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 	}
-
+	
+	class ReceivedSatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'received_satisfaction_meter';
+		function name() return I('Received satisfaction meter');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback IN (1, 2, 3, 4, 5)';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
+	class ReceivedSatisfactionMeterAnswer1 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'chose_satisfaction_meter_answer1';
+		function name() return I('Chose satisfaction meter answer 1');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback = 1';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
+	class ReceivedSatisfactionMeterAnswer2 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'chose_satisfaction_meter_answer2';
+		function name() return I('Chose satisfaction meter answer 2');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback = 2';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
+	class ReceivedSatisfactionMeterAnswer3 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'chose_satisfaction_meter_answer3';
+		function name() return I('Chose satisfaction meter answer 3');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback = 3';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
+	class ReceivedSatisfactionMeterAnswer4 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'chose_satisfaction_meter_answer4';
+		function name() return I('Chose satisfaction meter answer 4');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback = 4';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
+	class ReceivedSatisfactionMeterAnswer5 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
+		function identifier() return 'chose_satisfaction_meter_answer5';
+		function name() return I('Chose satisfaction meter answer 5');
+		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
+		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
+		function where() return 'workflow_feedbacks.feedback = 5';
+		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
+		function columnArea() return 'workflow_reporterranddatas.area_id';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnChannel() return 'workflow_reporterranddatas.service_id';
+		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_feedbacks.identifiername';
+	}
+	
 	class OrganisationGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
 		function name() return I('Organization');
@@ -533,6 +631,17 @@ namespace Reports {
 		function seconds() return (.timeGroupFormat ? .timeGroupFormat.seconds() : 86400);
 		function start( string item ) return 0;
 		function end( string item ) return 0;
+	}
+	
+	class AnswerGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];
+		function name() return I('option');
+		function select( object key ) return 'workflow_feedbacks.feedback, workflow_feedbacks.feedback as ' + .groupName();
+		function from() return '';
+		function where( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
+		function groupBy() return 'workflow_feedbacks.feedback';
+		function orderBy() return 'workflow_feedbacks.feedback';
+		function extra() return [ 'feedback' ];
 	}
 }
 /**

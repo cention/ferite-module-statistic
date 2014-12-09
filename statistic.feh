@@ -311,11 +311,11 @@ namespace Statistics {
 			string timeZone = .getTimeZone();
 			array list = [];
 			if(timeZone.length() > 0){
-				list[] = "to_char(to_timestamp(${columnTime})::timestamp with time zone at time zone '${timeZone}', '${format}') AS ${groupName}";
+				list[] = "to_char(to_timestamp(${columnTime})::timestamp at time zone '${timeZone}', '${format}') AS ${groupName}";
 				.fields().each() using ( field ) {
 					string name = Statistics.nextOrderName();
 					._fields[] = name;
-					list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp with time zone at time zone '${timeZone}')) AS ${name}";
+					list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp at time zone '${timeZone}')) AS ${name}";
 				};
 			}
 			else{
@@ -389,7 +389,8 @@ namespace Statistics {
 		array areas;
 		array users;
 		string zoneName;
-
+		array answerOption;
+		
 		function formatTime( number t ) {
 			if( .timeFormat and .timeFormat.interval > 0 ) {
 				return t / .timeFormat.interval;
@@ -471,7 +472,10 @@ namespace Statistics {
 
 		function setUsers( array list )
 			.users = list;
-
+		
+		function setAnswerOption( array list )
+			 .answerOption = list;
+			 
 		function buildQuery( object key, array groups, boolean buildReport ) {
 			array select = [];
 			array from = [];
