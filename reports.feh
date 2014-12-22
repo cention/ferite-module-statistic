@@ -77,7 +77,7 @@ namespace Reports {
 	class ClosedErrands extends IncomingErrands {
 		function identifier() return 'closed';
 		function name() return I('Closed');
-		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19)';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21)';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
