@@ -308,24 +308,13 @@ namespace Statistics {
 			string columnTime = key.columnTime();
 			string groupName = .groupName();
 			string format = .format();
-			string timeZone = .getTimeZone();
 			array list = [];
-			if(timeZone.length() > 0){
-				list[] = "to_char(to_timestamp(${columnTime})::timestamp at time zone '${timeZone}', '${format}') AS ${groupName}";
-				.fields().each() using ( field ) {
-					string name = Statistics.nextOrderName();
-					._fields[] = name;
-					list[] = "extract(${field} from (to_timestamp(${columnTime})::timestamp at time zone '${timeZone}')) AS ${name}";
-				};
-			}
-			else{
-				list[] = "to_char(to_timestamp(${columnTime}), '${format}') AS ${groupName}";
-				.fields().each() using ( field ) {
-					string name = Statistics.nextOrderName();
-					._fields[] = name;
-					list[] = "extract(${field} from (to_timestamp(${columnTime}))) AS ${name}";
-				};
-			}
+			list[] = "to_char(to_timestamp(${columnTime}), '${format}') AS ${groupName}";
+			.fields().each() using ( field ) {
+				string name = Statistics.nextOrderName();
+				._fields[] = name;
+				list[] = "extract(${field} from (to_timestamp(${columnTime}))) AS ${name}";
+			};
 			return list.join(', ');
 		}
 		function from() {
@@ -537,7 +526,11 @@ namespace Statistics {
 			for( number i = 0; i < size; ++i )
 				.result[i][name] = 0;
 
+			// Handle timezone as described by: http://stackoverflow.com/questions/10797720
+			Database.query('BEGIN');
+			Database.query("SET LOCAL TIME ZONE '" + .getTimeZone() + "'");
 			tempResult = Database.queryToArray(query);
+			Database.query('END');
 
 			if( buildReport ) {
 				size = tempResult.size();

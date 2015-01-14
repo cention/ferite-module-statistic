@@ -97,7 +97,7 @@ namespace Reports {
 	
 	class SatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'answer';
-		function name() return I('answer');
+		function name() return I('Answer');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
 		function from() return 'workflow_reporterranddatas, workflow_feedbacks';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
@@ -385,7 +385,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeterAnswer1 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'chose_satisfaction_meter_answer1';
-		function name() return I('Chose satisfaction meter answer 1');
+		function name() return I('Chose answer 1');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback = 1';
@@ -399,7 +399,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeterAnswer2 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'chose_satisfaction_meter_answer2';
-		function name() return I('Chose satisfaction meter answer 2');
+		function name() return I('Chose answer 2');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback = 2';
@@ -413,7 +413,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeterAnswer3 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'chose_satisfaction_meter_answer3';
-		function name() return I('Chose satisfaction meter answer 3');
+		function name() return I('Chose answer 3');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback = 3';
@@ -427,7 +427,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeterAnswer4 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'chose_satisfaction_meter_answer4';
-		function name() return I('Chose satisfaction meter answer 4');
+		function name() return I('Chose answer 4');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback = 4';
@@ -441,7 +441,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeterAnswer5 extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'chose_satisfaction_meter_answer5';
-		function name() return I('Chose satisfaction meter answer 5');
+		function name() return I('Chose answer 5');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback = 5';
@@ -635,7 +635,7 @@ namespace Reports {
 	
 	class AnswerGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
-		function name() return I('option');
+		function name() return I('Option');
 		function select( object key ) return 'workflow_feedbacks.feedback, workflow_feedbacks.feedback as ' + .groupName();
 		function from() return '';
 		function where( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
@@ -647,4 +647,3 @@ namespace Reports {
 /**
  * @end
  */
-
