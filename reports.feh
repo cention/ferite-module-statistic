@@ -303,6 +303,18 @@ namespace Reports {
 		function name() return I('Chat expired');
 		function where() return 'workflow_actions.type = 21';
 	}
+	
+	class ErrandClosureStatusResent extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_resent';
+		function name() return I('Resent');
+		function where() return 'workflow_actions.type = 13';
+	}
+
+	class ErrandClosureStatusForwardedToExternal extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_forward_to_external';
+		function name() return I('Forwarded to external');
+		function where() return 'workflow_actions.type = 19';
+	}
 
 	class ErrandsRespondedAccordingToSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_according_to_sla_time';
