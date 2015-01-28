@@ -378,6 +378,7 @@ namespace Statistics {
 		array areas;
 		array users;
 		string zoneName;
+
 		array answerOption;
 		
 		function formatTime( number t ) {
@@ -461,6 +462,7 @@ namespace Statistics {
 
 		function setUsers( array list )
 			.users = list;
+
 		
 		function setAnswerOption( array list )
 			 .answerOption = list;
