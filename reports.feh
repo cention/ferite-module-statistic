@@ -104,7 +104,7 @@ namespace Reports {
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
-		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
