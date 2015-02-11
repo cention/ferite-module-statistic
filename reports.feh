@@ -388,7 +388,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'received_satisfaction_meter';
-		function name() return I('Received satisfaction meter');
+		function name() return I('Received answers');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback IN (1, 2, 3, 4, 5)';
