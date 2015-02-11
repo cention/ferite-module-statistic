@@ -161,7 +161,7 @@ namespace Statistics {
 			string key;
 			array totals = [];
 			
-			Console.printlnErr('CALLING DEFAULT TOTAL!!');
+			// Console.printlnErr('CALLING DEFAULT TOTAL!!');
 
 			totals['total'] = 0;
 
