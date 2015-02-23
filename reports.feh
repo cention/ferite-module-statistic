@@ -77,6 +77,11 @@ namespace Reports {
 	class ClosedErrands extends IncomingErrands {
 		function identifier() return 'closed';
 		function name() return I('Closed');
+		function from() {
+			return 'workflow_reporterranddatas ' + 
+				'JOIN workflow_errand_tags_links ' +
+					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
+		}
 		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21)';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
@@ -104,7 +109,7 @@ namespace Reports {
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
-		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
@@ -237,7 +242,7 @@ namespace Reports {
 	abstract class ErrandClosureStatus extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() raise new Error('Function() identifier has not been implemented.');
 		function name() raise new Error('Function name() has not been implemented.');
-		function select() return 'count(distinct(workflow_actions.workflow_action_id)) AS key';
+		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() {
 			return 'workflow_actions ' + 
 				'JOIN workflow_errand_actions_links ' +
@@ -302,6 +307,18 @@ namespace Reports {
 		function identifier() return 'errand_closure_status_chat_expired';
 		function name() return I('Chat expired');
 		function where() return 'workflow_actions.type = 21';
+	}
+	
+	class ErrandClosureStatusResent extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_resent';
+		function name() return I('Resent');
+		function where() return 'workflow_actions.type = 13';
+	}
+
+	class ErrandClosureStatusForwardedToExternal extends ErrandClosureStatus {
+		function identifier() return 'errand_closure_status_forward_to_external';
+		function name() return I('Forwarded to external');
+		function where() return 'workflow_actions.type = 19';
 	}
 
 	class ErrandsRespondedAccordingToSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -371,7 +388,7 @@ namespace Reports {
 	
 	class ReceivedSatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'received_satisfaction_meter';
-		function name() return I('Received satisfaction meter');
+		function name() return I('Received answers');
 		function select() return 'count(workflow_feedbacks.workflow_feedback_id) AS key';
 		function from() return 'workflow_feedbacks LEFT JOIN workflow_reporterranddatas ON workflow_reporterranddatas.errand_id = workflow_feedbacks.errand_fkey';
 		function where() return 'workflow_feedbacks.feedback IN (1, 2, 3, 4, 5)';
