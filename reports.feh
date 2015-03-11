@@ -44,11 +44,12 @@ namespace Reports {
 
 			rows = Database.queryToArray(
 				"SELECT floor(avg(${tbl}.${datacol})) AS total, " + group.select(key) + " " +
-				"FROM ${tbl} " + (group.from() ? ", " +  group.from() + " " : "") +
-				"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
-				"AND ${tbl}.${timecol} <= ${report.endTime} " +
-				"$areas $users $channels " + (group.where(key) ? " AND " + group.where(key) + " " : "") +
-				"GROUP BY " + group.groupBy()
+				" FROM ${tbl} " + (
+					group.join() ? " LEFT JOIN " +  group.join() + (
+						group.on()? " ON " + group.on() : "") : "") +
+				" WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+				" AND ${tbl}.${timecol} <= ${report.endTime} " +
+				" $areas $users $channels " + " GROUP BY " + group.groupBy()
 			);
 
 			rows.each() using ( row ) {
