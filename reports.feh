@@ -46,7 +46,7 @@ namespace Reports {
 				"SELECT floor(avg(${tbl}.${datacol})) AS total, " + group.select(key) + " " +
 				" FROM ${tbl} " + (
 					group.join() ? " LEFT JOIN " +  group.join() + (
-						group.on()? " ON " + group.on() : "") : "") +
+						group.on(key)? " ON " + group.on(key) : "") : "") +
 				" WHERE ${tbl}.${timecol} >= ${report.startTime} " +
 				" AND ${tbl}.${timecol} <= ${report.endTime} " +
 				" $areas $users $channels " + " GROUP BY " + group.groupBy()
