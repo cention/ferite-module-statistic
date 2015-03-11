@@ -249,7 +249,7 @@ namespace Reports {
 					'ON workflow_actions.workflow_action_id = workflow_errand_actions_links.child_workflow_action_id ' +
 				'JOIN workflow_reporterranddatas ' +
 					'ON workflow_reporterranddatas.errand_id = workflow_errand_actions_links.parent_workflow_errand_id ' +
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() raise new Error('Function where() has not been implemented.');
@@ -474,8 +474,8 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Organization');
 		function select( object key ) return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name AS ' + .groupName();
-		function from() return 'workflow_organisations';
-		function where( object key ) return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
+		function join() return 'workflow_organisations';
+		function on( object key ) return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
 		function groupBy() return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name';
 		function orderBy() return 'workflow_organisations.name';
 		function extra() return [ 'workflow_organisation_id' ];
@@ -485,8 +485,8 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Area');
 		function select( object key ) return 'workflow_areas.workflow_area_id, workflow_areas.name AS ' + .groupName();
-		function from() return 'workflow_areas';
-		function where( object key ) return key.columnArea() + ' = workflow_areas.workflow_area_id';
+		function join() return 'workflow_areas';
+		function on( object key ) return key.columnArea() + ' = workflow_areas.workflow_area_id';
 		function groupBy() return 'workflow_areas.workflow_area_id, workflow_areas.name';
 		function orderBy() return 'workflow_areas.name';
 		function extra() return [ 'workflow_area_id' ];
@@ -496,8 +496,8 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Agent');
 		function select( object key ) return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
-		function from() return 'workflow_users';
-		function where( object key ) {
+		function join() return 'workflow_users';
+		function on( object key ) {
 			if(key.columnUser())
 				return key.columnUser() + ' = workflow_users.workflow_user_id';
 			else
@@ -522,8 +522,8 @@ namespace Reports {
 		}
 		function name() return I('Channel');
 		function select( object key ) return 'workflow_services.workflow_service_id, workflow_services.name AS ' + .groupName();
-		function from() return 'workflow_services';
-		function where( object key ) return key.columnChannel() + ' = workflow_services.workflow_service_id';
+		function join() return 'workflow_services';
+		function on( object key ) return key.columnChannel() + ' = workflow_services.workflow_service_id';
 		function groupBy() return 'workflow_services.workflow_service_id, workflow_services.name';
 		function orderBy() return 'workflow_services.name';
 		function extra() return [ 'workflow_service_id' ];
@@ -534,8 +534,10 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Tags');
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
-		function from() return 'workflow_tags';
-		function where( object key ) return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
+		function join() return 'workflow_tags';
+		function on( object key ) {
+			return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
+		}
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
 		function needTranslation() return true;
@@ -547,8 +549,8 @@ namespace Reports {
 		function build() return [];	
 		function name() return I('Duration in minutes');
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / 60 AS integer) AS ' + .groupName();
-		function from() return '';
-		function where( object key ) return '';
+		function join() return '';
+		function on( object key ) return '';
 		function groupBy() return .groupName();
 		function orderBy() return .groupName();
 		function extra() return [];
@@ -559,8 +561,8 @@ namespace Reports {
 		function build() return [];
 		function name() return .timeFormat.name;
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / ' + .timeFormat.interval + ' AS integer) AS ' + .groupName();
-		function from() return '';
-		function where( object key ) return '';
+		function join() return '';
+		function on( object key ) return '';
 		function groupBy() return .groupName();
 		function orderBy() return .groupName();
 		function extra() return [];
@@ -654,8 +656,8 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Option');
 		function select( object key ) return 'workflow_feedbacks.feedback, workflow_feedbacks.feedback as ' + .groupName();
-		function from() return '';
-		function where( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
+		function join() return '';
+		function on( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
 		function groupBy() return 'workflow_feedbacks.feedback';
 		function orderBy() return 'workflow_feedbacks.feedback';
 		function extra() return [ 'feedback' ];
