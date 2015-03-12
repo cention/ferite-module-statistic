@@ -80,7 +80,7 @@ namespace Reports {
 		function name() return I('Closed');
 		function from() {
 			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21)';
@@ -228,7 +228,7 @@ namespace Reports {
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() {
 			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() return '';
