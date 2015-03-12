@@ -511,7 +511,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			// Console.printlnErr("=========================================< Query >===\n" + querystring);
+			// Console.printlnErr("=========================================< Report >===\n" + querystring);
 			return querystring;
 		}
 		
