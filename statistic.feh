@@ -503,8 +503,11 @@ namespace Statistics {
 			groups.each() using ( group ) {
 				select[] = group.select(key);
 				if( group.join() ) {
-					from[0] = from[0] + " LEFT JOIN " + group.join();
-					if( group.on(key) ) from[0] = from[0] + " ON " + group.on(key);
+					if( group.on(key) ) {
+						from[0] = from[0] +
+							" LEFT JOIN " + group.join() + 
+							" ON " + group.on(key);
+					}
 				}
 				groupBy[] = group.groupBy();
 				orderBy[] = group.orderBy();
