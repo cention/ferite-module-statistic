@@ -156,6 +156,11 @@ namespace Statistics {
 		function isTimeType() {
 			return false;
 		}
+		
+		function columnTag () {
+			return '';
+		}
+		
 		function total( array& result, object report ) {
 			number size;
 			string key;
