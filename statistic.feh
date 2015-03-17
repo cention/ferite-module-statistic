@@ -156,6 +156,11 @@ namespace Statistics {
 		function isTimeType() {
 			return false;
 		}
+		
+		function columnTag () {
+			return '';
+		}
+		
 		function total( array& result, object report ) {
 			number size;
 			string key;
@@ -498,8 +503,11 @@ namespace Statistics {
 			groups.each() using ( group ) {
 				select[] = group.select(key);
 				if( group.join() ) {
-					from[0] = from[0] + " LEFT JOIN " + group.join();
-					if( group.on(key) ) from[0] = from[0] + " ON " + group.on(key);
+					if( group.on(key) ) {
+						from[0] = from[0] +
+							" LEFT JOIN " + group.join() + 
+							" ON " + group.on(key);
+					}
 				}
 				groupBy[] = group.groupBy();
 				orderBy[] = group.orderBy();
@@ -511,7 +519,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			// Console.printlnErr("=========================================< Query >===\n" + querystring);
+			// Console.printlnErr("=========================================< Report >===\n" + querystring);
 			return querystring;
 		}
 		

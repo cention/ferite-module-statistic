@@ -69,7 +69,7 @@ namespace Reports {
 		function where() return '';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
-		function columnUser() return '';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_arrive';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
@@ -80,7 +80,7 @@ namespace Reports {
 		function name() return I('Closed');
 		function from() {
 			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21)';
@@ -228,7 +228,7 @@ namespace Reports {
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() {
 			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() return '';
@@ -496,8 +496,15 @@ namespace Reports {
 	class AgentGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
 		function name() return I('Agent');
-		function select( object key ) return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
-		function join() return 'workflow_users';
+		function select( object key ) {
+			if(key.columnUser()) 
+				return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
+			else
+				return '';
+		}
+		function join() {
+			return 'workflow_users';
+		}
 		function on( object key ) {
 			if(key.columnUser())
 				return key.columnUser() + ' = workflow_users.workflow_user_id';
