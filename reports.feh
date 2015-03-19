@@ -356,13 +356,14 @@ namespace Reports {
 		function select() {
 			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
 				'3 as workflow_reportchatdata_service_id, ' +
-				'null as workflow_reportchatdata_tag';
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
 		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.accepted = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
 		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnTag() return 'workflow_reportchatdata_tag';
@@ -374,13 +375,14 @@ namespace Reports {
 		function select() {
 			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
 				'3 as workflow_reportchatdata_service_id, ' +
-				'null as workflow_reportchatdata_tag';
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
 		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_closed = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
 		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnTag() return 'workflow_reportchatdata_tag';
@@ -392,13 +394,14 @@ namespace Reports {
 		function select() {
 			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
 				'3 as workflow_reportchatdata_service_id, ' +
-				'null as workflow_reportchatdata_tag';
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
 		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_unavailable = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
 		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnTag() return 'workflow_reportchatdata_tag';
