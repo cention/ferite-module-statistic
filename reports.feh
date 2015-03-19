@@ -351,39 +351,39 @@ namespace Reports {
 	class AcceptedChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'accepted_chat_requests';
 		function name() return I('Accepted chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, 3 as workflow_reportchatdata_service_id';
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.accepted = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnUser() return '';
-		function columnChannel() return '';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 	}
 
 	class RejectedClosedChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'rejected_closed_chat_requests';
 		function name() return I('Rejected (closed) chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, 3 as workflow_reportchatdata_service_id';
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_closed = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnUser() return '';
-		function columnChannel() return '';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 	}
 
 	class RejectedUnavailableChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'rejected_unavailable_chat_requests';
 		function name() return I('Rejected (unavailable) chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, 3 as workflow_reportchatdata_service_id';
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_unavailable = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnUser() return '';
-		function columnChannel() return '';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 	}
 	
