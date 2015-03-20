@@ -123,6 +123,7 @@ namespace Statistics {
 		function select();
 		function from();
 		function where();
+		function columnTag();
 		function columnOrganisation();
 		function columnArea();
 		function columnUser();
@@ -1098,6 +1099,7 @@ namespace Statistics {
 						];
 						rows[] = row;
 
+						totals['x'][row['x']] = row['y'];
 						totals['g'][key.name()] = 0;
 						if( report.totals[y] )
 							totals['g'][key.name()] = report.totals[y]['total'];
