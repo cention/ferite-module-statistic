@@ -9,6 +9,11 @@ uses 'webframework/webframework';
  * @brief Contains all Cention Reports
  */
 
+function report_errands_and_tags () {
+	return 'workflow_reporterranddatas ' + 
+		'LEFT JOIN workflow_errand_tags_links ' +
+		'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
+}
  
 namespace Reports {
 	function totalAverageTimes( string datacol, string timecol, string tbl, object report, object key ) {
@@ -42,19 +47,21 @@ namespace Reports {
 
 			Statistics.resetOrderID();
 
-			rows = Database.queryToArray(
-				"SELECT floor(avg(${tbl}.${datacol})) AS total, " + group.select(key) + " " +
-				"FROM ${tbl} " + (group.from() ? ", " +  group.from() + " " : "") +
-				"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
-				"AND ${tbl}.${timecol} <= ${report.endTime} " +
-				"$areas $users $channels " + (group.where(key) ? " AND " + group.where(key) + " " : "") +
-				"GROUP BY " + group.groupBy()
-			);
-
-			rows.each() using ( row ) {
-				string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
-				totals[name][n] = report.formatTime(row['total'].toNumber());
-			};
+			
+			if (group.on(key)) {
+				rows = Database.queryToArray(
+					"SELECT floor(avg(${tbl}.${datacol})) AS total" + ", " + group.select(key) +
+					" FROM ${tbl}  LEFT JOIN " +  group.join() + " ON " + group.on(key) +
+					" WHERE ${tbl}.${timecol} >= ${report.startTime} " +
+					" AND ${tbl}.${timecol} <= ${report.endTime} " +
+					" $areas $users $channels " + " GROUP BY " + group.groupBy()
+				);
+	
+				rows.each() using ( row ) {
+					string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
+					totals[name][n] = report.formatTime(row['total'].toNumber());
+				};
+			}
 		};
 
 		return totals;
@@ -64,34 +71,27 @@ namespace Reports {
 		function identifier() return 'incoming';
 		function name() return I('Incoming');
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
-		function from() return 'workflow_reporterranddatas';
+		function from() return report_errands_and_tags();
 		function where() return '';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
-		function columnUser() return '';
+		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_arrive';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 	}
 
 	class ClosedErrands extends IncomingErrands {
 		function identifier() return 'closed';
 		function name() return I('Closed');
-		function from() {
-			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
-					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
-		}
-		
 		// ACTION_ANSWER = 3
 		// ACTION_RESEND = 13
 		// ACTION_EXTERNAL_FORWARD = 19
 		// ACTION_CHAT_FINISH = 20
 		// ACTION_CHAT_EXPIRE = 21
 		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21)';
-		
 		function columnUser() return 'workflow_reporterranddatas.user_id';
-		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 	}
 
@@ -111,7 +111,7 @@ namespace Reports {
 		function identifier() return 'answer';
 		function name() return I('Answer');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return 'workflow_reporterranddatas, workflow_feedbacks';
+		function from() return report_errands_and_tags() + ', workflow_feedbacks';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
@@ -119,6 +119,7 @@ namespace Reports {
 		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 	}
 	
 	class AverageErrandResponseTime extends ClosedErrands {
@@ -160,8 +161,9 @@ namespace Reports {
 		function identifier() return 'average_errand_process_time';
 		function name() return I('Average process time');
 		function select() return 'floor(avg(workflow_reportuserdatas.process_time) / ' + .seconds() + ') AS key';
-		function from() return 'workflow_reportuserdatas';
+		function from() return report_errands_and_tags();
 		function where() return '';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnOrganisation() return 'workflow_reportuserdatas.organisation_id';
 		function columnArea() return 'workflow_reportuserdatas.area_id';
 		function columnUser() return 'workflow_reportuserdatas.user_id';
@@ -202,8 +204,9 @@ namespace Reports {
 		function identifier() return 'errand_process_time';
 		function name() return I('Processed');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
-		function from() return 'workflow_reporterranddatas';
+		function from() return report_errands_and_tags();
 		function where() return '';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
@@ -217,8 +220,9 @@ namespace Reports {
 		function identifier() return 'errand_response_time';
 		function name() return I('Responded');
 		function select() return 'count(cast(' + .columnDuration() + ' / 60 AS integer)) AS key';
-		function from() return 'workflow_reporterranddatas';
+		function from() return report_errands_and_tags();
 		function where() return '';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
@@ -232,11 +236,7 @@ namespace Reports {
 		function identifier() return 'errand_classification';
 		function name() return I('Tags');
 		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
-		function from() {
-			return 'workflow_reporterranddatas ' + 
-				'JOIN workflow_errand_tags_links ' +
-					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
-		}
+		function from() report_errands_and_tags();
 		function where() return '';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
@@ -256,7 +256,7 @@ namespace Reports {
 					'ON workflow_actions.workflow_action_id = workflow_errand_actions_links.child_workflow_action_id ' +
 				'JOIN workflow_reporterranddatas ' +
 					'ON workflow_reporterranddatas.errand_id = workflow_errand_actions_links.parent_workflow_errand_id ' +
-				'JOIN workflow_errand_tags_links ' +
+				'LEFT JOIN workflow_errand_tags_links ' +
 					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
 		}
 		function where() raise new Error('Function where() has not been implemented.');
@@ -332,65 +332,85 @@ namespace Reports {
 		function identifier() return 'errands_responeded_according_to_sla_time';
 		function name() return I('Responded according to SLA time');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return 'workflow_reporterranddatas LEFT JOIN workflow_areas ON workflow_reporterranddatas.area_id = workflow_areas.workflow_area_id';
+		function from() return report_errands_and_tags();
 		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.responded_within_sla = true';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 	}
 
 	class ErrandsRespondedAfterSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_after_sla_time';
 		function name() return I('Responded after SLA time');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return 'workflow_reporterranddatas LEFT JOIN workflow_areas ON workflow_reporterranddatas.area_id = workflow_areas.workflow_area_id';
+		function from() return report_errands_and_tags();
 		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.responded_within_sla = false';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
+		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 	}
 
 	class AcceptedChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'accepted_chat_requests';
 		function name() return I('Accepted chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() {
+			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
+				'3 as workflow_reportchatdata_service_id, ' +
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
+		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.accepted = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
-		function columnChannel() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
+		function columnTag() return 'workflow_reportchatdata_tag';
 	}
 
 	class RejectedClosedChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'rejected_closed_chat_requests';
 		function name() return I('Rejected (closed) chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() {
+			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
+				'3 as workflow_reportchatdata_service_id, ' +
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
+		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_closed = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
-		function columnChannel() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
+		function columnTag() return 'workflow_reportchatdata_tag';
 	}
 
 	class RejectedUnavailableChatRequests extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'rejected_unavailable_chat_requests';
 		function name() return I('Rejected (unavailable) chat requests');
-		function select() return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key';
+		function select() {
+			return 'count(workflow_reportchatdatas.workflow_reportchatdata_id) AS key, '+
+				'3 as workflow_reportchatdata_service_id, ' +
+				'null as workflow_reportchatdata_tag, ' +
+				'null as workflow_reportchatdata_user ';
+		}
 		function from() return 'workflow_reportchatdatas';
 		function where() return 'workflow_reportchatdatas.rejected_unavailable = true';
 		function columnOrganisation() return 'workflow_reportchatdatas.organisation_id';
 		function columnArea() return 'workflow_reportchatdatas.area_id';
-		function columnUser() return '';
-		function columnChannel() return '';
+		function columnUser() return 'workflow_reportchatdata_user';
+		function columnChannel() return 'workflow_reportchatdata_service_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
+		function columnTag() return 'workflow_reportchatdata_tag';
 	}
 	
 	class ReceivedSatisfactionMeter extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -481,8 +501,13 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Organization');
 		function select( object key ) return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name AS ' + .groupName();
-		function from() return 'workflow_organisations';
-		function where( object key ) return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
+		function join() return 'workflow_organisations';
+		function on( object key ) {
+			if ( key.columnOrganisation() )
+				return key.columnOrganisation() + ' = workflow_organisations.workflow_organisation_id';
+			else
+				return '';
+		}
 		function groupBy() return 'workflow_organisations.workflow_organisation_id, workflow_organisations.name';
 		function orderBy() return 'workflow_organisations.name';
 		function extra() return [ 'workflow_organisation_id' ];
@@ -492,8 +517,13 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Area');
 		function select( object key ) return 'workflow_areas.workflow_area_id, workflow_areas.name AS ' + .groupName();
-		function from() return 'workflow_areas';
-		function where( object key ) return key.columnArea() + ' = workflow_areas.workflow_area_id';
+		function join() return 'workflow_areas';
+		function on( object key ) {
+			if ( key.columnArea() )
+				return key.columnArea() + ' = workflow_areas.workflow_area_id';
+			else
+				return '';
+		}
 		function groupBy() return 'workflow_areas.workflow_area_id, workflow_areas.name';
 		function orderBy() return 'workflow_areas.name';
 		function extra() return [ 'workflow_area_id' ];
@@ -502,9 +532,16 @@ namespace Reports {
 	class AgentGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
 		function name() return I('Agent');
-		function select( object key ) return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
-		function from() return 'workflow_users';
-		function where( object key ) {
+		function select( object key ) {
+			if(key.columnUser()) 
+				return 'workflow_users.workflow_user_id, workflow_users.username AS ' + .groupName();
+			else
+				return '';
+		}
+		function join() {
+			return 'workflow_users';
+		}
+		function on( object key ) {
 			if(key.columnUser())
 				return key.columnUser() + ' = workflow_users.workflow_user_id';
 			else
@@ -529,8 +566,13 @@ namespace Reports {
 		}
 		function name() return I('Channel');
 		function select( object key ) return 'workflow_services.workflow_service_id, workflow_services.name AS ' + .groupName();
-		function from() return 'workflow_services';
-		function where( object key ) return key.columnChannel() + ' = workflow_services.workflow_service_id';
+		function join() return 'workflow_services';
+		function on( object key ) {
+			if ( key.columnChannel() )
+				return key.columnChannel() + ' = workflow_services.workflow_service_id';
+			else
+				return '';
+		}
 		function groupBy() return 'workflow_services.workflow_service_id, workflow_services.name';
 		function orderBy() return 'workflow_services.name';
 		function extra() return [ 'workflow_service_id' ];
@@ -541,8 +583,13 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Tags');
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
-		function from() return 'workflow_tags';
-		function where( object key ) return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
+		function join() return 'workflow_tags';
+		function on( object key ) {
+			if ( key.columnTag() )
+				return key.columnTag() + " = workflow_tags.workflow_tag_id AND substr(workflow_tags.name, 1, 7) = 'client.'";
+			else
+				return '';
+		}
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
 		function needTranslation() return true;
@@ -554,8 +601,8 @@ namespace Reports {
 		function build() return [];	
 		function name() return I('Duration in minutes');
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / 60 AS integer) AS ' + .groupName();
-		function from() return '';
-		function where( object key ) return '';
+		function join() return '';
+		function on( object key ) return '';
 		function groupBy() return .groupName();
 		function orderBy() return .groupName();
 		function extra() return [];
@@ -566,8 +613,8 @@ namespace Reports {
 		function build() return [];
 		function name() return .timeFormat.name;
 		function select( object key ) return 'cast(' + key.columnDuration() + ' / ' + .timeFormat.interval + ' AS integer) AS ' + .groupName();
-		function from() return '';
-		function where( object key ) return '';
+		function join() return '';
+		function on( object key ) return '';
 		function groupBy() return .groupName();
 		function orderBy() return .groupName();
 		function extra() return [];
@@ -661,8 +708,8 @@ namespace Reports {
 		function build() return [];
 		function name() return I('Option');
 		function select( object key ) return 'workflow_feedbacks.feedback, workflow_feedbacks.feedback as ' + .groupName();
-		function from() return '';
-		function where( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
+		function join() return '';
+		function on( object key ) return 'workflow_feedbacks.feedback in (1, 2, 3, 4, 5)';
 		function groupBy() return 'workflow_feedbacks.feedback';
 		function orderBy() return 'workflow_feedbacks.feedback';
 		function extra() return [ 'feedback' ];

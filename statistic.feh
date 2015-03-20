@@ -123,6 +123,7 @@ namespace Statistics {
 		function select();
 		function from();
 		function where();
+		function columnTag();
 		function columnOrganisation();
 		function columnArea();
 		function columnUser();
@@ -134,8 +135,8 @@ namespace Statistics {
 		function name();
 		function build();
 		function select( object key );
-		function from();
-		function where( object key );
+		function join();
+		function on( object key );
 		function groupBy();
 		function orderBy();
 	}
@@ -156,6 +157,11 @@ namespace Statistics {
 		function isTimeType() {
 			return false;
 		}
+		
+		function columnTag () {
+			return '';
+		}
+		
 		function total( array& result, object report ) {
 			number size;
 			string key;
@@ -174,6 +180,7 @@ namespace Statistics {
 					string n = '' + (group.needTranslation() and result[i][name] isa string
 						? I(result[i][name])
 						: result[i][name]);
+					if (n == '') n = '-';
 					if( not totals.keyExists(name) )
 						totals[name] = [];
 					if( not totals[name].keyExists(n) )
@@ -317,10 +324,10 @@ namespace Statistics {
 			};
 			return list.join(', ');
 		}
-		function from() {
+		function join() {
 			return '';
 		}
-		function where( object key ) {
+		function on( object key ) {
 			return '';
 		}
 		function groupBy() {
@@ -496,8 +503,13 @@ namespace Statistics {
 
 			groups.each() using ( group ) {
 				select[] = group.select(key);
-				if( group.from() ) from[] = group.from();
-				if( group.where(key) ) where[] = group.where(key);
+				if( group.join() ) {
+					if( group.on(key) ) {
+						from[0] = from[0] +
+							" LEFT JOIN " + group.join() + 
+							" ON " + group.on(key);
+					}
+				}
 				groupBy[] = group.groupBy();
 				orderBy[] = group.orderBy();
 			};
@@ -508,7 +520,7 @@ namespace Statistics {
 				(( buildReport && groupBy.size() ) ? ' GROUP BY ' + groupBy.join(', ') : '') +
 				( orderBy.size() ? ' ORDER BY ' + orderBy.join(', ') : '');
 
-			// Console.printlnErr("=========================================< Query >===\n" + querystring);
+			// Console.printlnErr("=========================================< Report >===\n" + querystring);
 			return querystring;
 		}
 		
@@ -696,11 +708,11 @@ namespace Statistics {
 			if( data.size() == 0 )
 				data[] = [];
 
-			Console.printlnErr('[DEBUG] -----------------------------------------------------');
-			Console.printlnErr('[DEBUG] data: ' + data);
-			Console.printlnErr('[DEBUG] data.size(): ' + data.size());
-			Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
-			Console.printlnErr('[DEBUG] groupName: ' + groupName);
+			// Console.printlnErr('[DEBUG] -----------------------------------------------------');
+			// Console.printlnErr('[DEBUG] data: ' + data);
+			// Console.printlnErr('[DEBUG] data.size(): ' + data.size());
+			// Console.printlnErr('[DEBUG] dataNames: ' + dataNames);
+			// Console.printlnErr('[DEBUG] groupName: ' + groupName);
 			
 			
 			size = .result.size();
@@ -861,7 +873,6 @@ namespace Statistics {
 			array html;
 			array rows;
 			array list;
-			
 			object previousRow;
 			number groups;
 			
@@ -871,6 +882,7 @@ namespace Statistics {
 				object row = new Statistics.HTMLRow();
 				array values = [];
 				array keyValues;
+				array d;
 				
 				for( number i = 0; i < data.size(); i++ ) {
 					if( data.getName(i).index('group') == 0 ) {
@@ -885,6 +897,8 @@ namespace Statistics {
 					object column = new Statistics.HTMLColumn();
 					column.group = true;
 					column.value = value;
+					
+					d[] = column.value;
 					row.addColumn(column);
 				};
 				
@@ -903,64 +917,74 @@ namespace Statistics {
 						else {
 							column.value = '0';
 						}
+						
+						d[] = column.value;
 						row.addColumn(column);
 					}
 				};
 				
+				// Console.printlnErr(d.join(" => "));
+				
 				rows[] = row;
 			};
 			
+			// Console.printlnErr(''+rows);
+			
 			rows.each() using ( row ) {
 				row.columns.eachWithIndex() using ( column, index ) {
+					string list_index = [column.value,index].join(',');
+					
 					//Console.println('---------------------------------------');
 					if( previousRow ) {
 						if( column.group ) {
-							//Console.println('Previous column: "' + previousRow.columns[index].value + '"');
-							//Console.println('         column: "' + column.value + '"');
-							//Console.println('Old: "' + previousRow.columns[index].value + '"');
-							//Console.println('New: "' + column.value + '"');
+							// Console.println('Previous column: "' + previousRow.columns[index].value + '"');
+							// Console.println('         column: "' + column.value + '"');
+							// Console.println('Old: "' + previousRow.columns[index].value + '"');
+							// Console.println('New: "' + column.value + '"');
 							if( previousRow.columns[index].value == column.value ) {
 								//Console.println('Previous column: "' + previousRow.columns[index].value + '"');
 								//Console.println('         column: "' + column.value + '"');
-								if( not list.keyExists(column.value) ) {
+								if( not list.keyExists(list_index) ) {
 									//Console.println('Not found: ' + column.value);
-									list[column.value] = column;
+									list[list_index] = column;
 									column.render = true;
 								}
-								if( list[column.value] ) {
-									list[column.value].rowspan++;
+								if( list[list_index] ) {
+									list[list_index].rowspan++;
 								} else {
-									list[column.value] = column;
+									list[list_index] = column;
 									column.render = true;
 								}
-								//Console.println(column.value + ': ' + list[column.value].rowspan);
+								//Console.println(column.value + ': ' + list[list_index].rowspan);
 							} else {
 								//Console.println('Old: "' + previousRow.columns[index].value + '"');
 								//Console.println('New: "' + column.value + '"');
 								for( number i = index; i < previousRow.columns.size(); i++ ) {
 									if( previousRow.columns[i].group ) {
 										string value = previousRow.columns[i].value;
+										string prev_key = [value,i].join(',');
+										string this_key = [row.columns[i].value,i].join(',');
 										//Console.println("Deleting: '${value}'");
-										if( list.keyExists(value) ) {
+										if( list.keyExists(prev_key) ) {
 											//Console.println('Yes');
-											list.del(value);
+											list.del(prev_key);
 										} else {
 											//Console.println('No');
 										}
-										list[row.columns[i].value] = null;
-										//list[row.columns[i].value] = row.columns[i];
-										//list[row.columns[i].value].render = true;
+										list[this_key] = null;
+										//list[this_key] = row.columns[i];
+										//list[this_key].render = true;
 									}
 								}
 								column.render = true;
-								list[column.value] = column;
+								list[list_index] = column;
 							}
 						} else {
 							column.render = true;
 						}
 					} else {
 						if( column.group )
-							list[column.value] = column;
+							list[list_index] = column;
 						column.render = true;
 					}
 				};
@@ -984,6 +1008,7 @@ namespace Statistics {
 			html[] = '</tr>';
 			
 			rows.each() using ( row ) {
+				// Console.printlnErr('row: ' + row.render());
 				html[] = row.render();
 			};
 			
