@@ -172,7 +172,7 @@ namespace Statistics {
 				report.groups.each() using ( group ) {
 					string name = group.groupName();
 					string n = '' + (group.needTranslation() and result[i][name] isa string
-						? I(result[i][name])
+						? Statistics.I(result[i][name])
 						: result[i][name]);
 					if( not totals.keyExists(name) )
 						totals[name] = [];
@@ -579,7 +579,7 @@ namespace Statistics {
 						if( group.needTranslation() ) {
 							string name = group.groupName();
 							.result[i]['original_' + name] = .result[i][name];
-							.result[i][name] = I(.result[i][name]);
+							.result[i][name] = Statistics.I(.result[i][name]);
 						}
 					}
 				};
@@ -1143,5 +1143,37 @@ namespace Statistics {
 			chart.setDataSource(.reportToDataSource(report));
 			return chart.render();
 		}
+	}
+
+	function I( string toTranslate ) {
+		string translated = I(toTranslate);
+		if( translated.compareCase(toTranslate) /* if equal */ ) {
+			array list = [
+				'January',   'Jan',
+				'February',  'Feb',
+				'March',     'Mar',
+				'April',     'Apr',
+				'May',
+				'June',      'Jun',
+				'July',      'Jul',
+				'August',    'Aug',
+				'September', 'Sep',
+				'October',   'Oct',
+				'November',  'Nov',
+				'December',  'Dec',
+				'Monday',    'Mon',
+				'Tuesday',   'Tue',
+				'Wednesday', 'Wed',
+				'Thursday',  'Thu',
+				'Friday',    'Fri',
+				'Saturday',  'Sat',
+				'Sunday',    'Sun'
+			];
+			translated = toTranslate;
+			list.each() using ( item ) {
+				translated = translated.replace(item, I(item));
+			};
+		}
+		return translated;
 	}
 }
