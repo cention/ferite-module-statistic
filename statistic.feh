@@ -123,6 +123,7 @@ namespace Statistics {
 		function select();
 		function from();
 		function where();
+		function columnTag();
 		function columnOrganisation();
 		function columnArea();
 		function columnUser();
