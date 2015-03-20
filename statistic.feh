@@ -503,6 +503,10 @@ namespace Statistics {
 
 			groups.each() using ( group ) {
 				select[] = group.select(key);
+				
+				// Console.printlnErr( "]]>" + group.join() );
+				// Console.printlnErr( "]]>" + group.on(key) );
+				
 				if( group.join() ) {
 					if( group.on(key) ) {
 						from[0] = from[0] +
@@ -1058,7 +1062,9 @@ namespace Statistics {
 				x = nextToLastGroup.groupName();
 				y = 'key_' + report.keys[0].identifier();
 
-				totals['x'] = report.totals[y][x];
+				if (report.totals[y][x]) {
+					totals['x'] = report.totals[y][x];
+				}
 
 				sizeResult = report.result.size();
 				for( number i = 0; i < sizeResult; i++ ) {
