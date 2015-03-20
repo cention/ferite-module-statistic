@@ -47,7 +47,6 @@ namespace Reports {
 
 			Statistics.resetOrderID();
 
-			
 			if (group.on(key)) {
 				rows = Database.queryToArray(
 					"SELECT floor(avg(${tbl}.${datacol})) AS total" + ", " + group.select(key) +
@@ -58,7 +57,7 @@ namespace Reports {
 				);
 	
 				rows.each() using ( row ) {
-					string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
+					string n = (group.needTranslation() ? Statistics.I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
 					totals[name][n] = report.formatTime(row['total'].toNumber());
 				};
 			}
@@ -695,7 +694,7 @@ namespace Reports {
 			}
 			return super.build();
 		}
-		function name() return (.timeGroupFormat ? I(.timeGroupFormat.name) : I('Day'));
+		function name() return (.timeGroupFormat ? Statistics.I(.timeGroupFormat.name) : I('Day'));
 		function feriteFormat() return (.timeGroupFormat ? .timeGroupFormat.format() : '%F');
 		function format() return (.timeGroupFormat ? .timeGroupFormat.pgsqlFormat() : 'YYYY-MM-DD');
 		function fields() return (.timeGroupFormat ? .timeGroupFormat.pgsqlFields() : [ 'year', 'month', 'day' ]);
