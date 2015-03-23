@@ -553,6 +553,8 @@ namespace Statistics {
 			} else {
 				tempResult = Database.queryToArray(query);
 			}
+			
+			// Console.printlnErr('' + tempResult);
 
 			if( buildReport ) {
 				size = tempResult.size();
@@ -1170,7 +1172,7 @@ namespace Statistics {
 			chart = new GUIKit.CChart();
 			chart.id = 'CentionChart';
 			chart.initialiseComponent();
-			chart.setWidth('715px');
+			chart.setWidth('1000px');
 			chart.setDataSource(.reportToDataSource(report));
 			return chart.render();
 		}
