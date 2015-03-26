@@ -162,6 +162,10 @@ namespace Statistics {
 			return '';
 		}
 		
+		function columnDuration () {
+			return 0;
+		}
+		
 		function total( array& result, object report ) {
 			number size;
 			string key;
