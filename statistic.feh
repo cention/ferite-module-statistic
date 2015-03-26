@@ -1131,18 +1131,21 @@ namespace Statistics {
 			array totals = rawTotals['x'];
 			array rows = [];
 
-			columnHeaders[] = header.name();
+			columnHeaders[] = (header.name() ? header.name() : " ");
 
 			groups.eachWithIndex() using ( name, index ) {
-				columnHeaders[] = name;
+				columnHeaders[] = (name ? name : " ");
 				columnHeaderTotals[groups.getName(index)] = rawTotals['g'][name];
 			};
+			
+			Console.printlnErr('ColumnHeaders: ' + columnHeaders);
 
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
 				array row = [];
+				string label = (rawRow['x'] ? '' + rawRow['x'] : " ");
 
-				if( not rows.keyExists('' + rawRow['x']) ) {
+				if( not rows.keyExists(label) ) {
 					/* This eval is here in order to construct a mixed type array.
 					 * The original code generated a number array that has a string as the first element.
 					 * Ferite doesn't allow this. There is a bug in Ferite that makes this possible
@@ -1155,19 +1158,16 @@ namespace Statistics {
 					 * following data structure instead:
 					 *     [ 'label' => rawRow['x'], 'values' => [0,0,0,0 ...] ]
 					 */
-					row = eval('return ["' + rawRow['x'] + '"' + ',0'.repeat(groups.size()) + '];');
+					row = eval('return ["' + label + '"' + ',0'.repeat(groups.size()) + '];');
 				} else {
-					row = rows['' + rawRow['x']];
+					row = rows[label];
 				}
 
 				row[ groups.getIndex('' + rawRow['g']) +1 ] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
-
-				if( rawRow['x'] != '' ) {
-					rows['' + rawRow['x']] = row;
-				} else {
-					rows['Row ' + i] = row;
-				}
+				
+				rows[label] = row;
 			}
+			Console.printlnErr(rows.join("\n"));
 			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
 		}
 		function run( object report ) {
@@ -1176,7 +1176,7 @@ namespace Statistics {
 			chart = new GUIKit.CChart();
 			chart.id = 'CentionChart';
 			chart.initialiseComponent();
-			chart.setWidth('1000px');
+			// chart.setWidth('1000px');
 			chart.setDataSource(.reportToDataSource(report));
 			return chart.render();
 		}
