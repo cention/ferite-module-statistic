@@ -154,8 +154,13 @@ namespace Statistics {
 		function isGroup() {
 			return false;
 		}
+		
 		function isTimeType() {
 			return false;
+		}
+		
+		function resultFormatter (void v) {
+			return '' + v;
 		}
 		
 		function columnTag () {
@@ -856,6 +861,9 @@ namespace Statistics {
 			array html = [];
 			html[] = '<tr valign="top">';
 			.columns.each() using ( column ) {
+				
+				// Console.printlnErr(']]>' + column);
+				
 				if( column.render ) {
 					array cssClasses = [];
 					column.first and cssClasses[] = 'first';
@@ -876,6 +884,10 @@ namespace Statistics {
 		boolean first = false;
 		boolean group = false;
 		boolean render = false;
+		
+		function toString () {
+			return "<rowspan=${.rowspan} first=${.first} group=${.group} render=${.render} value=${.value}>";
+		}
 	}
 	class HorizontalTableHTMLFormatter {
 		function run( object report ) {
@@ -894,6 +906,8 @@ namespace Statistics {
 				array keyValues;
 				array d;
 				
+				// Console.printlnErr('data==' + data);
+				
 				for( number i = 0; i < data.size(); i++ ) {
 					if( data.getName(i).index('group') == 0 ) {
 						values[] = String.trim('' + data[i], ' ');
@@ -902,6 +916,8 @@ namespace Statistics {
 					// 	keyValues[] = String.trim('' + data[i], ' ');
 					// }
 				}
+				
+				// Console.printlnErr('values::' + values);
 				
 				values.each() using ( value ) {
 					object column = new Statistics.HTMLColumn();
@@ -920,13 +936,15 @@ namespace Statistics {
 						// Console.printlnErr('>> datacolumn: ' + dataColumn);
 						// Console.printlnErr('>> identifier: ' + identifier);
 						// Console.printlnErr('>> data : ' + data[identifier]);
-						
+
 						if ( data[identifier] ) {
 							column.value = String.trim('' + data[identifier], ' ');
 						}
 						else {
 							column.value = '0';
 						}
+						
+						column.value = dataColumn.resultFormatter(column.value);
 						
 						d[] = column.value;
 						row.addColumn(column);
@@ -1028,7 +1046,11 @@ namespace Statistics {
 				if ( item ) {
 					if( not item.isGroup() ) {
 						string id = 'key_' + item.identifier();
-						html[] = '<td>' + report.totals[id]['total'] + '</td>';
+						string total = '' + report.totals[id]['total'];
+						
+						total = item.resultFormatter(total);
+						
+						html[] = '<td>' + total + '</td>';
 					}
 				}
 			};
@@ -1079,12 +1101,17 @@ namespace Statistics {
 					rows[] = [
 						'x' => report.result[i][x],
 						'y' => report.result[i][y],
-						'g' => report.result[i][g]
+						'g' => report.result[i][g],
+						'formatter' => closure (v) {
+							return report.keys[0].resultFormatter(v);
+						}
 					];
 					totals['g'][group] = 0;
 					if( report.totals[y].keyExists(g) and report.totals[y][g].keyExists(group) )
 						totals['g'][group] = report.totals[y][g][group];
 				}
+				
+				// Console.printlnErr(report.keys[0]);
 
 				header = report.keys[0];
 			} else {
@@ -1107,8 +1134,14 @@ namespace Statistics {
 						array row = [
 							'x' => report.result[i][x],
 							'y' => (report.result[i].keyExists(y) ? report.result[i][y] : 0),
-							'g' => key.name()
+							'g' => key.name(),
+							'formatter' => closure (v) {
+								return key.resultFormatter(v);
+							}
 						];
+						
+						// Console.printlnErr(key);
+						
 						rows[] = row;
 
 						totals['x'][row['x']] = row['y'];
@@ -1130,6 +1163,7 @@ namespace Statistics {
 			array columnHeaderTotals = [ I('Total') ];
 			array totals = rawTotals['x'];
 			array rows = [];
+			array resultFormatters = [];
 
 			columnHeaders[] = (header.name() ? header.name() : " ");
 
@@ -1139,6 +1173,7 @@ namespace Statistics {
 			};
 			
 			// Console.printlnErr('ColumnHeaders: ' + columnHeaders);
+			// Console.printlnErr(rawData.join("\n"));
 
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
@@ -1165,10 +1200,17 @@ namespace Statistics {
 
 				row[ groups.getIndex('' + rawRow['g']) +1 ] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				
+				resultFormatters[label] = rawRow.formatter;
 				rows[label] = row;
 			}
 			// Console.printlnErr(rows.join("\n"));
-			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
+			return [
+				'ColumnHeaders' => columnHeaders,
+				'ColumnHeaderTotals' => columnHeaderTotals, 
+				'Rows' => rows, 
+				'Totals' => totals,
+				'ResultFormatters' => resultFormatters
+			];
 		}
 		function run( object report ) {
 			object chart;
