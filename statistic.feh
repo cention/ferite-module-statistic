@@ -1143,7 +1143,7 @@ namespace Statistics {
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
 				array row = [];
-				string label = (rawRow['x'] ? '' + rawRow['x'] : " ");
+				string label = (('' + rawRow['x']) ? '' + rawRow['x'] : " ");
 
 				if( not rows.keyExists(label) ) {
 					/* This eval is here in order to construct a mixed type array.
