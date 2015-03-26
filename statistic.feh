@@ -4,6 +4,20 @@ uses 'array';
 uses 'console';
 uses 'date';
 
+function secondsToClockTime (string s) {
+	number n = s.toNumber();
+	number hours;
+	number minutes;
+	number seconds;
+	
+	seconds =  n%60;
+	n = n/60;
+	minutes = n%60;
+	hours = n/60;
+	
+	return "%02d:%02d:%02d".sprintf(hours,minutes,seconds);
+}
+
 namespace modifies Array {
 	function appendWithNames( array a, array b ) {
 		number size = b.size();
@@ -154,6 +168,7 @@ namespace Statistics {
 		function isGroup() {
 			return false;
 		}
+		
 		function isTimeType() {
 			return false;
 		}
@@ -567,7 +582,7 @@ namespace Statistics {
 						? tempResult[i]['key'].toNumber()
 						: tempResult[i]['key']);
 					
-					if ( key.isTimeType() ) value = .formatTime(value);
+					// if ( key.isTimeType() ) value = .formatTime(value);
 					
 					.result.setRow(tempResult[i], name, value, extra);
 				}
@@ -856,6 +871,9 @@ namespace Statistics {
 			array html = [];
 			html[] = '<tr valign="top">';
 			.columns.each() using ( column ) {
+				
+				// Console.printlnErr(']]>' + column);
+				
 				if( column.render ) {
 					array cssClasses = [];
 					column.first and cssClasses[] = 'first';
@@ -876,6 +894,10 @@ namespace Statistics {
 		boolean first = false;
 		boolean group = false;
 		boolean render = false;
+		
+		function toString () {
+			return "<rowspan=${.rowspan} first=${.first} group=${.group} render=${.render} value=${.value}>";
+		}
 	}
 	class HorizontalTableHTMLFormatter {
 		function run( object report ) {
@@ -894,6 +916,8 @@ namespace Statistics {
 				array keyValues;
 				array d;
 				
+				// Console.printlnErr('data==' + data);
+				
 				for( number i = 0; i < data.size(); i++ ) {
 					if( data.getName(i).index('group') == 0 ) {
 						values[] = String.trim('' + data[i], ' ');
@@ -902,6 +926,8 @@ namespace Statistics {
 					// 	keyValues[] = String.trim('' + data[i], ' ');
 					// }
 				}
+				
+				// Console.printlnErr('values::' + values);
 				
 				values.each() using ( value ) {
 					object column = new Statistics.HTMLColumn();
@@ -917,15 +943,19 @@ namespace Statistics {
 						object column = new Statistics.HTMLColumn();
 						string identifier = 'key_' + dataColumn.identifier();
 						
-						// Console.printlnErr('>> datacolumn: ' + dataColumn);
-						// Console.printlnErr('>> identifier: ' + identifier);
-						// Console.printlnErr('>> data : ' + data[identifier]);
+						Console.printlnErr('>> datacolumn: ' + dataColumn);
+						Console.printlnErr('>> identifier: ' + identifier);
+						Console.printlnErr('>> data : ' + data[identifier]);
 						
 						if ( data[identifier] ) {
 							column.value = String.trim('' + data[identifier], ' ');
 						}
 						else {
 							column.value = '0';
+						}
+						
+						if (dataColumn.isTimeType()) {
+							column.value = secondsToClockTime(column.value);
 						}
 						
 						d[] = column.value;
@@ -1028,7 +1058,13 @@ namespace Statistics {
 				if ( item ) {
 					if( not item.isGroup() ) {
 						string id = 'key_' + item.identifier();
-						html[] = '<td>' + report.totals[id]['total'] + '</td>';
+						string total = '' + report.totals[id]['total'];
+						
+						if (item.isTimeType()) {
+							total = secondsToClockTime(total);
+						}
+						
+						html[] = '<td>' + total + '</td>';
 					}
 				}
 			};

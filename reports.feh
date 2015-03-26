@@ -570,6 +570,18 @@ namespace Reports {
 		function extra() return [];
 		function valuesAsLabels() return true;
 	}
+	
+	class DurationInSecondsGroup extends Statistics.AbstractGroup implements Statistics.Group {
+		function build() return [];	
+		function name() return I('Duration in seconds');
+		function select( object key ) return key.columnDuration() + ' AS ' + .groupName();
+		function join() return '';
+		function on( object key ) return '';
+		function groupBy() return .groupName();
+		function orderBy() return .groupName();
+		function extra() return [];
+		function valuesAsLabels() return true;
+	}
 
 	class CustomDurationGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
