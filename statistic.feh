@@ -1138,7 +1138,7 @@ namespace Statistics {
 				columnHeaderTotals[groups.getName(index)] = rawTotals['g'][name];
 			};
 			
-			Console.printlnErr('ColumnHeaders: ' + columnHeaders);
+			// Console.printlnErr('ColumnHeaders: ' + columnHeaders);
 
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
@@ -1167,7 +1167,7 @@ namespace Statistics {
 				
 				rows[label] = row;
 			}
-			Console.printlnErr(rows.join("\n"));
+			// Console.printlnErr(rows.join("\n"));
 			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
 		}
 		function run( object report ) {
