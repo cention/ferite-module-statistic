@@ -9,6 +9,20 @@ uses 'webframework/webframework';
  * @brief Contains all Cention Reports
  */
 
+function secondsToClockTime (string s) {
+	number n = s.toNumber();
+	number hours;
+	number minutes;
+	number seconds;
+	
+	seconds =  n%60;
+	n = n/60;
+	minutes = n%60;
+	hours = n/60;
+	
+	return "%02d:%02d:%02d".sprintf(hours,minutes,seconds);
+}
+
 function report_errands_and_tags (string data_table) {
 	return data_table +
 		' LEFT JOIN workflow_errand_tags_links ' +
@@ -126,10 +140,10 @@ namespace Reports {
 		function name() return I('Average response time');
 		function select() return 'floor(avg(workflow_reporterranddatas.response_time) / ' + .seconds() + ') AS key';
 		function seconds() return 1;
-		function isTimeType() return true;
 		function total( array& values, object report ) {
 			return Reports.totalAverageTimes('response_time', 'timestamp_close', 'workflow_reporterranddatas', report, self);
 		}
+		function resultFormatter (void v) return secondsToClockTime('' + v);
 	}
 
 	class AverageErrandResponseTimeInSeconds extends AverageErrandResponseTime {
@@ -169,10 +183,10 @@ namespace Reports {
 		function columnChannel() return 'workflow_reportuserdatas.service_id';
 		function columnTime() return 'workflow_reportuserdatas.timestamp_open';
 		function seconds() return 1;
-		function isTimeType() return true;
 		function total( array& values, object report ) {
 			return Reports.totalAverageTimes('process_time', 'timestamp_open', 'workflow_reportuserdatas', report, self);
 		}
+		function resultFormatter (void v) return secondsToClockTime('' + v);
 	}
 
 	class AverageErrandProcessTimeInSeconds extends AverageErrandProcessTime {

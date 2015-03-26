@@ -4,20 +4,6 @@ uses 'array';
 uses 'console';
 uses 'date';
 
-function secondsToClockTime (string s) {
-	number n = s.toNumber();
-	number hours;
-	number minutes;
-	number seconds;
-	
-	seconds =  n%60;
-	n = n/60;
-	minutes = n%60;
-	hours = n/60;
-	
-	return "%02d:%02d:%02d".sprintf(hours,minutes,seconds);
-}
-
 namespace modifies Array {
 	function appendWithNames( array a, array b ) {
 		number size = b.size();
@@ -171,6 +157,10 @@ namespace Statistics {
 		
 		function isTimeType() {
 			return false;
+		}
+		
+		function resultFormatter (void v) {
+			return '' + v;
 		}
 		
 		function columnTag () {
@@ -582,7 +572,7 @@ namespace Statistics {
 						? tempResult[i]['key'].toNumber()
 						: tempResult[i]['key']);
 					
-					// if ( key.isTimeType() ) value = .formatTime(value);
+					if ( key.isTimeType() ) value = .formatTime(value);
 					
 					.result.setRow(tempResult[i], name, value, extra);
 				}
@@ -943,10 +933,10 @@ namespace Statistics {
 						object column = new Statistics.HTMLColumn();
 						string identifier = 'key_' + dataColumn.identifier();
 						
-						Console.printlnErr('>> datacolumn: ' + dataColumn);
-						Console.printlnErr('>> identifier: ' + identifier);
-						Console.printlnErr('>> data : ' + data[identifier]);
-						
+						// Console.printlnErr('>> datacolumn: ' + dataColumn);
+						// Console.printlnErr('>> identifier: ' + identifier);
+						// Console.printlnErr('>> data : ' + data[identifier]);
+
 						if ( data[identifier] ) {
 							column.value = String.trim('' + data[identifier], ' ');
 						}
@@ -954,9 +944,7 @@ namespace Statistics {
 							column.value = '0';
 						}
 						
-						if (dataColumn.isTimeType()) {
-							column.value = secondsToClockTime(column.value);
-						}
+						column.value = dataColumn.resultFormatter(column.value);
 						
 						d[] = column.value;
 						row.addColumn(column);
@@ -1060,9 +1048,7 @@ namespace Statistics {
 						string id = 'key_' + item.identifier();
 						string total = '' + report.totals[id]['total'];
 						
-						if (item.isTimeType()) {
-							total = secondsToClockTime(total);
-						}
+						total = item.resultFormatter(total);
 						
 						html[] = '<td>' + total + '</td>';
 					}
@@ -1115,12 +1101,17 @@ namespace Statistics {
 					rows[] = [
 						'x' => report.result[i][x],
 						'y' => report.result[i][y],
-						'g' => report.result[i][g]
+						'g' => report.result[i][g],
+						'formatter' => closure (v) {
+							return report.keys[0].resultFormatter(v);
+						}
 					];
 					totals['g'][group] = 0;
 					if( report.totals[y].keyExists(g) and report.totals[y][g].keyExists(group) )
 						totals['g'][group] = report.totals[y][g][group];
 				}
+				
+				// Console.printlnErr(report.keys[0]);
 
 				header = report.keys[0];
 			} else {
@@ -1143,8 +1134,14 @@ namespace Statistics {
 						array row = [
 							'x' => report.result[i][x],
 							'y' => (report.result[i].keyExists(y) ? report.result[i][y] : 0),
-							'g' => key.name()
+							'g' => key.name(),
+							'formatter' => closure (v) {
+								return key.resultFormatter(v);
+							}
 						];
+						
+						// Console.printlnErr(key);
+						
 						rows[] = row;
 
 						totals['x'][row['x']] = row['y'];
@@ -1166,6 +1163,7 @@ namespace Statistics {
 			array columnHeaderTotals = [ I('Total') ];
 			array totals = rawTotals['x'];
 			array rows = [];
+			array resultFormatters = [];
 
 			columnHeaders[] = (header.name() ? header.name() : " ");
 
@@ -1175,6 +1173,7 @@ namespace Statistics {
 			};
 			
 			// Console.printlnErr('ColumnHeaders: ' + columnHeaders);
+			// Console.printlnErr(rawData.join("\n"));
 
 			for( number i = 0; i < rawRowCount; i++ ) {
 				array rawRow = rawData[i]; // Should this be avoided in this case?
@@ -1201,10 +1200,17 @@ namespace Statistics {
 
 				row[ groups.getIndex('' + rawRow['g']) +1 ] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
 				
+				resultFormatters[label] = rawRow.formatter;
 				rows[label] = row;
 			}
 			// Console.printlnErr(rows.join("\n"));
-			return [ 'ColumnHeaders' => columnHeaders, 'ColumnHeaderTotals' => columnHeaderTotals, 'Rows' => rows, 'Totals' => totals ];
+			return [
+				'ColumnHeaders' => columnHeaders,
+				'ColumnHeaderTotals' => columnHeaderTotals, 
+				'Rows' => rows, 
+				'Totals' => totals,
+				'ResultFormatters' => resultFormatters
+			];
 		}
 		function run( object report ) {
 			object chart;
