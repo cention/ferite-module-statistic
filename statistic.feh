@@ -498,10 +498,18 @@ namespace Statistics {
 			where[] = key.columnTime() + ' >= ' + .startTime;
 			where[] = key.columnTime() + ' <= ' + .endTime;
 
-			if( .channels and key.columnChannel() ) where[] = key.columnChannel() + ' in (' + .channels.join(',') + ')';
-			if( .organisations and key.columnOrganisation() ) where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
-			if( .areas and key.columnArea() ) where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
-			if( .users and key.columnUser() ) where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
+			if( .channels and key.columnChannel() and key.columnChannel() != 'null') {
+				where[] = key.columnChannel() + ' in (' + .channels.join(',') + ')';
+			}
+			if( .organisations and key.columnOrganisation() and key.columnOrganisation() != 'null' ) {
+				where[] = key.columnOrganisation() + ' in (' + .organisations.join(',') + ')';
+			}
+			if( .areas and key.columnArea() and key.columnArea() != 'null' ) {
+				where[] = key.columnArea() + ' in (' + .areas.join(',') + ')';
+			}
+			if( .users and key.columnUser() and key.columnUser() != 'null' ) {
+				where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
+			}
 
 			if( buildReport ) {
 				select[] = key.select();
