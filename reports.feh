@@ -23,13 +23,16 @@ function secondsToClockTime (string s) {
 	return "%02d:%02d:%02d".sprintf(hours,minutes,seconds);
 }
 
-function report_errands_and_tags (string data_table) {
-	return data_table +
-		' LEFT JOIN workflow_errand_tags_links ' +
+function errand_tags_links (string data_table) {
+	return ' LEFT JOIN workflow_errand_tags_links ' +
 		' ON workflow_errand_tags_links.parent_workflow_errand_id = ' + data_table + '.errand_id' +
 		' AND workflow_errand_tags_links.child_workflow_tag_id not in (' +
 			"SELECT workflow_tag_id FROM workflow_tags WHERE substr(workflow_tags.name, 1, 7) != 'client.'" +
 		') ';
+}
+
+function report_errands_and_tags (string data_table) {
+	return data_table + errand_tags_links(data_table);
 }
 function report_errands_and_tags () {
 	return report_errands_and_tags('workflow_reporterranddatas ');
@@ -271,8 +274,7 @@ namespace Reports {
 					'ON workflow_actions.workflow_action_id = workflow_errand_actions_links.child_workflow_action_id ' +
 				'JOIN workflow_reporterranddatas ' +
 					'ON workflow_reporterranddatas.errand_id = workflow_errand_actions_links.parent_workflow_errand_id ' +
-				'LEFT JOIN workflow_errand_tags_links ' +
-					'ON workflow_errand_tags_links.parent_workflow_errand_id = workflow_reporterranddatas.errand_id';
+				errand_tags_links('workflow_reporterranddatas');
 		}
 		function where() raise new Error('Function where() has not been implemented.');
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
