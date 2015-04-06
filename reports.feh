@@ -562,7 +562,11 @@ namespace Reports {
 	class CloseTagGroup extends Statistics.AbstractGroup implements Statistics.Group {
 		function build() return [];
 		function name() return I('Tags');
-		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
+		function select( object key ) {
+			return "workflow_tags.workflow_tag_id, " +
+				" CASE WHEN workflow_tags.display IS NULL THEN '" + I("(untagged)") +
+				"' ELSE workflow_tags.display END AS " + .groupName();
+		}
 		function join() return 'workflow_tags';
 		function on( object key ) {
 			return  "workflow_tags.workflow_tag_id = " + key.columnTag();
