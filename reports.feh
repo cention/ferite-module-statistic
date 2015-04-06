@@ -26,7 +26,10 @@ function secondsToClockTime (string s) {
 function report_errands_and_tags (string data_table) {
 	return data_table +
 		' LEFT JOIN workflow_errand_tags_links ' +
-		' ON workflow_errand_tags_links.parent_workflow_errand_id = ' + data_table + '.errand_id';
+		' ON workflow_errand_tags_links.parent_workflow_errand_id = ' + data_table + '.errand_id' +
+		' AND workflow_errand_tags_links.child_workflow_tag_id not in (' +
+			"SELECT workflow_tag_id FROM workflow_tags WHERE substr(workflow_tags.name, 1, 7) != 'client.'" +
+		') ';
 }
 
 function report_errands_and_tags () {
@@ -563,8 +566,7 @@ namespace Reports {
 		function select( object key ) return 'workflow_tags.workflow_tag_id, workflow_tags.display AS ' + .groupName();
 		function join() return 'workflow_tags';
 		function on( object key ) {
-			return  "workflow_tags.workflow_tag_id = " + key.columnTag() +
-					" AND substr(workflow_tags.name, 1, 7) = 'client.'";
+			return  "workflow_tags.workflow_tag_id = " + key.columnTag();
 		}
 		function groupBy() return 'workflow_tags.workflow_tag_id, workflow_tags.display';
 		function orderBy() return 'workflow_tags.display';
