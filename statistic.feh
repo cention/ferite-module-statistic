@@ -1076,6 +1076,7 @@ namespace Statistics {
 			array rows;
 			array totals;
 			object header;
+			array formatters;
 
 			totals['x'] = [];
 			totals['g'] = [];
@@ -1161,17 +1162,23 @@ namespace Statistics {
 
 				header = lastGroup;
 			}
+			
+			report.keys.each() using ( key ) {
+				string y = 'key_' + key.identifier();
+				formatters[] = closure (v) {
+					return report.keys[0].resultFormatter(v);
+				};
+			};
 
-			source = .makeData(report, header, groups, rows, totals);
+			source = .makeData(report, header, groups, rows, totals, formatters);
 			return source;
 		}
-		function makeData( object report, object header, array groups, array& rawData, array rawTotals ) {
+		function makeData( object report, object header, array groups, array& rawData, array rawTotals, array resultFormatters ) {
 			number rawRowCount = rawData.size();
 			array columnHeaders = [];
 			array columnHeaderTotals = [ I('Total') ];
 			array totals = rawTotals['x'];
 			array rows = [];
-			array resultFormatters = [];
 
 			columnHeaders[] = (header.name() ? header.name() : " ");
 
@@ -1207,10 +1214,11 @@ namespace Statistics {
 				}
 
 				row[ groups.getIndex('' + rawRow['g']) +1 ] = (rawRow['y'] isa string ? rawRow['y'].toNumber() : rawRow['y']);
-				
-				resultFormatters[label] = rawRow.formatter;
 				rows[label] = row;
 			}
+			
+			
+			
 			// Console.printlnErr(rows.join("\n"));
 			return [
 				'ColumnHeaders' => columnHeaders,
