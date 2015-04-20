@@ -99,7 +99,7 @@ namespace Reports {
 		function where() return '';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
-		function columnUser() return 'workflow_reporterranddatas.user_id';
+		function columnUser() return ''; // Tobias 2015-04-20: Returns empty string so that Incoming is _NOT_ filtered by agent
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_arrive';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
