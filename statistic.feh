@@ -1225,7 +1225,8 @@ namespace Statistics {
 				'ColumnHeaderTotals' => columnHeaderTotals, 
 				'Rows' => rows, 
 				'Totals' => totals,
-				'ResultFormatters' => resultFormatters
+				'ResultFormatters' => resultFormatters,
+				'ShowValueTypes' => (report.groups.size() > 1 or report.keys.size() > 1 ? true : false)
 			];
 		}
 		function run( object report ) {
