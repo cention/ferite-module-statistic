@@ -349,7 +349,7 @@ namespace Reports {
 	class ErrandsRespondedAccordingToSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_according_to_sla_time';
 		function name() return I('Responded according to SLA time');
-		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() return report_errands_and_tags();
 		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.responded_within_sla = true';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
@@ -363,7 +363,7 @@ namespace Reports {
 	class ErrandsRespondedAfterSLATime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'errands_responeded_after_sla_time';
 		function name() return I('Responded after SLA time');
-		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
+		function select() return 'count(distinct(workflow_reporterranddatas.errand_id)) AS key';
 		function from() return report_errands_and_tags();
 		function where() return 'workflow_reporterranddatas.timestamp_close > 0 AND workflow_reporterranddatas.responded_within_sla = false';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
