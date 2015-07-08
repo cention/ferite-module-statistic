@@ -515,6 +515,8 @@ namespace Statistics {
 			}
 			if( .users and key.columnUser() and key.columnUser() != 'null' ) {
 				where[] = key.columnUser() + ' in (' + .users.join(',') + ')';
+			} else if( key.columnUser() and key.columnUser() != 'null' ) {
+				where[] = key.columnUser() + ' NOT IN (0)';
 			}
 
 			if( buildReport ) {
