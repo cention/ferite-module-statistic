@@ -53,7 +53,7 @@ namespace Reports {
 		if( report.users ) users = "AND ${tbl}.user_id IN (${report.users.join(',')}) ";
 
 		rows = Database.queryToArray(
-			"SELECT floor(avg(${tbl}.${datacol})) AS total " +
+			"SELECT floor(avg(${tbl}.${datacol}) / ${key.seconds()} ) AS total " +
 			"FROM ${tbl} " +
 			"WHERE ${tbl}.${timecol} >= ${report.startTime} " +
 			"AND ${tbl}.${timecol} <= ${report.endTime} " +
@@ -72,13 +72,13 @@ namespace Reports {
 			
 			if (group.on(key)) {
 				rows = Database.queryToArray(
-					"SELECT floor(avg(${tbl}.${datacol})) AS total" + ", " + group.select(key) +
+					"SELECT floor(avg(${tbl}.${datacol})  / ${key.seconds()} ) AS total" + ", " + group.select(key) +
 					" FROM ${tbl}  LEFT JOIN " +  group.join() + " ON " + group.on(key) +
 					" WHERE ${tbl}.${timecol} >= ${report.startTime} " +
 					" AND ${tbl}.${timecol} <= ${report.endTime} " +
 					" $areas $users $channels " + " GROUP BY " + group.groupBy()
 				);
-	
+
 				rows.each() using ( row ) {
 					string n = (group.needTranslation() ? I(row[name].trim(" \t\r\n")) : row[name].trim(" \t\r\n"));
 					if (n == '') n = ' ';
@@ -155,24 +155,28 @@ namespace Reports {
 		function identifier() return 'average_errand_response_time_in_seconds';
 		function name() return I('Average response time (seconds)');
 		function seconds() return 1;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandResponseTimeInMinutes extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_minutes';
 		function name() return I('Average response time (minutes)');
 		function seconds() return 60;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandResponseTimeInHours extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_hours';
 		function name() return I('Average response time (hours)');
 		function seconds() return 3600;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandResponseTimeInDays extends AverageErrandResponseTime {
 		function identifier() return 'average_errand_response_time_in_days';
 		function name() return I('Average response time (days)');
 		function seconds() return 86400;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
@@ -198,24 +202,28 @@ namespace Reports {
 		function identifier() return 'average_errand_process_time_in_seconds';
 		function name() return I('Average process time (seconds)');
 		function seconds() return 1;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandProcessTimeInMinutes extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_time_in_minutes';
 		function name() return I('Average process time (minutes)');
 		function seconds() return 60;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandProcessTimeInHours extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_in_hours';
 		function name() return I('Average process time (hours)');
 		function seconds() return 3600;
+		function resultFormatter (void v) return '' + v;
 	}
 
 	class AverageErrandProcessTimeInDays extends AverageErrandProcessTime {
 		function identifier() return 'average_errand_process_in_days';
 		function name() return I('Average process time (days)');
 		function seconds() return 86400;
+		function resultFormatter (void v) return '' + v;
 	}
 	
 	class ErrandProcessTime extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
