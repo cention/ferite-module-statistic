@@ -31,7 +31,7 @@ namespace modifies Array {
 					//Console.printlnErr('[DEBUG]  - Array Value: "' + a[i][name] + "'");
 					//Console.printlnErr('[DEBUG]  - Group Value: "' + groups[j] + "'");
 					if ( groups[j] isa string ) {
-						if( a[i][name] != groups[j].trim(' ') ) {
+						if( a[i][name].trim(' ') != groups[j].trim(' ') ) {
 							found = false;
 							break;
 						}
