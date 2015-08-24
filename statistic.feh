@@ -306,6 +306,15 @@ namespace Statistics {
 					}
 					time += .seconds();
 				}
+				if(time > endTime) {
+					string group = Date.localDate(endTime).format(.feriteSortFormat());
+					//Console.printlnErr('(GROUP) ' + group);
+					if( not have.keyExists(group) ) {
+						list[] = group;
+						have[group] = true;
+						timestamps[group] = endTime;
+					}
+				}
 
 				list = list.sort() using( a, b ) {
 					return String.orderedCompare(a, b);
