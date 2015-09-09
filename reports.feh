@@ -105,15 +105,24 @@ namespace Reports {
 		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
 	}
 
-	class UserActivityAvailable extends IncomingErrands {
+	class UserActivityAvailable extends Statistics.AbstractKeyFigure implements Statistics.KeyFigure {
 		function identifier() return 'available';
 		function name() return I('Available');
+		function select() return '';
+		function from() return '';
+		function where() return '';
+		function columnUser() return 'user';
+		function columnTime() return '';
+		function columnArea() return '';
+		function columnChannel() return '';
+		function columnTag() return '';
+		function columnOrganisation() return '';
 	}
-	class UserActivityAway extends IncomingErrands {
+	class UserActivityAway extends UserActivityAvailable {
 	function identifier() return 'away';
 		function name() return I('Away');
 	}
-	class UserActivityBreak extends IncomingErrands {
+	class UserActivityBreak extends UserActivityAvailable {
 	function identifier() return 'break';
 		function name() return I('Break');
 	}
