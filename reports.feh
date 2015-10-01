@@ -130,12 +130,12 @@ namespace Reports {
 		function identifier() return 'answer';
 		function name() return I('Answer');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return report_errands_and_tags() + ', workflow_feedbacks';
+		function from() return report_errands_and_tags() + ' LEFT JOIN workflow_feedbacks ON workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id ';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
 		function columnData() return 'workflow_reporterranddatas.errand_id';
-		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21) and workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id';
+		function where() return 'timestamp_close > 0 AND close_type IN (3, 13, 19, 20, 21) AND workflow_feedbacks.feedback IN (1, 2, 3, 4, 5)';
 		function columnUser() return 'workflow_reporterranddatas.user_id';
 		function columnTime() return 'workflow_reporterranddatas.timestamp_close';
 		function columnTag() return 'workflow_errand_tags_links.child_workflow_tag_id';
