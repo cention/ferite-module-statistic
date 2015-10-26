@@ -150,7 +150,7 @@ namespace Reports {
 		function identifier() return 'answer';
 		function name() return I('Answer');
 		function select() return 'count(workflow_reporterranddatas.errand_id) AS key';
-		function from() return report_errands_and_tags() + ' LEFT JOIN workflow_feedbacks ON workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id ';
+		function from() return 'workflow_reporterranddatas LEFT JOIN workflow_feedbacks ON workflow_feedbacks.errand_fkey = workflow_reporterranddatas.errand_id ';
 		function columnOrganisation() return 'workflow_reporterranddatas.organisation_id';
 		function columnArea() return 'workflow_reporterranddatas.area_id';
 		function columnChannel() return 'workflow_reporterranddatas.service_id';
