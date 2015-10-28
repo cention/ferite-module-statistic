@@ -412,7 +412,7 @@ namespace Reports {
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnUser() return 'null';
-		function columnChannel() return '3';
+		function columnChannel() return '';
 		function columnTag() return 'null';
 	}
 
@@ -426,7 +426,7 @@ namespace Reports {
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnUser() return 'null';
-		function columnChannel() return '3';
+		function columnChannel() return '';
 		function columnTag() return 'null';
 	}
 
@@ -440,7 +440,7 @@ namespace Reports {
 		function columnArea() return 'workflow_reportchatdatas.area_id';
 		function columnTime() return 'workflow_reportchatdatas.timestamp_when';
 		function columnUser() return 'null';
-		function columnChannel() return '3';
+		function columnChannel() return '';
 		function columnTag() return 'null';
 	}
 	
