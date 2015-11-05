@@ -126,6 +126,17 @@ namespace Reports {
 	function identifier() return 'break';
 		function name() return I('Break');
 	}
+	class ChatCapacity extends UserActivityAvailable {
+		function identifier() return 'break';
+		function name() return I('Chat Capacity Utilization (%)');
+		function columnChannel() return '';
+	}
+	class AverageChatMessageResponseTime extends UserActivityAvailable {
+		function identifier() return 'average_chat_message_response_time';
+		function name() return I('Average Chat Message Response Time');
+		function columnChannel() return '';
+	}
+
 	class ClosedErrands extends IncomingErrands {
 		function identifier() return 'closed';
 		function name() return I('Closed');
