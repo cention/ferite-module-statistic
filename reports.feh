@@ -126,6 +126,10 @@ namespace Reports {
 	function identifier() return 'break';
 		function name() return I('Break');
 	}
+	class UserActivityAvailableForChat extends UserActivityAvailable {
+	function identifier() return 'Available for chat';
+		function name() return I('Break');
+	}
 	class ChatCapacity extends UserActivityAvailable {
 		function identifier() return 'break';
 		function name() return I('Chat Capacity Utilization (%)');
