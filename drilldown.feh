@@ -41,8 +41,9 @@ namespace modifies Statistics {
 				rows = ObjRunObject.rawQuery(query);
 
 				rows.each() using ( row ) {
+					object errand = Workflow.Errand.loadWithView(row['errand_id'], 'Tiny');
 					items[] = [
-						'name' => I('Errand {0}').expand(row['errand_id']),
+						'name' => I('Errand {0}').expand(errand.getDisplayID()),
 						'value' => formatDateTimeTZ(row[columnTime],
 									timeZoneName),
 						'errand' => true,
