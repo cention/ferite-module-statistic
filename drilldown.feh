@@ -63,7 +63,7 @@ namespace modifies Statistics {
 			function loadStandard( string groupName, number startTime, 
 				number endTime, number channelID,
 				number organisationID, number areaID, number userID, number answerOption,
-				string timeZoneName )
+				string timeZoneName, array areaIds )
 			{
 				object report = new Statistics.Report();
 				object key = .getReport();
@@ -93,7 +93,11 @@ namespace modifies Statistics {
 
 				if( channelID ) report.setChannels([ channelID ]);
 				if( organisationID ) report.setOrganisations([ organisationID ]);
-				if( areaID ) report.setAreas([ areaID ]);
+				if( areaID ) {
+					report.setAreas([ areaID ]);
+				} else if (areaIds.size() > 0 ){
+					report.setAreas(areaIds);
+				}
 				if( userID ) report.setUsers([ userID ]);
 				if( answerOption ) report.setAnswerOption([ answerOption ]);
 
@@ -128,19 +132,21 @@ namespace modifies Statistics {
 			function loadData( string groupName, number startTime, 
 							number endTime, number channelID,
 							number organisationID, number areaID, 
-							number userID, number answerOption, string timeZoneName )
+							number userID, number answerOption, 
+							string timeZoneName, array areaIds )
 			{
 				if( groupName == 'errands' )
 					return .loadErrands(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, timeZoneName);
-				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, timeZoneName);
+				return .loadStandard(groupName, startTime, endTime, channelID, organisationID, areaID, userID, answerOption, timeZoneName, areaIds);
 			}
 
 			function loadFirstData() {
 				return .loadData('year', 0, Date.now(), 0, 0, 0, 0,0);
 			}
 
-			function loadFirstData(string timeZone) {
-				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0,0,timeZone);
+			function loadFirstData(string timeZone, array areaIds) {
+				return .loadData('year', 0, Date.GMTnow(), 0, 0, 0, 0,0,
+					timeZone, areaIds);
 			}
 		}
 	}
