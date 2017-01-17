@@ -187,7 +187,7 @@ namespace Statistics {
 				report.groups.each() using ( group ) {
 					string name = group.groupName();
 					string n = '' + (group.needTranslation() and result[i][name] isa string
-						? Statistics.I(result[i][name])
+						? Statistics.II(result[i][name])
 						: result[i][name]);
 					if (n == '') n = '-';
 					if( not totals.keyExists(name) )
@@ -622,7 +622,7 @@ namespace Statistics {
 						if( group.needTranslation() ) {
 							string name = group.groupName();
 							.result[i]['original_' + name] = .result[i][name];
-							.result[i][name] = Statistics.I(.result[i][name]);
+							.result[i][name] = Statistics.II(.result[i][name]);
 						}
 					}
 				};
@@ -1249,7 +1249,7 @@ namespace Statistics {
 		}
 	}
 
-	function I( string toTranslate ) {
+	function II( string toTranslate ) {
 		string translated = I(toTranslate);
 		if( translated.compareCase(toTranslate) /* if equal */ ) {
 			array list = [
